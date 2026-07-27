@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -13,6 +13,37 @@ import {
 import CardPreview from '../components/CardPreview.jsx'
 
 const DEMO_WALLET_URL = '/wallet/05102f7dbbc74eeea98ddfda98f39738'
+
+function Reveal({ children, className = '', delay = 0, style }) {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ease-out ${visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} ${className}`}
+      style={{ ...style, transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  )
+}
 
 const NAV_LINKS = [
   { href: '#inicio', label: 'Inicio' },
@@ -197,11 +228,14 @@ function Nav() {
 }
 
 const SHOWCASE_CARDS = [
-  { primario: '#18181B', texto: '#FAFAFA', sellos: 8, rotate: '-rotate-6', fondo: 'https://picsum.photos/seed/masplus-barberia/500/620' },
-  { primario: '#EA580C', texto: '#FFFFFF', sellos: 5, rotate: 'rotate-3' },
-  { primario: '#FFFFFF', texto: '#18181B', sellos: 6, rotate: '-rotate-2', bordered: true },
-  { primario: '#F97316', texto: '#FFFFFF', sellos: 4, rotate: 'rotate-6', fondo: 'https://picsum.photos/seed/masplus-cafeteria/500/620' },
-  { primario: '#27272A', texto: '#FAFAFA', sellos: 7, rotate: '-rotate-3' },
+  { primario: '#18181B', texto: '#FAFAFA', sellos: 8, fondo: 'https://picsum.photos/seed/masplus-barberia/500/620' },
+  { primario: '#EA580C', texto: '#FFFFFF', sellos: 5 },
+  { primario: '#FFFFFF', texto: '#18181B', sellos: 6, bordered: true },
+  { primario: '#F97316', texto: '#FFFFFF', sellos: 4, fondo: 'https://picsum.photos/seed/masplus-cafeteria/500/620' },
+  { primario: '#27272A', texto: '#FAFAFA', sellos: 7 },
+  { primario: '#EA580C', texto: '#FFFFFF', sellos: 3, fondo: 'https://picsum.photos/seed/masplus-spa/500/620' },
+  { primario: '#18181B', texto: '#FAFAFA', sellos: 6, fondo: 'https://picsum.photos/seed/masplus-panaderia/500/620' },
+  { primario: '#FFFFFF', texto: '#18181B', sellos: 9, bordered: true },
 ]
 
 function Hero() {
@@ -255,14 +289,10 @@ function Hero() {
         </div>
       </div>
 
-      <div className="relative mt-8 h-64 sm:h-72">
-        <div className="absolute inset-x-0 top-0 flex justify-center">
-          {SHOWCASE_CARDS.map((c, i) => (
-            <div
-              key={i}
-              className={`w-56 shrink-0 drop-shadow-xl sm:w-64 ${c.rotate} ${i > 0 ? '-ml-20 sm:-ml-24' : ''}`}
-              style={{ zIndex: i === 2 ? 10 : 5 - Math.abs(i - 2) }}
-            >
+      <div className="relative mt-10 h-72 overflow-hidden sm:h-80">
+        <div className="absolute inset-0 flex w-max animate-marquee-slow gap-6 px-6">
+          {[...SHOWCASE_CARDS, ...SHOWCASE_CARDS].map((c, i) => (
+            <div key={i} className="w-56 shrink-0 drop-shadow-xl sm:w-64">
               <div className={c.bordered ? 'overflow-hidden rounded-2xl border border-border' : 'overflow-hidden rounded-2xl'}>
                 <CardPreview
                   empresaNombre="Tu Negocio"
@@ -307,17 +337,17 @@ function BusinessMarquee() {
 function HowItWorks() {
   return (
     <section id="como-funciona" className="mx-auto max-w-6xl px-6 py-24">
-      <div className="mx-auto max-w-2xl text-center">
+      <Reveal className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">¿Cómo funciona?</h2>
         <p className="mt-3 text-muted-foreground">Tres pasos, sin fricciones, para dejar atrás el papel.</p>
-      </div>
+      </Reveal>
       <div className="mt-14 grid gap-8 md:grid-cols-3">
-        {STEPS.map((step) => (
-          <div key={step.n} className="relative rounded-2xl border border-border bg-card p-7">
+        {STEPS.map((step, i) => (
+          <Reveal key={step.n} delay={i * 100} className="relative rounded-2xl border border-border bg-card p-7">
             <span className="text-sm font-semibold text-orange-600">{step.n}</span>
             <h3 className="mt-2 text-xl font-semibold">{step.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
-          </div>
+          </Reveal>
         ))}
       </div>
     </section>
@@ -328,20 +358,20 @@ function Features() {
   return (
     <section id="funciones" className="bg-secondary/40 py-24">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Dale a tu negocio el poder de la lealtad
           </h2>
-        </div>
+        </Reveal>
         <div className="mt-14 grid gap-6 sm:grid-cols-2">
-          {FEATURES.map(({ icon: Icon, title, text }) => (
-            <div key={title} className="rounded-2xl border border-border bg-card p-7">
+          {FEATURES.map(({ icon: Icon, title, text }, i) => (
+            <Reveal key={title} delay={i * 80} className="rounded-2xl border border-border bg-card p-7">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 text-lg font-semibold">{title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{text}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -354,7 +384,7 @@ function Pricing() {
 
   return (
     <section id="precios" className="mx-auto max-w-6xl px-6 py-24">
-      <div className="mx-auto max-w-2xl text-center">
+      <Reveal className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Elige tu plan ideal</h2>
         <p className="mt-3 text-muted-foreground">Sin cargos ocultos. Cancela cuando quieras.</p>
 
@@ -374,14 +404,15 @@ function Pricing() {
             Anual · 2 meses gratis
           </button>
         </div>
-      </div>
+      </Reveal>
 
       <div className="mt-14 grid gap-6 md:grid-cols-3">
-        {PLANS.map((plan) => {
+        {PLANS.map((plan, i) => {
           const price = annual ? Math.round(plan.monthly * 0.833) : plan.monthly
           return (
-            <div
+            <Reveal
               key={plan.name}
+              delay={i * 100}
               className={`relative rounded-2xl border p-7 ${plan.popular ? 'border-orange-600 shadow-lg' : 'border-border'}`}
             >
               {plan.popular && (
@@ -412,7 +443,7 @@ function Pricing() {
               >
                 Empezar
               </Link>
-            </div>
+            </Reveal>
           )
         })}
       </div>
@@ -424,17 +455,17 @@ function Testimonials() {
   return (
     <section className="bg-secondary/40 py-24">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Así se sentirán tus clientes
           </h2>
           <p className="mt-3 text-muted-foreground">
             Estamos en los primeros días de MasPlus — así imaginamos las reseñas de negocios como el tuyo.
           </p>
-        </div>
+        </Reveal>
         <div className="mt-14 grid gap-6 md:grid-cols-3">
           {TESTIMONIALS.map((t, i) => (
-            <div key={i} className="rounded-2xl border border-border bg-card p-7">
+            <Reveal key={i} delay={i * 100} className="rounded-2xl border border-border bg-card p-7">
               <p className="text-sm leading-relaxed">&ldquo;{t.text}&rdquo;</p>
               <div className="mt-4 flex items-center gap-3">
                 <img src={t.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
@@ -443,7 +474,7 @@ function Testimonials() {
                   <p className="text-xs text-muted-foreground">{t.business}</p>
                 </div>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
         <p className="mt-6 text-center text-xs text-muted-foreground">
@@ -458,10 +489,12 @@ function Faq() {
   const [open, setOpen] = useState(0)
   return (
     <section className="mx-auto max-w-3xl px-6 py-24">
-      <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-4xl">
-        Preguntas frecuentes
-      </h2>
-      <div className="mt-12 divide-y divide-border rounded-2xl border border-border">
+      <Reveal>
+        <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+          Preguntas frecuentes
+        </h2>
+      </Reveal>
+      <Reveal delay={100} className="mt-12 divide-y divide-border rounded-2xl border border-border">
         {FAQS.map((item, i) => {
           const isOpen = open === i
           return (
@@ -478,7 +511,7 @@ function Faq() {
             </div>
           )
         })}
-      </div>
+      </Reveal>
     </section>
   )
 }
@@ -486,7 +519,7 @@ function Faq() {
 function CtaBanner() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-24">
-      <div
+      <Reveal
         className="relative overflow-hidden rounded-3xl px-8 py-14 text-center text-white sm:px-16"
         style={{
           backgroundImage:
@@ -508,7 +541,7 @@ function CtaBanner() {
           Empieza gratis ahora
           <ArrowRight className="h-4 w-4" />
         </Link>
-      </div>
+      </Reveal>
     </section>
   )
 }

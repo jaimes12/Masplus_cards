@@ -94,3 +94,7 @@ body {
 .animate-marquee {
   animation: marquee-left 32s linear infinite;
 }
+
+.animate-marquee-slow {
+  animation: marquee-left 40s linear infinite;
+}
