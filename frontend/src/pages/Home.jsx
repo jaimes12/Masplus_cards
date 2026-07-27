@@ -112,16 +112,19 @@ const TESTIMONIALS = [
     name: 'Nombre de ejemplo',
     business: 'Cafetería de ejemplo',
     text: 'Desde que dejamos las tarjetitas de papel, casi no perdemos clientes por olvido. La traen siempre en el celular.',
+    avatar: 'https://i.pravatar.cc/100?img=12',
   },
   {
     name: 'Nombre de ejemplo',
     business: 'Barbería de ejemplo',
     text: 'Sumar el sello toma dos segundos: escaneo el QR y listo. Antes perdíamos minutos buscando la tarjeta física.',
+    avatar: 'https://i.pravatar.cc/100?img=33',
   },
   {
     name: 'Nombre de ejemplo',
     business: 'Estudio de uñas de ejemplo',
     text: 'Que la tarjeta se actualice sola en su Wallet, sin que el cliente haga nada, se siente muy profesional.',
+    avatar: 'https://i.pravatar.cc/100?img=47',
   },
 ]
 
@@ -194,10 +197,10 @@ function Nav() {
 }
 
 const SHOWCASE_CARDS = [
-  { primario: '#18181B', texto: '#FAFAFA', sellos: 8, rotate: '-rotate-6' },
+  { primario: '#18181B', texto: '#FAFAFA', sellos: 8, rotate: '-rotate-6', fondo: 'https://picsum.photos/seed/masplus-barberia/500/620' },
   { primario: '#EA580C', texto: '#FFFFFF', sellos: 5, rotate: 'rotate-3' },
   { primario: '#FFFFFF', texto: '#18181B', sellos: 6, rotate: '-rotate-2', bordered: true },
-  { primario: '#F97316', texto: '#FFFFFF', sellos: 4, rotate: 'rotate-6' },
+  { primario: '#F97316', texto: '#FFFFFF', sellos: 4, rotate: 'rotate-6', fondo: 'https://picsum.photos/seed/masplus-cafeteria/500/620' },
   { primario: '#27272A', texto: '#FAFAFA', sellos: 7, rotate: '-rotate-3' },
 ]
 
@@ -267,6 +270,7 @@ function Hero() {
                   colorPrimario={c.primario}
                   colorTexto={c.texto}
                   sellosRequeridos={c.sellos}
+                  fondoUrl={c.fondo}
                 />
               </div>
             </div>
@@ -432,8 +436,13 @@ function Testimonials() {
           {TESTIMONIALS.map((t, i) => (
             <div key={i} className="rounded-2xl border border-border bg-card p-7">
               <p className="text-sm leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-              <p className="mt-4 text-sm font-semibold">{t.name}</p>
-              <p className="text-xs text-muted-foreground">{t.business}</p>
+              <div className="mt-4 flex items-center gap-3">
+                <img src={t.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+                <div>
+                  <p className="text-sm font-semibold">{t.name}</p>
+                  <p className="text-xs text-muted-foreground">{t.business}</p>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -477,7 +486,15 @@ function Faq() {
 function CtaBanner() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-24">
-      <div className="rounded-3xl bg-gradient-to-br from-orange-600 to-orange-700 px-8 py-14 text-center text-white sm:px-16">
+      <div
+        className="relative overflow-hidden rounded-3xl px-8 py-14 text-center text-white sm:px-16"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(194,65,12,0.88), rgba(154,52,18,0.92)), url(https://picsum.photos/seed/masplus-cta/1600/700)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           Deja el papel. Empieza a fidelizar hoy.
         </h2>
