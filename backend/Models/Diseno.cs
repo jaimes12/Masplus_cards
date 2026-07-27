@@ -1,0 +1,34 @@
+namespace MasplusCards.Api.Models;
+
+/// <summary>Personalización que una empresa hace sobre un Template (o desde cero): su tarjeta lista para emitir.</summary>
+public class Diseno
+{
+    public int Id { get; set; }
+    public int EmpresaId { get; set; }
+    public int? TemplateId { get; set; }
+
+    public string? Nombre { get; set; }
+    public string? Logo { get; set; }
+    public string? ColorPrimario { get; set; }
+    public string? ColorSecundario { get; set; }
+    public string? ColorTexto { get; set; }
+    public string? IconoSello { get; set; }
+
+    /// <summary>Cantidad de sellos necesarios para canjear un premio (si TipoRecompensa = "sellos").</summary>
+    public int SellosRequeridos { get; set; } = 10;
+
+    public string? Descripcion { get; set; }
+
+    /// <summary>JSON con overrides libres de layout/estilo sobre la Estructura del Template.</summary>
+    public string? Configuracion { get; set; }
+
+    /// <summary>Si es false, queda oculto para nuevas emisiones.</summary>
+    public bool Activo { get; set; } = true;
+
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+
+    public Empresa? Empresa { get; set; }
+    public Template? Template { get; set; }
+    public List<Tarjeta> Tarjetas { get; set; } = new();
+}
