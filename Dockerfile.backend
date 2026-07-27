@@ -1,0 +1,17 @@
+# Contexto de build = raíz del repositorio (Railway sin "Root Directory" o root en el repo).
+# En Railway: Dockerfile path = Dockerfile.backend (o ./Dockerfile.backend)
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+COPY backend/MasplusCards.Api.csproj backend/
+RUN dotnet restore backend/MasplusCards.Api.csproj
+
+COPY backend/ backend/
+RUN dotnet publish backend/MasplusCards.Api.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+
+ENV DOTNET_EnableDiagnostics=0
+ENTRYPOINT ["dotnet", "MasplusCards.Api.dll"]

@@ -1,0 +1,6 @@
+bin/
+obj/
+**/._*
+
+# Credenciales locales — no comitear (usar appsettings.Development.json.example como plantilla)
+appsettings.Development.json

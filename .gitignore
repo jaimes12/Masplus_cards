@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+**/._*
+
+# Backend (.NET)
+backend/bin/
+backend/obj/
+
+# Frontend (Node/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/*.local
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
