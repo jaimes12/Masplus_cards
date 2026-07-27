@@ -3,9 +3,28 @@ import { Html5Qrcode } from 'html5-qrcode'
 
 let scannerIdCounter = 0
 
+/// html5-qrcode puede tirar "Cannot stop, scanner is not running or paused." de forma
+/// SÍNCRONA (no como promesa rechazada) si se llama stop() dos veces seguidas — pasa al
+/// desmontar justo después de un escaneo exitoso. Por eso el try/catch envuelve la llamada
+/// en sí, no solo el .catch() de la promesa que devuelve.
+function safeStop(scanner) {
+  try {
+    const result = scanner.stop()
+    if (result?.then) {
+      result.then(() => scanner.clear()).catch(() => {})
+    } else {
+      scanner.clear()
+    }
+  } catch {
+    // ya estaba detenido o nunca llegó a arrancar del todo
+  }
+}
+
 export default function QrScanner({ onScan }) {
   const elementId = useRef(`qr-scanner-${++scannerIdCounter}`)
   const [error, setError] = useState('')
+  const onScanRef = useRef(onScan)
+  onScanRef.current = onScan
 
   useEffect(() => {
     let scanner
@@ -20,11 +39,8 @@ export default function QrScanner({ onScan }) {
           (decodedText) => {
             if (stopped) return
             stopped = true
-            scanner
-              .stop()
-              .then(() => scanner.clear())
-              .catch(() => {})
-            onScan(decodedText)
+            safeStop(scanner)
+            onScanRef.current(decodedText)
           },
           () => {
             // frame sin QR detectado, se ignora
@@ -38,15 +54,11 @@ export default function QrScanner({ onScan }) {
     start()
 
     return () => {
+      if (stopped) return
       stopped = true
-      if (scanner) {
-        scanner
-          .stop()
-          .then(() => scanner.clear())
-          .catch(() => {})
-      }
+      if (scanner) safeStop(scanner)
     }
-  }, [onScan])
+  }, [])
 
   if (error) {
     return (
