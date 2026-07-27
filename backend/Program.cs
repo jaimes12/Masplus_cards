@@ -19,8 +19,17 @@ builder.Services.AddHttpClient(AppleWalletPassService.HttpClientName);
 
 builder.Services.Configure<AppleWalletConfiguration>(
     builder.Configuration.GetSection("AppleWalletConfiguration"));
-builder.Services.Configure<R2Configuration>(
-    builder.Configuration.GetSection("R2"));
+builder.Services.Configure<R2Configuration>(options =>
+{
+    builder.Configuration.GetSection("R2").Bind(options);
+    // Railway: variables sueltas R2_ACCESS_KEY / R2_SECRET_KEY / R2_BUCKET / R2_ENDPOINT / R2_PUBLIC_URL
+    // en vez de la convención R2__AccessKey de .NET.
+    options.AccessKey = Environment.GetEnvironmentVariable("R2_ACCESS_KEY") ?? options.AccessKey;
+    options.SecretKey = Environment.GetEnvironmentVariable("R2_SECRET_KEY") ?? options.SecretKey;
+    options.Bucket = Environment.GetEnvironmentVariable("R2_BUCKET") ?? options.Bucket;
+    options.Endpoint = Environment.GetEnvironmentVariable("R2_ENDPOINT") ?? options.Endpoint;
+    options.PublicUrl = Environment.GetEnvironmentVariable("R2_PUBLIC_URL") ?? options.PublicUrl;
+});
 
 var jwtSigningKey =
     builder.Configuration["Jwt:SigningKey"]
