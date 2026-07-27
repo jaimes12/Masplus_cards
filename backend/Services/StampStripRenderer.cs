@@ -78,19 +78,25 @@ public static class StampStripRenderer
                 if (filled)
                     ctx.Fill(WithAlpha(foreground, 0.16f), ring);
 
-                ctx.Draw(WithAlpha(foreground, filled ? 0.95f : 0.35f), 4f, ring);
-
                 if (icon != null)
                 {
-                    var iconSize = (int)(circleRadius * 1.15f);
-                    using var resized = icon.Clone(x => x.Resize(iconSize, iconSize));
-                    var pos = new Point((int)(cx - iconSize / 2f), (int)(cy - iconSize / 2f));
-                    ctx.DrawImage(resized, pos, filled ? 1f : 0.35f);
+                    var iconDiameter = (int)(circleRadius * 1.9f);
+                    using var resized = icon.Clone(x => x.Resize(new ResizeOptions
+                    {
+                        Size = new Size(iconDiameter, iconDiameter),
+                        Mode = ResizeMode.Crop,
+                        Position = AnchorPositionMode.Center,
+                    }));
+                    var iconRing = new EllipsePolygon(cx, cy, iconDiameter / 2f);
+                    var opacity = filled ? 1f : 0.35f;
+                    ctx.Fill(new DrawingOptions { GraphicsOptions = new GraphicsOptions { BlendPercentage = opacity } }, new ImageBrush(resized), iconRing);
                 }
                 else if (filled)
                 {
                     DrawCheckmark(ctx, cx, cy, circleRadius, foreground);
                 }
+
+                ctx.Draw(WithAlpha(foreground, filled ? 0.95f : 0.35f), 4f, ring);
             }
         });
 

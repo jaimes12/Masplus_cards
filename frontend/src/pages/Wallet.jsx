@@ -100,7 +100,7 @@ export default function Wallet() {
                 <img
                   src={tarjeta.iconoSello}
                   alt=""
-                  className="h-6 w-6 object-contain"
+                  className="h-full w-full rounded-full object-cover"
                   style={{ opacity: ganado ? 1 : 0.35 }}
                 />
               ) : (

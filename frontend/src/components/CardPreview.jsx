@@ -58,7 +58,7 @@ export default function CardPreview({
             }}
           >
             {iconoSello ? (
-              <img src={iconoSello} alt="" className="h-5 w-5 object-contain" style={{ opacity: ganado ? 1 : 0.35 }} />
+              <img src={iconoSello} alt="" className="h-full w-full rounded-full object-cover" style={{ opacity: ganado ? 1 : 0.35 }} />
             ) : (
               ganado && <Check className="h-4 w-4" style={{ color: texto }} />
             )}
