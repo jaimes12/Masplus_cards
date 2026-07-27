@@ -193,6 +193,14 @@ function Nav() {
   )
 }
 
+const SHOWCASE_CARDS = [
+  { primario: '#18181B', texto: '#FAFAFA', sellos: 8, rotate: '-rotate-6' },
+  { primario: '#EA580C', texto: '#FFFFFF', sellos: 5, rotate: 'rotate-3' },
+  { primario: '#FFFFFF', texto: '#18181B', sellos: 6, rotate: '-rotate-2', bordered: true },
+  { primario: '#F97316', texto: '#FFFFFF', sellos: 4, rotate: 'rotate-6' },
+  { primario: '#27272A', texto: '#FAFAFA', sellos: 7, rotate: '-rotate-3' },
+]
+
 function Hero() {
   return (
     <section id="inicio" className="relative overflow-hidden">
@@ -200,69 +208,69 @@ function Hero() {
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            'radial-gradient(circle at 20% -10%, rgba(249,115,22,0.16), transparent 45%), radial-gradient(circle at 85% 10%, rgba(234,88,12,0.14), transparent 40%)',
+            'radial-gradient(circle at 50% -10%, rgba(249,115,22,0.18), transparent 45%), radial-gradient(circle at 85% 10%, rgba(234,88,12,0.12), transparent 40%)',
         }}
       />
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-16 md:grid-cols-2 md:pt-24">
-        <div>
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5" />
-            Los sellos se actualizan solos en Apple Wallet
-          </div>
-          <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-            Convierte cada visita en una razón para volver.
-          </h1>
-          <p className="mt-5 text-lg text-muted-foreground">
-            Crea tarjetas de sellos y recompensas digitales que tus clientes guardan en su celular.
-            Sin apps que descargar, sin tarjetitas de papel que se pierden.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              to="/empresa/registro"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-            >
-              Empieza gratis
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <a
-              href={DEMO_WALLET_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-border px-6 py-3 text-sm font-semibold hover:bg-secondary"
-            >
-              Ver demo en vivo
-            </a>
-          </div>
-          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-orange-600" /> Actívalo en minutos
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-orange-600" /> Sin compromisos, cancela cuando quieras
-            </span>
-          </div>
+      <div className="mx-auto max-w-3xl px-6 pb-4 pt-16 text-center md:pt-24">
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5" />
+          Los sellos se actualizan solos en Apple Wallet
         </div>
+        <h1 className="text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+          Convierte cada visita
+          <br />
+          <span className="text-orange-600">en una razón para volver.</span>
+        </h1>
+        <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
+          Crea tarjetas de sellos y recompensas digitales que tus clientes guardan en su celular.
+          Sin apps que descargar, sin tarjetitas de papel que se pierden.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            to="/empresa/registro"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+          >
+            Empieza gratis
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <a
+            href={DEMO_WALLET_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-orange-600 px-6 py-3 text-sm font-semibold text-orange-600 hover:bg-orange-50"
+          >
+            Ver demo en vivo
+          </a>
+        </div>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="h-4 w-4 text-orange-600" /> Actívalo en minutos
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="h-4 w-4 text-orange-600" /> Sin compromisos, cancela cuando quieras
+          </span>
+        </div>
+      </div>
 
-        <div className="relative flex items-center justify-center py-6">
-          <div className="absolute -z-10 h-72 w-72 rounded-full bg-orange-500/10 blur-3xl" />
-          <div className="-rotate-6">
-            <CardPreview
-              empresaNombre="Tu Negocio"
-              clienteNombre="Cliente frecuente"
-              colorPrimario="#EA580C"
-              colorTexto="#FFFFFF"
-              sellosRequeridos={8}
-            />
-          </div>
-          <div className="absolute right-0 top-10 hidden rotate-6 opacity-90 drop-shadow-xl sm:block">
-            <CardPreview
-              empresaNombre="Tu Negocio"
-              clienteNombre="Cliente frecuente"
-              colorPrimario="#18181B"
-              colorTexto="#FAFAFA"
-              sellosRequeridos={6}
-            />
-          </div>
+      <div className="relative mt-8 h-64 sm:h-72">
+        <div className="absolute inset-x-0 top-0 flex justify-center">
+          {SHOWCASE_CARDS.map((c, i) => (
+            <div
+              key={i}
+              className={`w-56 shrink-0 drop-shadow-xl sm:w-64 ${c.rotate} ${i > 0 ? '-ml-20 sm:-ml-24' : ''}`}
+              style={{ zIndex: i === 2 ? 10 : 5 - Math.abs(i - 2) }}
+            >
+              <div className={c.bordered ? 'overflow-hidden rounded-2xl border border-border' : 'overflow-hidden rounded-2xl'}>
+                <CardPreview
+                  empresaNombre="Tu Negocio"
+                  clienteNombre="Cliente frecuente"
+                  colorPrimario={c.primario}
+                  colorTexto={c.texto}
+                  sellosRequeridos={c.sellos}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
