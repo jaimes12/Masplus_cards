@@ -32,6 +32,7 @@ public class WalletController : ControllerBase
             Logo: tarjeta.Logo,
             ColorPrimario: tarjeta.ColorPrimario,
             ColorTexto: tarjeta.ColorTexto,
+            IconoSello: tarjeta.IconoSello,
             ClienteNombre: tarjeta.ClienteNombre ?? "",
             SellosActuales: tarjeta.SellosActuales,
             SellosRequeridos: tarjeta.SellosRequeridos,

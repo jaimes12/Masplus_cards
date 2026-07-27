@@ -7,6 +7,7 @@ public record AppleWalletPassInput(
     string? Logo,
     string? ColorPrimario,
     string? ColorTexto,
+    string? IconoSello,
     string ClienteNombre,
     int SellosActuales,
     int SellosRequeridos,

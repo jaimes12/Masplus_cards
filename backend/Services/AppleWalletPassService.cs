@@ -44,8 +44,23 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         var logo = await GetBytesCachedAsync($"{CachePrefix}logo:{logoUrl.GetHashCode():X}", logoUrl, cancellationToken);
         var icon = await GetBytesCachedAsync($"{CachePrefix}icon:{iconUrl.GetHashCode():X}", iconUrl, cancellationToken);
 
+        byte[]? stampIcon = null;
+        if (NonEmpty(input.IconoSello) is { } stampIconUrl)
+        {
+            try
+            {
+                stampIcon = await GetBytesCachedAsync($"{CachePrefix}stamp:{stampIconUrl.GetHashCode():X}", stampIconUrl, cancellationToken);
+            }
+            catch
+            {
+                stampIcon = null;
+            }
+        }
+
         var backgroundColor = NonEmpty(input.ColorPrimario) ?? DefaultBackgroundColor;
         var foregroundColor = NonEmpty(input.ColorTexto) ?? DefaultForegroundColor;
+
+        var strip = StampStripRenderer.Render(backgroundColor, foregroundColor, input.SellosRequeridos, input.SellosActuales, stampIcon);
 
         var request = new PassGeneratorRequest
         {
@@ -68,10 +83,15 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
                 { PassbookImage.Logo, logo },
                 { PassbookImage.Logo2X, logo },
                 { PassbookImage.Logo3X, logo },
+                { PassbookImage.Strip, strip },
+                { PassbookImage.Strip2X, strip },
+                { PassbookImage.Strip3X, strip },
             },
         };
 
-        request.AddPrimaryField(new StandardField("sellos", "SELLOS", $"{input.SellosActuales} / {input.SellosRequeridos}"));
+        var faltan = Math.Max(input.SellosRequeridos - input.SellosActuales, 0);
+        request.AddPrimaryField(new StandardField(
+            "sellos", "SELLOS", faltan > 0 ? $"Faltan {faltan}" : "¡Premio disponible!"));
         request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
         request.AddAuxiliaryField(new StandardField("premios", "PREMIOS", input.PremiosCanjeados.ToString()));
 
