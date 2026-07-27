@@ -1,15 +1,48 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MasplusCards.Api.Data;
+using MasplusCards.Api.Infrastructure;
 using MasplusCards.Api.Models;
+using MasplusCards.Api.Services;
+using MasplusCards.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient(AppleWalletPassService.HttpClientName);
 
 builder.Services.Configure<AppleWalletConfiguration>(
     builder.Configuration.GetSection("AppleWalletConfiguration"));
+
+var jwtSigningKey =
+    builder.Configuration["Jwt:SigningKey"]
+    ?? Environment.GetEnvironmentVariable("JWT_SIGNING_KEY")
+    ?? throw new InvalidOperationException(
+        "No se encontró la clave de firma JWT. Define Jwt:SigningKey (ej. Jwt__SigningKey) o la env var JWT_SIGNING_KEY.");
+
+var jwtOptions = new JwtOptions { SigningKey = jwtSigningKey };
+builder.Configuration.GetSection("Jwt").Bind(jwtOptions);
+jwtOptions.SigningKey = jwtSigningKey;
+builder.Services.Configure<JwtOptions>(options =>
+{
+    options.SigningKey = jwtOptions.SigningKey;
+    options.Issuer = jwtOptions.Issuer;
+    options.ExpirationHours = jwtOptions.ExpirationHours;
+});
+builder.Services.AddSingleton<JwtService>();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITemplatesService, TemplatesService>();
+builder.Services.AddScoped<IDisenosService, DisenosService>();
+builder.Services.AddScoped<IClientesService, ClientesService>();
+builder.Services.AddScoped<ITarjetasService, TarjetasService>();
+builder.Services.AddScoped<IAppleWalletPassService, AppleWalletPassService>();
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
@@ -49,6 +82,22 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Issuer,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
+            ValidateLifetime = true,
+        };
+    });
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -59,6 +108,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("Frontend");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

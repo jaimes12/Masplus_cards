@@ -1,0 +1,105 @@
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using Passbook.Generator;
+using Passbook.Generator.Fields;
+using MasplusCards.Api.Dtos;
+using MasplusCards.Api.Models;
+using MasplusCards.Api.Services.Interfaces;
+
+namespace MasplusCards.Api.Services;
+
+public sealed class AppleWalletPassService : IAppleWalletPassService
+{
+    public const string HttpClientName = nameof(AppleWalletPassService);
+    private const string CachePrefix = "apple-wallet:img:";
+
+    private const string DefaultBackgroundColor = "#18181B";
+    private const string DefaultForegroundColor = "#FAFAFA";
+    private const string DefaultLabelColor = "#A1A1AA";
+    private const string DefaultIconFallback = "https://picsum.photos/seed/masplus-icon/87/87";
+    private const string DefaultLogoFallback = "https://picsum.photos/seed/masplus-logo/160/50";
+
+    private readonly AppleWalletConfiguration _cfg;
+    private readonly IHttpClientFactory _httpFactory;
+    private readonly IMemoryCache _cache;
+
+    public AppleWalletPassService(IOptions<AppleWalletConfiguration> options, IHttpClientFactory httpFactory, IMemoryCache cache)
+    {
+        _cfg = options.Value;
+        _httpFactory = httpFactory;
+        _cache = cache;
+    }
+
+    public async Task<byte[]> GenerateStoreCardAsync(AppleWalletPassInput input, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_cfg.PassTypeIdentifier))
+            throw new InvalidOperationException("PassTypeIdentifier no está configurado en AppleWalletConfiguration.");
+
+        var wwdrCert = _cfg.AppleWWDRCACertificate();
+        var passbookCert = _cfg.PassbookCertificate();
+
+        var logoUrl = NonEmpty(input.Logo) ?? NonEmpty(_cfg.LogoUrl) ?? DefaultLogoFallback;
+        var iconUrl = NonEmpty(_cfg.IconUrl) ?? DefaultIconFallback;
+
+        var logo = await GetBytesCachedAsync($"{CachePrefix}logo:{logoUrl.GetHashCode():X}", logoUrl, cancellationToken);
+        var icon = await GetBytesCachedAsync($"{CachePrefix}icon:{iconUrl.GetHashCode():X}", iconUrl, cancellationToken);
+
+        var backgroundColor = NonEmpty(input.ColorPrimario) ?? DefaultBackgroundColor;
+        var foregroundColor = NonEmpty(input.ColorTexto) ?? DefaultForegroundColor;
+
+        var request = new PassGeneratorRequest
+        {
+            Style = PassStyle.StoreCard,
+            PassTypeIdentifier = _cfg.PassTypeIdentifier,
+            SerialNumber = input.SerialNumber,
+            OrganizationName = input.OrganizationName,
+            BackgroundColor = HexToRgb(backgroundColor),
+            ForegroundColor = HexToRgb(foregroundColor),
+            LabelColor = HexToRgb(DefaultLabelColor),
+            Description = $"Tarjeta de fidelidad {input.OrganizationName}",
+            AppleWWDRCACertificate = wwdrCert,
+            PassbookCertificate = passbookCert,
+            LogoText = input.OrganizationName,
+            Images =
+            {
+                { PassbookImage.Icon, icon },
+                { PassbookImage.Icon2X, icon },
+                { PassbookImage.Icon3X, icon },
+                { PassbookImage.Logo, logo },
+                { PassbookImage.Logo2X, logo },
+                { PassbookImage.Logo3X, logo },
+            },
+        };
+
+        request.AddPrimaryField(new StandardField("sellos", "SELLOS", $"{input.SellosActuales} / {input.SellosRequeridos}"));
+        request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
+        request.AddAuxiliaryField(new StandardField("premios", "PREMIOS", input.PremiosCanjeados.ToString()));
+
+        request.AddBarcode(BarcodeType.PKBarcodeFormatQR, input.CodigoQr, "UTF-8", input.CodigoQr);
+
+        return new PassGenerator().Generate(request);
+    }
+
+    private static string? NonEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
+
+    private static string HexToRgb(string hex)
+    {
+        hex = hex.TrimStart('#');
+        if (hex.Length != 6) return "rgb(24,24,27)";
+        var r = Convert.ToInt32(hex[..2], 16);
+        var g = Convert.ToInt32(hex.Substring(2, 2), 16);
+        var b = Convert.ToInt32(hex.Substring(4, 2), 16);
+        return $"rgb({r},{g},{b})";
+    }
+
+    private async Task<byte[]> GetBytesCachedAsync(string cacheKey, string url, CancellationToken cancellationToken)
+    {
+        if (_cache.TryGetValue(cacheKey, out byte[]? cached) && cached != null)
+            return cached;
+
+        var client = _httpFactory.CreateClient(HttpClientName);
+        var bytes = await client.GetByteArrayAsync(url, cancellationToken);
+        _cache.Set(cacheKey, bytes, TimeSpan.FromMinutes(30));
+        return bytes;
+    }
+}

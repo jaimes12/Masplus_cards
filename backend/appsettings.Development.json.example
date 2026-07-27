@@ -2,6 +2,11 @@
   "ConnectionStrings": {
     "DefaultConnection": "Server=localhost;Port=3306;Database=masplus_cards;User=root;Password=;"
   },
+  "Jwt": {
+    "SigningKey": "",
+    "Issuer": "MasplusCards.Api",
+    "ExpirationHours": 168
+  },
   "AppleWalletConfiguration": {
     "PassTypeIdentifier": "",
     "WWDRCertificateBase64": "",
