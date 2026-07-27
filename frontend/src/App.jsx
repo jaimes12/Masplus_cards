@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import LoginEmpresa from './pages/LoginEmpresa.jsx'
 import RegisterEmpresa from './pages/RegisterEmpresa.jsx'
@@ -6,11 +6,13 @@ import LoginAdmin from './pages/LoginAdmin.jsx'
 import Wallet from './pages/Wallet.jsx'
 import EmpresaLayout from './layouts/EmpresaLayout.jsx'
 import AdminLayout from './layouts/AdminLayout.jsx'
-import Dashboard from './pages/empresa/Dashboard.jsx'
+import EmpresaDashboard from './pages/empresa/Dashboard.jsx'
 import Disenos from './pages/empresa/Disenos.jsx'
 import Clientes from './pages/empresa/Clientes.jsx'
 import Tarjetas from './pages/empresa/Tarjetas.jsx'
+import AdminDashboard from './pages/admin/Dashboard.jsx'
 import Templates from './pages/admin/Templates.jsx'
+import Empresas from './pages/admin/Empresas.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 function App() {
@@ -29,7 +31,7 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Dashboard />} />
+        <Route index element={<EmpresaDashboard />} />
         <Route path="disenos" element={<Disenos />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="tarjetas" element={<Tarjetas />} />
@@ -44,8 +46,9 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="templates" replace />} />
+        <Route index element={<AdminDashboard />} />
         <Route path="templates" element={<Templates />} />
+        <Route path="empresas" element={<Empresas />} />
       </Route>
     </Routes>
   )

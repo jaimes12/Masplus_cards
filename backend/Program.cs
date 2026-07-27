@@ -43,6 +43,7 @@ builder.Services.AddScoped<IDisenosService, DisenosService>();
 builder.Services.AddScoped<IClientesService, ClientesService>();
 builder.Services.AddScoped<ITarjetasService, TarjetasService>();
 builder.Services.AddScoped<IAppleWalletPassService, AppleWalletPassService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))

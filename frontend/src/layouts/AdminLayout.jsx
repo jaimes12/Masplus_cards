@@ -1,8 +1,14 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
+import { Building2, LayoutDashboard, LogOut, ShieldCheck, LayoutTemplate } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import Sidebar from '../components/Sidebar.jsx'
 import { Button } from '../components/ui.jsx'
 
-const links = [{ to: '/admin/templates', label: 'Templates' }]
+const items = [
+  { to: '/admin', label: 'Resumen', icon: LayoutDashboard, end: true },
+  { to: '/admin/templates', label: 'Templates', icon: LayoutTemplate },
+  { to: '/admin/empresas', label: 'Empresas', icon: Building2 },
+]
 
 export default function AdminLayout() {
   const { auth, logout } = useAuth()
@@ -14,32 +20,30 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="min-h-svh">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-6">
-            <span className="font-semibold">Admin · {auth?.nombre}</span>
-            <nav className="flex gap-4 text-sm">
-              {links.map((l) => (
-                <NavLink
-                  key={l.to}
-                  to={l.to}
-                  className={({ isActive }) =>
-                    isActive ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'
-                  }
-                >
-                  {l.label}
-                </NavLink>
-              ))}
-            </nav>
+    <div className="flex min-h-svh">
+      <Sidebar
+        brand={
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate font-semibold leading-tight">{auth?.nombre}</p>
+              <p className="text-xs text-muted-foreground">Panel de administración</p>
+            </div>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            Salir
+        }
+        items={items}
+        footer={
+          <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
+            <LogOut className="h-4 w-4" /> Salir
           </Button>
+        }
+      />
+      <main className="flex-1 overflow-y-auto p-8">
+        <div className="mx-auto max-w-5xl">
+          <Outlet />
         </div>
-      </header>
-      <main className="mx-auto max-w-5xl p-4">
-        <Outlet />
       </main>
     </div>
   )
