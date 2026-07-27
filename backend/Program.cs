@@ -1,11 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using MasplusCards.Api.Data;
+using MasplusCards.Api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.Configure<AppleWalletConfiguration>(
+    builder.Configuration.GetSection("AppleWalletConfiguration"));
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
