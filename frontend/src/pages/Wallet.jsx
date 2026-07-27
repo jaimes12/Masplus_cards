@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Stamp } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { api, API_URL } from '../lib/api.js'
 
 const POLL_MS = 5000
@@ -91,9 +91,14 @@ export default function Wallet() {
               }}
             >
               {tarjeta.iconoSello ? (
-                <img src={tarjeta.iconoSello} alt="" className="h-6 w-6 object-contain" />
+                <img
+                  src={tarjeta.iconoSello}
+                  alt=""
+                  className="h-6 w-6 object-contain"
+                  style={{ opacity: ganado ? 1 : 0.35 }}
+                />
               ) : (
-                <Stamp className="h-5 w-5" style={{ color: texto }} />
+                ganado && <Check className="h-5 w-5" style={{ color: texto }} />
               )}
             </div>
           ))}

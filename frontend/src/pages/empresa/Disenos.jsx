@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
+import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
+import CardPreview from '../../components/CardPreview.jsx'
 
 const emptyForm = {
   templateId: '',
   nombre: '',
   logo: '',
+  iconoSello: '',
   colorPrimario: '#18181B',
   colorSecundario: '#F4F4F5',
   colorTexto: '#FFFFFF',
@@ -14,6 +17,7 @@ const emptyForm = {
 }
 
 export default function Disenos() {
+  const { auth } = useAuth()
   const [templates, setTemplates] = useState([])
   const [disenos, setDisenos] = useState([])
   const [form, setForm] = useState(emptyForm)
@@ -48,7 +52,7 @@ export default function Disenos() {
         colorPrimario: form.colorPrimario,
         colorSecundario: form.colorSecundario,
         colorTexto: form.colorTexto,
-        iconoSello: null,
+        iconoSello: form.iconoSello || null,
         sellosRequeridos: Number(form.sellosRequeridos),
         descripcion: form.descripcion || null,
         configuracion: null,
@@ -107,67 +111,89 @@ export default function Disenos() {
 
       <div>
         <h2 className="mb-3 text-lg font-medium">Crear nuevo diseño</h2>
-        <Card>
-          <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label>Template base (opcional)</Label>
-              <Select value={form.templateId} onChange={(e) => update('templateId', e.target.value)}>
-                <option value="">Ninguno (desde cero)</option>
-                {templates.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.nombre}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <Label>Nombre</Label>
-              <Input value={form.nombre} onChange={(e) => update('nombre', e.target.value)} required />
-            </div>
-            <div>
-              <Label>Logo (URL)</Label>
-              <Input value={form.logo} onChange={(e) => update('logo', e.target.value)} placeholder="https://..." />
-            </div>
-            <div>
-              <Label>Sellos requeridos</Label>
-              <Input
-                type="number"
-                min="1"
-                value={form.sellosRequeridos}
-                onChange={(e) => update('sellosRequeridos', e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label>Color primario</Label>
-              <Input type="color" value={form.colorPrimario} onChange={(e) => update('colorPrimario', e.target.value)} />
-            </div>
-            <div>
-              <Label>Color secundario</Label>
-              <Input
-                type="color"
-                value={form.colorSecundario}
-                onChange={(e) => update('colorSecundario', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Color de texto</Label>
-              <Input type="color" value={form.colorTexto} onChange={(e) => update('colorTexto', e.target.value)} />
-            </div>
-            <div className="sm:col-span-2">
-              <Label>Descripción / premio</Label>
-              <Input
-                value={form.descripcion}
-                onChange={(e) => update('descripcion', e.target.value)}
-                placeholder="Ej. Café gratis"
-              />
-            </div>
-            {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
-            <Button type="submit" disabled={saving} className="sm:col-span-2">
-              {saving ? 'Guardando...' : 'Crear diseño'}
-            </Button>
-          </form>
-        </Card>
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
+          <Card>
+            <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label>Template base (opcional)</Label>
+                <Select value={form.templateId} onChange={(e) => update('templateId', e.target.value)}>
+                  <option value="">Ninguno (desde cero)</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.nombre}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label>Nombre</Label>
+                <Input value={form.nombre} onChange={(e) => update('nombre', e.target.value)} required />
+              </div>
+              <div>
+                <Label>Logo (URL)</Label>
+                <Input value={form.logo} onChange={(e) => update('logo', e.target.value)} placeholder="https://..." />
+              </div>
+              <div>
+                <Label>Ícono del sello (URL, opcional)</Label>
+                <Input
+                  value={form.iconoSello}
+                  onChange={(e) => update('iconoSello', e.target.value)}
+                  placeholder="https://... (PNG o JPG, no SVG)"
+                />
+              </div>
+              <div>
+                <Label>Sellos requeridos</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={form.sellosRequeridos}
+                  onChange={(e) => update('sellosRequeridos', e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Color primario</Label>
+                <Input type="color" value={form.colorPrimario} onChange={(e) => update('colorPrimario', e.target.value)} />
+              </div>
+              <div>
+                <Label>Color secundario</Label>
+                <Input
+                  type="color"
+                  value={form.colorSecundario}
+                  onChange={(e) => update('colorSecundario', e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Color de texto</Label>
+                <Input type="color" value={form.colorTexto} onChange={(e) => update('colorTexto', e.target.value)} />
+              </div>
+              <div className="sm:col-span-2">
+                <Label>Descripción / premio</Label>
+                <Input
+                  value={form.descripcion}
+                  onChange={(e) => update('descripcion', e.target.value)}
+                  placeholder="Ej. Café gratis"
+                />
+              </div>
+              {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
+              <Button type="submit" disabled={saving} className="sm:col-span-2">
+                {saving ? 'Guardando...' : 'Crear diseño'}
+              </Button>
+            </form>
+          </Card>
+
+          <div className="flex flex-col items-center gap-2 lg:sticky lg:top-4 lg:self-start">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Vista previa</p>
+            <CardPreview
+              empresaNombre={auth?.nombre}
+              logo={form.logo}
+              iconoSello={form.iconoSello}
+              colorPrimario={form.colorPrimario}
+              colorTexto={form.colorTexto}
+              sellosRequeridos={form.sellosRequeridos}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

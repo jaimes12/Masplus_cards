@@ -67,8 +67,7 @@ public static class StampStripRenderer
                 }
                 else if (filled)
                 {
-                    var dot = new EllipsePolygon(cx, cy, circleRadius * 0.4f);
-                    ctx.Fill(foreground, dot);
+                    DrawCheckmark(ctx, cx, cy, circleRadius, foreground);
                 }
             }
         });
@@ -78,6 +77,24 @@ public static class StampStripRenderer
         using var ms = new MemoryStream();
         image.SaveAsPng(ms);
         return ms.ToArray();
+    }
+
+    private static void DrawCheckmark(IImageProcessingContext ctx, float cx, float cy, float radius, Rgba32 color)
+    {
+        var s = radius * 0.85f;
+        var path = new PathBuilder()
+            .AddLines(
+                new PointF(cx - s * 0.55f, cy + s * 0.05f),
+                new PointF(cx - s * 0.12f, cy + s * 0.45f),
+                new PointF(cx + s * 0.6f, cy - s * 0.4f))
+            .Build();
+
+        var pen = new SolidPen(new PenOptions(color, radius * 0.22f)
+        {
+            JointStyle = JointStyle.Round,
+            EndCapStyle = EndCapStyle.Round,
+        });
+        ctx.Draw(pen, path);
     }
 
     private static Rgba32 WithAlpha(Rgba32 color, float alpha) =>
