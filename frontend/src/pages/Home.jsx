@@ -155,7 +155,7 @@ const FAQS = [
 function Logo({ className = '' }) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-sm font-bold text-white">
         M+
       </div>
       <span className="text-lg font-semibold tracking-tight">MasPlus</span>
@@ -183,7 +183,7 @@ function Nav() {
           </Link>
           <Link
             to="/empresa/registro"
-            className="rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            className="rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
           >
             Empieza gratis
           </Link>
@@ -200,7 +200,7 @@ function Hero() {
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            'radial-gradient(circle at 20% -10%, rgba(16,185,129,0.16), transparent 45%), radial-gradient(circle at 85% 10%, rgba(20,184,166,0.14), transparent 40%)',
+            'radial-gradient(circle at 20% -10%, rgba(249,115,22,0.16), transparent 45%), radial-gradient(circle at 85% 10%, rgba(234,88,12,0.14), transparent 40%)',
         }}
       />
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-16 md:grid-cols-2 md:pt-24">
@@ -219,7 +219,7 @@ function Hero() {
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
               to="/empresa/registro"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             >
               Empieza gratis
               <ArrowRight className="h-4 w-4" />
@@ -235,21 +235,21 @@ function Hero() {
           </div>
           <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-emerald-600" /> Actívalo en minutos
+              <Check className="h-4 w-4 text-orange-600" /> Actívalo en minutos
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-emerald-600" /> Sin compromisos, cancela cuando quieras
+              <Check className="h-4 w-4 text-orange-600" /> Sin compromisos, cancela cuando quieras
             </span>
           </div>
         </div>
 
         <div className="relative flex items-center justify-center py-6">
-          <div className="absolute -z-10 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
+          <div className="absolute -z-10 h-72 w-72 rounded-full bg-orange-500/10 blur-3xl" />
           <div className="-rotate-6">
             <CardPreview
               empresaNombre="Tu Negocio"
               clienteNombre="Cliente frecuente"
-              colorPrimario="#0F766E"
+              colorPrimario="#EA580C"
               colorTexto="#FFFFFF"
               sellosRequeridos={8}
             />
@@ -302,7 +302,7 @@ function HowItWorks() {
       <div className="mt-14 grid gap-8 md:grid-cols-3">
         {STEPS.map((step) => (
           <div key={step.n} className="relative rounded-2xl border border-border bg-card p-7">
-            <span className="text-sm font-semibold text-emerald-600">{step.n}</span>
+            <span className="text-sm font-semibold text-orange-600">{step.n}</span>
             <h3 className="mt-2 text-xl font-semibold">{step.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
           </div>
@@ -324,7 +324,7 @@ function Features() {
         <div className="mt-14 grid gap-6 sm:grid-cols-2">
           {FEATURES.map(({ icon: Icon, title, text }) => (
             <div key={title} className="rounded-2xl border border-border bg-card p-7">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 text-lg font-semibold">{title}</h3>
@@ -370,10 +370,10 @@ function Pricing() {
           return (
             <div
               key={plan.name}
-              className={`relative rounded-2xl border p-7 ${plan.popular ? 'border-emerald-600 shadow-lg' : 'border-border'}`}
+              className={`relative rounded-2xl border p-7 ${plan.popular ? 'border-orange-600 shadow-lg' : 'border-border'}`}
             >
               {plan.popular && (
-                <span className="absolute -top-3 left-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 px-3 py-1 text-xs font-semibold text-white">
+                <span className="absolute -top-3 left-7 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-3 py-1 text-xs font-semibold text-white">
                   Más popular
                 </span>
               )}
@@ -387,7 +387,7 @@ function Pricing() {
               <ul className="mt-6 space-y-2.5 text-sm">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
                     <span>{f}</span>
                   </li>
                 ))}
@@ -395,7 +395,7 @@ function Pricing() {
               <Link
                 to="/empresa/registro"
                 className={`mt-7 block rounded-full px-5 py-2.5 text-center text-sm font-semibold transition-opacity hover:opacity-90 ${
-                  plan.popular ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white' : 'border border-border'
+                  plan.popular ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white' : 'border border-border'
                 }`}
               >
                 Empezar
@@ -469,16 +469,16 @@ function Faq() {
 function CtaBanner() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-24">
-      <div className="rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 px-8 py-14 text-center text-white sm:px-16">
+      <div className="rounded-3xl bg-gradient-to-br from-orange-600 to-orange-700 px-8 py-14 text-center text-white sm:px-16">
         <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           Deja el papel. Empieza a fidelizar hoy.
         </h2>
-        <p className="mx-auto mt-3 max-w-xl text-emerald-50">
+        <p className="mx-auto mt-3 max-w-xl text-orange-50">
           Crea tu cuenta gratis y ten tu primera tarjeta de lealtad lista en minutos.
         </p>
         <Link
           to="/empresa/registro"
-          className="mt-7 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-emerald-700 hover:opacity-90"
+          className="mt-7 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-orange-700 hover:opacity-90"
         >
           Empieza gratis ahora
           <ArrowRight className="h-4 w-4" />
