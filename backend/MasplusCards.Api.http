@@ -1,6 +1,103 @@
-@MasplusCards.Api_HostAddress = http://localhost:5217
+@host = http://localhost:5217
+# @host = https://backendmasplus-production.up.railway.app
 
-GET {{MasplusCards.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Registrar una empresa
+POST {{host}}/api/auth/empresa/register
+Content-Type: application/json
 
-###
+{
+  "nombre": "Borcelle Cafe",
+  "email": "borcelle@test.com",
+  "password": "empresa123",
+  "telefono": "5551234567"
+}
+
+### Login empresa (guarda el "token" de la respuesta y pegalo abajo en @empresaToken)
+POST {{host}}/api/auth/empresa/login
+Content-Type: application/json
+
+{
+  "email": "borcelle@test.com",
+  "password": "empresa123"
+}
+
+### Login admin (necesita un admin ya creado en la DB, ver README)
+POST {{host}}/api/auth/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "admin123"
+}
+
+@adminToken = PEGA_AQUI_EL_TOKEN_DE_ADMIN
+@empresaToken = PEGA_AQUI_EL_TOKEN_DE_EMPRESA
+
+### Catálogo de templates (público)
+GET {{host}}/api/templates
+
+### Crear template (Admin)
+POST {{host}}/api/templates
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "nombre": "Sellos Clasico",
+  "descripcion": "Tarjeta de 10 sellos",
+  "previewImg": null,
+  "tipoRecompensa": "sellos",
+  "estructura": null,
+  "activo": true
+}
+
+### Crear diseno (Empresa personaliza el template id 1)
+POST {{host}}/api/disenos
+Content-Type: application/json
+Authorization: Bearer {{empresaToken}}
+
+{
+  "templateId": 1,
+  "nombre": "Mi diseno",
+  "logo": "https://picsum.photos/200",
+  "colorPrimario": "#7C3AED",
+  "colorSecundario": "#EDE9FE",
+  "colorTexto": "#FFFFFF",
+  "iconoSello": null,
+  "sellosRequeridos": 5,
+  "descripcion": "Cafe gratis",
+  "configuracion": null
+}
+
+### Activar diseno id 1
+POST {{host}}/api/disenos/1/activar
+Authorization: Bearer {{empresaToken}}
+
+### Emitir tarjeta a un cliente nuevo
+POST {{host}}/api/tarjetas/emitir
+Content-Type: application/json
+Authorization: Bearer {{empresaToken}}
+
+{
+  "nombre": "Juan Perez",
+  "telefono": "5559998888",
+  "email": null,
+  "walletTipo": "web"
+}
+
+### Listar tarjetas de la empresa
+GET {{host}}/api/tarjetas
+Authorization: Bearer {{empresaToken}}
+
+### Sumar sello a la tarjeta id 1
+POST {{host}}/api/tarjetas/1/sello
+Authorization: Bearer {{empresaToken}}
+
+### Canjear premio de la tarjeta id 1
+POST {{host}}/api/tarjetas/1/canjear
+Authorization: Bearer {{empresaToken}}
+
+### Vista pública de la tarjeta por codigo_qr (sin auth, la usa la wallet web)
+GET {{host}}/api/tarjetas/publica/PEGA_AQUI_EL_CODIGO_QR
+
+### Descargar el .pkpass de Apple Wallet (sin auth)
+GET {{host}}/api/wallet/apple/PEGA_AQUI_EL_CODIGO_QR
