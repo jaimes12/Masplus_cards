@@ -23,6 +23,7 @@ export default function Disenos() {
   const [templates, setTemplates] = useState([])
   const [disenos, setDisenos] = useState([])
   const [form, setForm] = useState(emptyForm)
+  const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -42,12 +43,34 @@ export default function Disenos() {
     setForm((f) => ({ ...f, [field]: value }))
   }
 
+  function startEdit(diseno) {
+    setEditingId(diseno.id)
+    setForm({
+      templateId: diseno.templateId ? String(diseno.templateId) : '',
+      nombre: diseno.nombre || '',
+      logo: diseno.logo || '',
+      iconoSello: diseno.iconoSello || '',
+      fondoUrl: diseno.fondoUrl || '',
+      colorPrimario: diseno.colorPrimario || '#18181B',
+      colorSecundario: diseno.colorSecundario || '#F4F4F5',
+      colorTexto: diseno.colorTexto || '#FFFFFF',
+      sellosRequeridos: diseno.sellosRequeridos,
+      descripcion: diseno.descripcion || '',
+    })
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setForm(emptyForm)
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setSaving(true)
     setError('')
     try {
-      await api.post('/api/disenos', {
+      const payload = {
         templateId: form.templateId ? Number(form.templateId) : null,
         nombre: form.nombre,
         logo: form.logo || null,
@@ -59,7 +82,15 @@ export default function Disenos() {
         sellosRequeridos: Number(form.sellosRequeridos),
         descripcion: form.descripcion || null,
         configuracion: null,
-      })
+      }
+
+      if (editingId) {
+        await api.put(`/api/disenos/${editingId}`, payload)
+      } else {
+        await api.post('/api/disenos', payload)
+      }
+
+      setEditingId(null)
       setForm(emptyForm)
       await load()
     } catch (err) {
@@ -98,22 +129,28 @@ export default function Disenos() {
                   style={{ background: d.colorPrimario || '#18181B' }}
                 />
               </div>
-              {d.esActivoDeEmpresa ? (
-                <span className="mt-3 inline-block rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                  Activo
-                </span>
-              ) : (
-                <Button variant="outline" className="mt-3" onClick={() => activar(d.id)}>
-                  Activar
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {d.esActivoDeEmpresa && (
+                  <span className="inline-block rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                    Activo
+                  </span>
+                )}
+                {!d.esActivoDeEmpresa && (
+                  <Button variant="outline" onClick={() => activar(d.id)}>
+                    Activar
+                  </Button>
+                )}
+                <Button variant="ghost" onClick={() => startEdit(d)}>
+                  Editar
                 </Button>
-              )}
+              </div>
             </Card>
           ))}
         </div>
       </div>
 
       <div>
-        <h2 className="mb-3 text-lg font-medium">Crear nuevo diseño</h2>
+        <h2 className="mb-3 text-lg font-medium">{editingId ? 'Editar diseño' : 'Crear nuevo diseño'}</h2>
         <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
           <Card>
             <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
@@ -179,9 +216,16 @@ export default function Disenos() {
                 />
               </div>
               {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
-              <Button type="submit" disabled={saving} className="sm:col-span-2">
-                {saving ? 'Guardando...' : 'Crear diseño'}
-              </Button>
+              <div className="flex gap-2 sm:col-span-2">
+                <Button type="submit" disabled={saving} className="flex-1">
+                  {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear diseño'}
+                </Button>
+                {editingId && (
+                  <Button type="button" variant="outline" onClick={cancelEdit}>
+                    Cancelar
+                  </Button>
+                )}
+              </div>
             </form>
           </Card>
 
