@@ -148,7 +148,7 @@ public class TarjetasService : ITarjetasService
         t.Id, t.ClienteId, t.Cliente?.Nombre, t.Cliente?.Telefono,
         t.EmpresaId, t.Empresa?.Nombre,
         t.DisenoId, t.Diseno?.Nombre, t.Diseno?.Logo, t.Diseno?.ColorPrimario, t.Diseno?.ColorSecundario,
-        t.Diseno?.ColorTexto, t.Diseno?.IconoSello,
+        t.Diseno?.ColorTexto, t.Diseno?.IconoSello, t.Diseno?.FondoUrl,
         t.SellosActuales, t.Diseno?.SellosRequeridos ?? 0, t.PremiosCanjeados,
         t.CodigoQr, t.WalletTipo, t.Estado, t.CreatedAt, t.UpdatedAt);
 }

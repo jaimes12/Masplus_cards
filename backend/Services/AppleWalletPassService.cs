@@ -57,10 +57,23 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             }
         }
 
+        byte[]? fondo = null;
+        if (NonEmpty(input.FondoUrl) is { } fondoUrl)
+        {
+            try
+            {
+                fondo = await GetBytesCachedAsync($"{CachePrefix}fondo:{fondoUrl.GetHashCode():X}", fondoUrl, cancellationToken);
+            }
+            catch
+            {
+                fondo = null;
+            }
+        }
+
         var backgroundColor = NonEmpty(input.ColorPrimario) ?? DefaultBackgroundColor;
         var foregroundColor = NonEmpty(input.ColorTexto) ?? DefaultForegroundColor;
 
-        var strip = StampStripRenderer.Render(backgroundColor, foregroundColor, input.SellosRequeridos, input.SellosActuales, stampIcon);
+        var strip = StampStripRenderer.Render(backgroundColor, foregroundColor, input.SellosRequeridos, input.SellosActuales, stampIcon, fondo);
 
         var request = new PassGeneratorRequest
         {

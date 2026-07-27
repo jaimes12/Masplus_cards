@@ -14,6 +14,9 @@ public class Diseno
     public string? ColorTexto { get; set; }
     public string? IconoSello { get; set; }
 
+    /// <summary>Imagen de fondo de la tarjeta (wallet web y strip del pase de Apple Wallet).</summary>
+    public string? FondoUrl { get; set; }
+
     /// <summary>Cantidad de sellos necesarios para canjear un premio (si TipoRecompensa = "sellos").</summary>
     public int SellosRequeridos { get; set; } = 10;
 

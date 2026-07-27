@@ -10,6 +10,7 @@ public record DisenoDto(
     string? ColorSecundario,
     string? ColorTexto,
     string? IconoSello,
+    string? FondoUrl,
     int SellosRequeridos,
     string? Descripcion,
     string? Configuracion,
@@ -26,6 +27,7 @@ public record DisenoUpsertRequest(
     string? ColorSecundario,
     string? ColorTexto,
     string? IconoSello,
+    string? FondoUrl,
     int SellosRequeridos,
     string? Descripcion,
     string? Configuracion);

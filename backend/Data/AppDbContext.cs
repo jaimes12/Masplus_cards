@@ -136,6 +136,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.ColorSecundario).HasColumnName("color_secundario").HasMaxLength(20);
             e.Property(x => x.ColorTexto).HasColumnName("color_texto").HasMaxLength(20);
             e.Property(x => x.IconoSello).HasColumnName("icono_sello").HasMaxLength(255);
+            e.Property(x => x.FondoUrl).HasColumnName("fondo_url").HasMaxLength(255);
             e.Property(x => x.SellosRequeridos).HasColumnName("sellos_requeridos");
             e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(500);
             e.Property(x => x.Configuracion).HasColumnName("configuracion").HasColumnType("json");

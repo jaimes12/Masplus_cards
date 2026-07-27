@@ -6,6 +6,7 @@ export default function CardPreview({
   clienteNombre = 'Cliente de ejemplo',
   logo,
   iconoSello,
+  fondoUrl,
   colorPrimario,
   colorTexto,
   sellosRequeridos = 10,
@@ -16,8 +17,17 @@ export default function CardPreview({
   const ganados = Math.min(Math.ceil(total * 0.3), total)
   const stamps = Array.from({ length: total }, (_, i) => i < ganados)
 
+  const cardStyle = fondoUrl
+    ? {
+        backgroundImage: `linear-gradient(${primario}8c, ${primario}8c), url(${fondoUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        color: texto,
+      }
+    : { background: primario, color: texto }
+
   return (
-    <div className="w-full max-w-xs overflow-hidden rounded-2xl p-6 shadow-lg" style={{ background: primario, color: texto }}>
+    <div className="w-full max-w-xs overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
       <div className="flex items-center gap-3">
         {logo ? (
           <img src={logo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />

@@ -13,7 +13,9 @@ public static class StampStripRenderer
     public const int Width = 1125;
     public const int Height = 369;
 
-    public static byte[] Render(string? backgroundHex, string? foregroundHex, int sellosRequeridos, int sellosActuales, byte[]? iconPng)
+    public static byte[] Render(
+        string? backgroundHex, string? foregroundHex, int sellosRequeridos, int sellosActuales,
+        byte[]? iconPng, byte[]? backgroundImagePng = null)
     {
         var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
         var foreground = ParseColor(foregroundHex, new Rgba32(250, 250, 250));
@@ -33,9 +35,29 @@ public static class StampStripRenderer
             catch { icon = null; }
         }
 
+        Image<Rgba32>? backgroundImage = null;
+        if (backgroundImagePng is { Length: > 0 })
+        {
+            try { backgroundImage = Image.Load<Rgba32>(backgroundImagePng); }
+            catch { backgroundImage = null; }
+        }
+
         image.Mutate(ctx =>
         {
             ctx.Fill(background);
+
+            if (backgroundImage != null)
+            {
+                backgroundImage.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new Size(Width, Height),
+                    Mode = ResizeMode.Crop,
+                    Position = AnchorPositionMode.Center,
+                }));
+                ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
+                // Overlay semitransparente para que el grid de sellos siga siendo legible sobre la foto.
+                ctx.Fill(WithAlpha(background, 0.55f), new RectangularPolygon(0, 0, Width, Height));
+            }
 
             const int padding = 60;
             var cellSize = Math.Min((Width - padding * 2) / columns, (Height - padding * 2) / rows);
@@ -73,6 +95,7 @@ public static class StampStripRenderer
         });
 
         icon?.Dispose();
+        backgroundImage?.Dispose();
 
         using var ms = new MemoryStream();
         image.SaveAsPng(ms);

@@ -49,6 +49,7 @@ public class DisenosService : IDisenosService
             ColorSecundario = request.ColorSecundario,
             ColorTexto = request.ColorTexto,
             IconoSello = request.IconoSello,
+            FondoUrl = request.FondoUrl,
             SellosRequeridos = request.SellosRequeridos,
             Descripcion = request.Descripcion,
             Configuracion = request.Configuracion,
@@ -71,6 +72,7 @@ public class DisenosService : IDisenosService
         diseno.ColorSecundario = request.ColorSecundario;
         diseno.ColorTexto = request.ColorTexto;
         diseno.IconoSello = request.IconoSello;
+        diseno.FondoUrl = request.FondoUrl;
         diseno.SellosRequeridos = request.SellosRequeridos;
         diseno.Descripcion = request.Descripcion;
         diseno.Configuracion = request.Configuracion;
@@ -106,7 +108,7 @@ public class DisenosService : IDisenosService
 
     private static DisenoDto ToDto(Diseno d, int? disenoActivoId) => new(
         d.Id, d.EmpresaId, d.TemplateId, d.Nombre, d.Logo, d.ColorPrimario, d.ColorSecundario, d.ColorTexto,
-        d.IconoSello, d.SellosRequeridos, d.Descripcion, d.Configuracion, d.Activo,
+        d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Descripcion, d.Configuracion, d.Activo,
         EsActivoDeEmpresa: disenoActivoId.HasValue && disenoActivoId.Value == d.Id,
         d.CreatedAt, d.UpdatedAt);
 }

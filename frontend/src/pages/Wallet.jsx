@@ -54,12 +54,18 @@ export default function Wallet() {
   const faltan = Math.max(tarjeta.sellosRequeridos - tarjeta.sellosActuales, 0)
   const stamps = Array.from({ length: tarjeta.sellosRequeridos }, (_, i) => i < tarjeta.sellosActuales)
 
+  const cardStyle = tarjeta.fondoUrl
+    ? {
+        backgroundImage: `linear-gradient(${primario}8c, ${primario}8c), url(${tarjeta.fondoUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        color: texto,
+      }
+    : { background: primario, color: texto }
+
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-4">
-      <div
-        className="w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-lg"
-        style={{ background: primario, color: texto }}
-      >
+      <div className="w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
         <div className="flex items-center gap-3">
           {tarjeta.logo && (
             <img src={tarjeta.logo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />

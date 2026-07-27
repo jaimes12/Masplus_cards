@@ -10,6 +10,7 @@ const emptyForm = {
   nombre: '',
   logo: '',
   iconoSello: '',
+  fondoUrl: '',
   colorPrimario: '#18181B',
   colorSecundario: '#F4F4F5',
   colorTexto: '#FFFFFF',
@@ -54,6 +55,7 @@ export default function Disenos() {
         colorSecundario: form.colorSecundario,
         colorTexto: form.colorTexto,
         iconoSello: form.iconoSello || null,
+        fondoUrl: form.fondoUrl || null,
         sellosRequeridos: Number(form.sellosRequeridos),
         descripcion: form.descripcion || null,
         configuracion: null,
@@ -138,6 +140,10 @@ export default function Disenos() {
                 <Label>Ícono del sello (opcional)</Label>
                 <ImageUploadInput value={form.iconoSello} onChange={(url) => update('iconoSello', url)} />
               </div>
+              <div className="sm:col-span-2">
+                <Label>Fondo de la tarjeta (opcional)</Label>
+                <ImageUploadInput value={form.fondoUrl} onChange={(url) => update('fondoUrl', url)} />
+              </div>
               <div>
                 <Label>Sellos requeridos</Label>
                 <Input
@@ -185,6 +191,7 @@ export default function Disenos() {
               empresaNombre={auth?.nombre}
               logo={form.logo}
               iconoSello={form.iconoSello}
+              fondoUrl={form.fondoUrl}
               colorPrimario={form.colorPrimario}
               colorTexto={form.colorTexto}
               sellosRequeridos={form.sellosRequeridos}

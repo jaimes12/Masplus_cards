@@ -14,6 +14,7 @@ public record TarjetaDto(
     string? ColorSecundario,
     string? ColorTexto,
     string? IconoSello,
+    string? FondoUrl,
     int SellosActuales,
     int SellosRequeridos,
     int PremiosCanjeados,

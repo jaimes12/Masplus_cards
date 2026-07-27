@@ -11,6 +11,7 @@ public static class AppleWalletPassInputFactory
         ColorPrimario: tarjeta.ColorPrimario,
         ColorTexto: tarjeta.ColorTexto,
         IconoSello: tarjeta.IconoSello,
+        FondoUrl: tarjeta.FondoUrl,
         ClienteNombre: tarjeta.ClienteNombre ?? "",
         SellosActuales: tarjeta.SellosActuales,
         SellosRequeridos: tarjeta.SellosRequeridos,
