@@ -89,9 +89,12 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             },
         };
 
+        // Sin primaryField a propósito: en el estilo storeCard Apple lo dibuja SUPERPUESTO
+        // sobre el strip, y ahí ya está el grid de sellos. El resumen va en el header (no se
+        // superpone) y el detalle en secondary/auxiliary, que se muestran debajo del strip.
         var faltan = Math.Max(input.SellosRequeridos - input.SellosActuales, 0);
-        request.AddPrimaryField(new StandardField(
-            "sellos", "SELLOS", faltan > 0 ? $"Faltan {faltan}" : "¡Premio disponible!"));
+        request.AddHeaderField(new StandardField(
+            "restantes", faltan > 0 ? "FALTAN" : "LISTO", faltan > 0 ? faltan.ToString() : "🎁"));
         request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
         request.AddAuxiliaryField(new StandardField("premios", "PREMIOS", input.PremiosCanjeados.ToString()));
 
