@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ScanLine, X } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { Button, Card, Input, Label } from '../../components/ui.jsx'
+import QrScanner from '../../components/QrScanner.jsx'
+import ErrorBoundary from '../../components/ErrorBoundary.jsx'
 
 export default function Tarjetas() {
   const [tarjetas, setTarjetas] = useState([])
@@ -9,6 +12,9 @@ export default function Tarjetas() {
   const [form, setForm] = useState({ nombre: '', telefono: '', email: '' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  const [scanning, setScanning] = useState(false)
+  const [scanResult, setScanResult] = useState(null)
 
   async function load() {
     setTarjetas(await api.get('/api/tarjetas'))
@@ -48,11 +54,63 @@ export default function Tarjetas() {
     }
   }
 
+  async function handleScan(codigoQr) {
+    setScanning(false)
+    try {
+      const tarjeta = await api.post(`/api/tarjetas/escanear/${codigoQr}/sello`)
+      setScanResult({ ok: true, tarjeta })
+      await load()
+    } catch (err) {
+      setScanResult({ ok: false, message: err.message })
+    }
+  }
+
   if (loading) return <p className="text-muted-foreground">Cargando...</p>
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">Tarjetas</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Tarjetas</h1>
+        <Button onClick={() => { setScanResult(null); setScanning(true) }} className="gap-2">
+          <ScanLine className="h-4 w-4" /> Escanear QR
+        </Button>
+      </div>
+
+      {scanning && (
+        <Card>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="font-medium">Apuntá la cámara al QR de la tarjeta del cliente</p>
+            <button
+              type="button"
+              onClick={() => setScanning(false)}
+              className="rounded-md p-1 text-muted-foreground hover:bg-secondary"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <ErrorBoundary
+            fallback={<p className="text-sm text-destructive">No se pudo abrir la cámara en este dispositivo.</p>}
+          >
+            <QrScanner onScan={handleScan} />
+          </ErrorBoundary>
+        </Card>
+      )}
+
+      {scanResult && (
+        <Card className={scanResult.ok ? 'border-primary/40' : 'border-destructive/40'}>
+          {scanResult.ok ? (
+            <p className="text-sm">
+              Sello agregado a <span className="font-medium">{scanResult.tarjeta.clienteNombre}</span> —{' '}
+              {scanResult.tarjeta.sellosActuales} / {scanResult.tarjeta.sellosRequeridos} sellos
+            </p>
+          ) : (
+            <p className="text-sm text-destructive">{scanResult.message}</p>
+          )}
+          <Button variant="outline" className="mt-3" onClick={() => { setScanResult(null); setScanning(true) }}>
+            Escanear otra
+          </Button>
+        </Card>
+      )}
 
       <Card>
         <h2 className="mb-3 text-lg font-medium">Emitir tarjeta nueva</h2>

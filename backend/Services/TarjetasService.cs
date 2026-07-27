@@ -75,13 +75,23 @@ public class TarjetasService : ITarjetasService
     {
         var tarjeta = await _db.Tarjetas.Include(t => t.Diseno)
             .FirstOrDefaultAsync(t => t.Id == id && t.EmpresaId == empresaId);
-        if (tarjeta == null) return null;
+        return tarjeta == null ? null : await SumarSelloAsync(tarjeta);
+    }
 
+    public async Task<TarjetaDto?> SumarSelloPorCodigoAsync(int empresaId, string codigoQr)
+    {
+        var tarjeta = await _db.Tarjetas.Include(t => t.Diseno)
+            .FirstOrDefaultAsync(t => t.CodigoQr == codigoQr && t.EmpresaId == empresaId);
+        return tarjeta == null ? null : await SumarSelloAsync(tarjeta);
+    }
+
+    private async Task<TarjetaDto> SumarSelloAsync(Tarjeta tarjeta)
+    {
         tarjeta.SellosActuales += 1;
         _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "sello_agregado", SellosAgregados = 1 });
         await _db.SaveChangesAsync();
 
-        var updated = await BaseQuery().FirstAsync(t => t.Id == id);
+        var updated = await BaseQuery().FirstAsync(t => t.Id == tarjeta.Id);
         return ToDto(updated);
     }
 

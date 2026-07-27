@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { Stamp } from 'lucide-react'
 import { api, API_URL } from '../lib/api.js'
+
+const POLL_MS = 5000
 
 export default function Wallet() {
   const { codigoQr } = useParams()
@@ -8,10 +11,25 @@ export default function Wallet() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    api
-      .get(`/api/tarjetas/publica/${codigoQr}`)
-      .then(setTarjeta)
-      .catch((err) => setError(err.message))
+    let cancelled = false
+
+    function load() {
+      api
+        .get(`/api/tarjetas/publica/${codigoQr}`)
+        .then((data) => {
+          if (!cancelled) setTarjeta(data)
+        })
+        .catch((err) => {
+          if (!cancelled) setError(err.message)
+        })
+    }
+
+    load()
+    const interval = setInterval(load, POLL_MS)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
   }, [codigoQr])
 
   if (error) {
@@ -31,31 +49,57 @@ export default function Wallet() {
   }
 
   const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(tarjeta.codigoQr)}`
+  const primario = tarjeta.colorPrimario || '#18181B'
+  const texto = tarjeta.colorTexto || '#FFFFFF'
+  const faltan = Math.max(tarjeta.sellosRequeridos - tarjeta.sellosActuales, 0)
+  const stamps = Array.from({ length: tarjeta.sellosRequeridos }, (_, i) => i < tarjeta.sellosActuales)
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-4">
       <div
         className="w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-lg"
-        style={{ background: tarjeta.colorPrimario || '#18181B', color: tarjeta.colorTexto || '#FFFFFF' }}
+        style={{ background: primario, color: texto }}
       >
-        {tarjeta.logo && <img src={tarjeta.logo} alt="" className="mb-4 h-10 w-10 rounded-full object-cover" />}
-        <p className="text-lg font-semibold">{tarjeta.empresaNombre}</p>
-        <p className="text-sm opacity-80">{tarjeta.clienteNombre}</p>
-
-        <div className="my-6 flex justify-between text-sm">
-          <div>
-            <p className="opacity-70">SELLOS</p>
-            <p className="text-2xl font-bold">
-              {tarjeta.sellosActuales} / {tarjeta.sellosRequeridos}
-            </p>
-          </div>
-          <div>
-            <p className="opacity-70">PREMIOS</p>
-            <p className="text-2xl font-bold">{tarjeta.premiosCanjeados}</p>
+        <div className="flex items-center gap-3">
+          {tarjeta.logo && (
+            <img src={tarjeta.logo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-lg font-semibold">{tarjeta.empresaNombre}</p>
+            <p className="truncate text-sm opacity-80">{tarjeta.clienteNombre}</p>
           </div>
         </div>
 
-        <div className="flex justify-center rounded-lg bg-white p-3">
+        <div className="my-5 flex items-baseline justify-between">
+          <p className="text-sm font-medium uppercase tracking-wide opacity-70">
+            {faltan > 0 ? `Faltan ${faltan} sello${faltan === 1 ? '' : 's'}` : '¡Premio disponible!'}
+          </p>
+          {tarjeta.premiosCanjeados > 0 && (
+            <p className="text-xs opacity-70">{tarjeta.premiosCanjeados} premio{tarjeta.premiosCanjeados === 1 ? '' : 's'} canjeado{tarjeta.premiosCanjeados === 1 ? '' : 's'}</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-5 gap-3">
+          {stamps.map((ganado, i) => (
+            <div
+              key={i}
+              className="flex aspect-square items-center justify-center rounded-full border-2 transition-opacity"
+              style={{
+                borderColor: texto,
+                opacity: ganado ? 1 : 0.3,
+                background: ganado ? `${texto}22` : 'transparent',
+              }}
+            >
+              {tarjeta.iconoSello ? (
+                <img src={tarjeta.iconoSello} alt="" className="h-6 w-6 object-contain" />
+              ) : (
+                <Stamp className="h-5 w-5" style={{ color: texto }} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 flex justify-center rounded-lg bg-white p-3">
           <img src={qrImg} alt="Código QR" width={160} height={160} />
         </div>
       </div>

@@ -71,6 +71,15 @@ public class TarjetasController : ControllerBase
         return updated == null ? NotFound() : Ok(updated);
     }
 
+    /// <summary>Suma un sello buscando la tarjeta por su codigo_qr (flujo de escaneo en el punto de venta).</summary>
+    [HttpPost("escanear/{codigoQr}/sello")]
+    [Authorize(Roles = "Empresa")]
+    public async Task<ActionResult<TarjetaDto>> SumarSelloPorCodigo(string codigoQr)
+    {
+        var updated = await _service.SumarSelloPorCodigoAsync(User.GetEmpresaId(), codigoQr);
+        return updated == null ? NotFound(new { error = "No se encontró una tarjeta de tu empresa con ese código." }) : Ok(updated);
+    }
+
     [HttpPost("{id:int}/canjear")]
     [Authorize(Roles = "Empresa")]
     public async Task<ActionResult<TarjetaDto>> CanjearPremio(int id)
