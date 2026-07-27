@@ -113,6 +113,8 @@ export default function Wallet() {
         <div className="mt-6 flex justify-center rounded-lg bg-white p-3">
           <img src={qrImg} alt="Código QR" width={160} height={160} />
         </div>
+
+        <p className="mt-3 text-center text-xs opacity-60">Powered by Masplus</p>
       </div>
 
       <a
