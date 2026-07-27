@@ -12,4 +12,5 @@ public record AppleWalletPassInput(
     int SellosActuales,
     int SellosRequeridos,
     int PremiosCanjeados,
-    string CodigoQr);
+    string CodigoQr,
+    string? WebServiceUrl = null);

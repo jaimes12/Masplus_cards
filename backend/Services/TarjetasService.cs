@@ -9,10 +9,21 @@ namespace MasplusCards.Api.Services;
 public class TarjetasService : ITarjetasService
 {
     private readonly AppDbContext _db;
+    private readonly IPassKitService _passKit;
+    private readonly IApnsPushService _apns;
 
-    public TarjetasService(AppDbContext db)
+    public TarjetasService(AppDbContext db, IPassKitService passKit, IApnsPushService apns)
     {
         _db = db;
+        _passKit = passKit;
+        _apns = apns;
+    }
+
+    private async Task NotifyPassUpdatedAsync(string codigoQr)
+    {
+        var tokens = await _passKit.GetPushTokensForTarjetaAsync(codigoQr);
+        foreach (var token in tokens)
+            await _apns.SendUpdateAsync(token);
     }
 
     public async Task<List<TarjetaDto>> GetByEmpresaAsync(int empresaId)
@@ -92,6 +103,7 @@ public class TarjetasService : ITarjetasService
         await _db.SaveChangesAsync();
 
         var updated = await BaseQuery().FirstAsync(t => t.Id == tarjeta.Id);
+        await NotifyPassUpdatedAsync(updated.CodigoQr);
         return ToDto(updated);
     }
 
@@ -111,6 +123,7 @@ public class TarjetasService : ITarjetasService
         await _db.SaveChangesAsync();
 
         var updated = await BaseQuery().FirstAsync(t => t.Id == id);
+        await NotifyPassUpdatedAsync(updated.CodigoQr);
         return ToDto(updated);
     }
 

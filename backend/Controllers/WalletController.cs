@@ -1,4 +1,4 @@
-using MasplusCards.Api.Dtos;
+using MasplusCards.Api.Infrastructure;
 using MasplusCards.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,18 +26,11 @@ public class WalletController : ControllerBase
         var tarjeta = await _tarjetas.GetByCodigoQrAsync(codigoQr);
         if (tarjeta == null) return NotFound();
 
-        var input = new AppleWalletPassInput(
-            SerialNumber: tarjeta.CodigoQr,
-            OrganizationName: tarjeta.EmpresaNombre ?? "Masplus Cards",
-            Logo: tarjeta.Logo,
-            ColorPrimario: tarjeta.ColorPrimario,
-            ColorTexto: tarjeta.ColorTexto,
-            IconoSello: tarjeta.IconoSello,
-            ClienteNombre: tarjeta.ClienteNombre ?? "",
-            SellosActuales: tarjeta.SellosActuales,
-            SellosRequeridos: tarjeta.SellosRequeridos,
-            PremiosCanjeados: tarjeta.PremiosCanjeados,
-            CodigoQr: tarjeta.CodigoQr);
+        // Railway hace TLS-termination en el borde; puertas adentro Request.Scheme puede llegar como
+        // "http". Wallet exige https salvo en localhost (donde igual no puede alcanzar el dispositivo).
+        var scheme = Request.Host.Host.Contains("localhost") ? Request.Scheme : "https";
+        var webServiceUrl = $"{scheme}://{Request.Host}/";
+        var input = AppleWalletPassInputFactory.From(tarjeta, webServiceUrl);
 
         var pkpass = await _appleWallet.GenerateStoreCardAsync(input, cancellationToken);
         return File(pkpass, "application/vnd.apple.pkpass", $"{tarjeta.CodigoQr}.pkpass");

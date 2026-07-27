@@ -28,4 +28,5 @@ public class Tarjeta
     public Empresa? Empresa { get; set; }
     public Diseno? Diseno { get; set; }
     public List<TarjetaLog> Logs { get; set; } = new();
+    public List<PassRegistration> PassRegistrations { get; set; } = new();
 }

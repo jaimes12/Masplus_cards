@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Tarjeta> Tarjetas => Set<Tarjeta>();
     public DbSet<TarjetaLog> TarjetaLogs => Set<TarjetaLog>();
+    public DbSet<PassRegistration> PassRegistrations => Set<PassRegistration>();
 
     public override int SaveChanges()
     {
@@ -220,6 +221,24 @@ public class AppDbContext : DbContext
 
             e.HasOne(x => x.Tarjeta)
                 .WithMany(x => x.Logs)
+                .HasForeignKey(x => x.TarjetaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PassRegistration>(e =>
+        {
+            e.ToTable("pass_registrations");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TarjetaId).HasColumnName("tarjeta_id");
+            e.Property(x => x.DeviceLibraryIdentifier).HasColumnName("device_library_identifier").HasMaxLength(100).IsRequired();
+            e.Property(x => x.PushToken).HasColumnName("push_token").HasMaxLength(255).IsRequired();
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+
+            e.HasIndex(x => new { x.DeviceLibraryIdentifier, x.TarjetaId }).IsUnique();
+
+            e.HasOne(x => x.Tarjeta)
+                .WithMany(x => x.PassRegistrations)
                 .HasForeignKey(x => x.TarjetaId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

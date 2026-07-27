@@ -75,6 +75,8 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             AppleWWDRCACertificate = wwdrCert,
             PassbookCertificate = passbookCert,
             LogoText = input.OrganizationName,
+            WebServiceUrl = input.WebServiceUrl,
+            AuthenticationToken = input.WebServiceUrl != null ? input.CodigoQr : null,
             Images =
             {
                 { PassbookImage.Icon, icon },
