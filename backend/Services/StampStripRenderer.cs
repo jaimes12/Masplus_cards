@@ -23,7 +23,7 @@ public static class StampStripRenderer
         sellosRequeridos = Math.Clamp(sellosRequeridos, 1, 20);
         sellosActuales = Math.Clamp(sellosActuales, 0, sellosRequeridos);
 
-        var columns = Math.Min(sellosRequeridos, 10);
+        var columns = Math.Min(sellosRequeridos, 4);
         var rows = (int)Math.Ceiling(sellosRequeridos / (double)columns);
 
         using var image = new Image<Rgba32>(Width, Height);

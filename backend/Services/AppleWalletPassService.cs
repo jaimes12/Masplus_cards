@@ -113,7 +113,7 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
         request.AddAuxiliaryField(new StandardField("premios", "PREMIOS", input.PremiosCanjeados.ToString()));
 
-        request.AddBarcode(BarcodeType.PKBarcodeFormatQR, input.CodigoQr, "UTF-8", input.CodigoQr);
+        request.AddBarcode(BarcodeType.PKBarcodeFormatQR, input.CodigoQr, "UTF-8", "Powered by Masplus");
 
         return new PassGenerator().Generate(request);
     }
