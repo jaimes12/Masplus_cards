@@ -14,10 +14,13 @@ namespace MasplusCards.Api.Services;
 /// .NET tiene un bug/limitación documentada (dotnet/runtime #72177, #98177 y otros): SocketsHttpHandler
 /// negocia perfecto el handshake TLS + certificado de cliente + ALPN h2 (verificado con SslStream a
 /// mano), pero la conexión HTTP/2 se corta con "The response ended prematurely" apenas se manda el
-/// primer request — pasa igual en HTTP/1.1, en Linux y en macOS. APNs exige HTTP/2 sí o sí (rechaza
-/// HTTP/1.1 con "Unexpected HTTP/1.x request"), así que no hay downgrade posible. curl (libcurl con
-/// OpenSSL) no tiene este bug y probado contra este certificado responde bien, así que se usa como
-/// subproceso en vez de HttpClient.
+/// primer request. APNs exige HTTP/2 sí o sí (rechaza HTTP/1.1), así que no hay downgrade posible.
+/// curl (libcurl + OpenSSL) no tiene ese bug, así que el push se manda como subproceso.
+///
+/// El .p12 original se generó con cifrado "legacy" (RC2/3DES viejo), que OpenSSL 3.x desactivó por
+/// defecto — por eso el contenedor tiraba "could not parse PKCS12 file ... digital envelope
+/// routines::unsupported". Se convierte primero a PEM con `openssl pkcs12 -legacy` (que sí soporta
+/// leer ese formato viejo) y curl usa ese PEM en vez de leer el .p12 directo.
 /// </remarks>
 public class ApnsPushService : IApnsPushService
 {
@@ -32,54 +35,34 @@ public class ApnsPushService : IApnsPushService
 
     public async Task SendUpdateAsync(string pushToken, CancellationToken cancellationToken = default)
     {
-        var certPath = Path.Combine(Path.GetTempPath(), $"apns-{Guid.NewGuid():N}.p12");
-        var configPath = Path.Combine(Path.GetTempPath(), $"apns-{Guid.NewGuid():N}.curlrc");
+        var p12Path = Path.Combine(Path.GetTempPath(), $"apns-{Guid.NewGuid():N}.p12");
+        var pemPath = Path.Combine(Path.GetTempPath(), $"apns-{Guid.NewGuid():N}.pem");
 
         try
         {
-            await File.WriteAllBytesAsync(certPath, Convert.FromBase64String(_cfg.PassbookCertificateBase64), cancellationToken);
-            // La contraseña va en un archivo de config (no en argv) para que no quede visible en `ps`.
-            await File.WriteAllTextAsync(
-                configPath,
-                $"cert = \"{certPath}:{_cfg.PassbookPassword}\"\ncert-type = \"P12\"\n",
+            await File.WriteAllBytesAsync(p12Path, Convert.FromBase64String(_cfg.PassbookCertificateBase64), cancellationToken);
+
+            var converted = await ConvertToPemAsync(p12Path, pemPath, cancellationToken);
+            if (!converted) return;
+
+            var (exitCode, stdout, stderr) = await RunAsync(
+                "curl",
+                [
+                    "--cert", pemPath,
+                    "--key", pemPath,
+                    "--http2",
+                    "--silent", "--show-error",
+                    "--max-time", "15",
+                    "-o", "/dev/null",
+                    "-w", "%{http_code}",
+                    "-H", $"apns-topic: {_cfg.PassTypeIdentifier}",
+                    "-H", "apns-push-type: background",
+                    "-d", "{}",
+                    $"https://api.push.apple.com/3/device/{pushToken}",
+                ],
                 cancellationToken);
 
-            var psi = new ProcessStartInfo
-            {
-                FileName = "curl",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-            };
-            psi.ArgumentList.Add("-K");
-            psi.ArgumentList.Add(configPath);
-            psi.ArgumentList.Add("--http2");
-            psi.ArgumentList.Add("--silent");
-            psi.ArgumentList.Add("--show-error");
-            psi.ArgumentList.Add("--max-time");
-            psi.ArgumentList.Add("15");
-            psi.ArgumentList.Add("-o");
-            psi.ArgumentList.Add("/dev/null");
-            psi.ArgumentList.Add("-w");
-            psi.ArgumentList.Add("%{http_code}");
-            psi.ArgumentList.Add("-H");
-            psi.ArgumentList.Add($"apns-topic: {_cfg.PassTypeIdentifier}");
-            psi.ArgumentList.Add("-H");
-            psi.ArgumentList.Add("apns-push-type: background");
-            psi.ArgumentList.Add("-d");
-            psi.ArgumentList.Add("{}");
-            psi.ArgumentList.Add($"https://api.push.apple.com/3/device/{pushToken}");
-
-            using var process = Process.Start(psi)
-                ?? throw new InvalidOperationException("No se pudo iniciar el proceso curl.");
-
-            var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
-            await process.WaitForExitAsync(cancellationToken);
-            var stdout = (await stdoutTask).Trim();
-            var stderr = (await stderrTask).Trim();
-
-            if (int.TryParse(stdout, out var statusCode) && statusCode is >= 200 and < 300)
+            if (int.TryParse(stdout.Trim(), out var statusCode) && statusCode is >= 200 and < 300)
             {
                 _logger.LogInformation("APNs OK ({Status}) para el token {Token}", statusCode, pushToken);
             }
@@ -87,7 +70,7 @@ public class ApnsPushService : IApnsPushService
             {
                 _logger.LogWarning(
                     "APNs respondió {Status} para el token {Token}. exitCode={ExitCode} stderr={Stderr}",
-                    stdout, pushToken, process.ExitCode, stderr);
+                    stdout.Trim(), pushToken, exitCode, stderr.Trim());
             }
         }
         catch (Exception ex)
@@ -97,9 +80,57 @@ public class ApnsPushService : IApnsPushService
         }
         finally
         {
-            TryDelete(certPath);
-            TryDelete(configPath);
+            TryDelete(p12Path);
+            TryDelete(pemPath);
         }
+    }
+
+    private async Task<bool> ConvertToPemAsync(string p12Path, string pemPath, CancellationToken cancellationToken)
+    {
+        // -passin por archivo (no argv) para que la contraseña no quede visible en `ps`.
+        var passFile = Path.Combine(Path.GetTempPath(), $"apns-{Guid.NewGuid():N}.pass");
+        try
+        {
+            await File.WriteAllTextAsync(passFile, _cfg.PassbookPassword, cancellationToken);
+
+            var (exitCode, _, stderr) = await RunAsync(
+                "openssl",
+                ["pkcs12", "-legacy", "-in", p12Path, "-out", pemPath, "-nodes", "-passin", $"file:{passFile}"],
+                cancellationToken);
+
+            if (exitCode != 0)
+            {
+                _logger.LogWarning("No se pudo convertir el certificado P12 a PEM (openssl exitCode={ExitCode}): {Stderr}", exitCode, stderr.Trim());
+                return false;
+            }
+
+            return true;
+        }
+        finally
+        {
+            TryDelete(passFile);
+        }
+    }
+
+    private static async Task<(int ExitCode, string Stdout, string Stderr)> RunAsync(
+        string fileName, IEnumerable<string> args, CancellationToken cancellationToken)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = fileName,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+        foreach (var arg in args) psi.ArgumentList.Add(arg);
+
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException($"No se pudo iniciar el proceso {fileName}.");
+
+        var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
+
+        return (process.ExitCode, await stdoutTask, await stderrTask);
     }
 
     private static void TryDelete(string path)

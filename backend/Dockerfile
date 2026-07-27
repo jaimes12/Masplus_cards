@@ -11,9 +11,10 @@ RUN dotnet publish MasplusCards.Api.csproj -c Release -o /app/publish --no-resto
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# curl: SocketsHttpHandler de .NET tiene un bug con HTTP/2 + certificado de cliente (ver
-# ApnsPushService.cs); los pushes a Apple Wallet se mandan como subproceso curl.
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+# curl + openssl: SocketsHttpHandler de .NET tiene un bug con HTTP/2 + certificado de cliente (ver
+# ApnsPushService.cs); los pushes a Apple Wallet se mandan como subproceso curl, con el .p12
+# convertido antes a PEM vía `openssl pkcs12 -legacy` (el .p12 usa cifrado que OpenSSL 3 desactivó).
+RUN apt-get update && apt-get install -y --no-install-recommends curl openssl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .
