@@ -16,6 +16,13 @@
     "LogoUrl": "",
     "BackgroundBase64": ""
   },
+  "R2": {
+    "AccessKey": "",
+    "SecretKey": "",
+    "Bucket": "",
+    "Endpoint": "",
+    "PublicUrl": ""
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Information",

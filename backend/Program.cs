@@ -19,6 +19,8 @@ builder.Services.AddHttpClient(AppleWalletPassService.HttpClientName);
 
 builder.Services.Configure<AppleWalletConfiguration>(
     builder.Configuration.GetSection("AppleWalletConfiguration"));
+builder.Services.Configure<R2Configuration>(
+    builder.Configuration.GetSection("R2"));
 
 var jwtSigningKey =
     builder.Configuration["Jwt:SigningKey"]
@@ -46,6 +48,7 @@ builder.Services.AddScoped<IAppleWalletPassService, AppleWalletPassService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IPassKitService, PassKitService>();
 builder.Services.AddScoped<IApnsPushService, ApnsPushService>();
+builder.Services.AddScoped<IImagenesService, ImagenesService>();
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))

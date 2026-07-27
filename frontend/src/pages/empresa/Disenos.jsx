@@ -3,6 +3,7 @@ import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
 import CardPreview from '../../components/CardPreview.jsx'
+import ImageUploadInput from '../../components/ImageUploadInput.jsx'
 
 const emptyForm = {
   templateId: '',
@@ -130,16 +131,12 @@ export default function Disenos() {
                 <Input value={form.nombre} onChange={(e) => update('nombre', e.target.value)} required />
               </div>
               <div>
-                <Label>Logo (URL)</Label>
-                <Input value={form.logo} onChange={(e) => update('logo', e.target.value)} placeholder="https://..." />
+                <Label>Logo</Label>
+                <ImageUploadInput value={form.logo} onChange={(url) => update('logo', url)} />
               </div>
               <div>
-                <Label>Ícono del sello (URL, opcional)</Label>
-                <Input
-                  value={form.iconoSello}
-                  onChange={(e) => update('iconoSello', e.target.value)}
-                  placeholder="https://... (PNG o JPG, no SVG)"
-                />
+                <Label>Ícono del sello (opcional)</Label>
+                <ImageUploadInput value={form.iconoSello} onChange={(url) => update('iconoSello', url)} />
               </div>
               <div>
                 <Label>Sellos requeridos</Label>
