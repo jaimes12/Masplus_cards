@@ -2,20 +2,31 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Check, Ticket } from 'lucide-react'
 import { api, API_URL } from '../lib/api.js'
-import MasPlusWatermark from '../components/MasPlusWatermark.jsx'
 
 const POLL_MS = 5000
 
-const pageBackgroundStyle = {
-  background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 60%, #7C2D12 100%)',
-}
+const pageBackgroundStyle = { background: '#FFFFFF' }
 
-function PageWatermarks() {
+/// Patrón diagonal repetido tipo marca de agua de banco de imágenes, pero con la marca de Masplus:
+/// predominan el blanco y el gris, con toques naranjas.
+function PageWatermarkPattern() {
   return (
-    <>
-      <MasPlusWatermark className="pointer-events-none absolute -right-32 -top-20 h-[420px] w-[620px] text-white opacity-[0.16] blur-sm" />
-      <MasPlusWatermark className="pointer-events-none absolute -bottom-28 -left-32 h-[360px] w-[560px] rotate-180 text-white opacity-[0.12] blur-sm" />
-    </>
+    <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" focusable="false">
+      <defs>
+        <pattern id="mp-page-pattern" width="260" height="200" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
+          <text x="10" y="70" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="800" fontSize="42" fill="#9CA3AF" opacity="0.4">
+            más
+          </text>
+          <g transform="translate(150, 20)">
+            <rect width="34" height="42" rx="9" fill="#EA580C" opacity="0.35" />
+            <circle cx="27" cy="10" r="4.5" fill="none" stroke="#EA580C" strokeWidth="2.5" opacity="0.5" />
+            <rect x="12" y="18" width="10" height="18" rx="2" fill="#EA580C" opacity="0.35" />
+            <rect x="5" y="23" width="24" height="8" rx="2" fill="#EA580C" opacity="0.35" />
+          </g>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#mp-page-pattern)" />
+    </svg>
   )
 }
 
@@ -49,7 +60,7 @@ export default function Wallet() {
   if (error) {
     return (
       <div className="relative flex min-h-svh items-center justify-center overflow-hidden p-4" style={pageBackgroundStyle}>
-        <PageWatermarks />
+        <PageWatermarkPattern />
         <p className="relative z-10 text-destructive">No se encontró la tarjeta.</p>
       </div>
     )
@@ -58,8 +69,8 @@ export default function Wallet() {
   if (!tarjeta) {
     return (
       <div className="relative flex min-h-svh items-center justify-center overflow-hidden p-4" style={pageBackgroundStyle}>
-        <PageWatermarks />
-        <p className="relative z-10 text-white/80">Cargando...</p>
+        <PageWatermarkPattern />
+        <p className="relative z-10 text-muted-foreground">Cargando...</p>
       </div>
     )
   }
@@ -83,7 +94,7 @@ export default function Wallet() {
 
   return (
     <div className="relative flex min-h-svh flex-col items-center justify-center gap-6 overflow-hidden p-4" style={pageBackgroundStyle}>
-      <PageWatermarks />
+      <PageWatermarkPattern />
       <div className="relative z-10 w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
         <div className="flex items-center gap-3">
           {tarjeta.logo && (
