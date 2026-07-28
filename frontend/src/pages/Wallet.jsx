@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Check, Ticket } from 'lucide-react'
 import { api, API_URL } from '../lib/api.js'
+import MasPlusWatermark from '../components/MasPlusWatermark.jsx'
 
 const POLL_MS = 5000
 
@@ -67,8 +68,14 @@ export default function Wallet() {
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-4">
-      <div className="w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
-        <div className="flex items-center gap-3">
+      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
+        {!tarjeta.fondoUrl && (
+          <MasPlusWatermark
+            className="pointer-events-none absolute -right-10 -top-6 h-40 w-72 opacity-[0.14] blur-[2px]"
+            style={{ color: texto }}
+          />
+        )}
+        <div className="relative z-10 flex items-center gap-3">
           {tarjeta.logo && (
             <img src={tarjeta.logo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
           )}
@@ -79,7 +86,7 @@ export default function Wallet() {
         </div>
 
         {esCupon ? (
-          <div className="my-5">
+          <div className="relative z-10 my-5">
             <div className="flex items-center justify-between">
               <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: `${texto}22` }}>
                 <Ticket className="h-6 w-6" style={{ color: texto }} />
@@ -98,7 +105,7 @@ export default function Wallet() {
             </p>
           </div>
         ) : (
-          <>
+          <div className="relative z-10">
             <div className="my-5 flex items-baseline justify-between">
               <p className="text-sm font-medium uppercase tracking-wide opacity-70">
                 {faltan > 0 ? `Faltan ${faltan} sello${faltan === 1 ? '' : 's'}` : '¡Premio disponible!'}
@@ -132,14 +139,14 @@ export default function Wallet() {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
-        <div className="mt-6 flex justify-center rounded-lg bg-white p-3">
+        <div className="relative z-10 mt-6 flex justify-center rounded-lg bg-white p-3">
           <img src={qrImg} alt="Código QR" width={160} height={160} />
         </div>
 
-        <p className="mt-3 text-center text-xs opacity-60">Powered by Masplus</p>
+        <p className="relative z-10 mt-3 text-center text-xs opacity-60">Powered by Masplus</p>
       </div>
 
       <a

@@ -1,4 +1,5 @@
 import { Check, Ticket } from 'lucide-react'
+import MasPlusWatermark from './MasPlusWatermark.jsx'
 
 /// Mockup de cómo se va a ver la tarjeta (wallet web / Apple Wallet), en vivo mientras se arma el diseño.
 export default function CardPreview({
@@ -36,8 +37,14 @@ export default function CardPreview({
     : { background: primario, color: texto }
 
   return (
-    <div className="w-full max-w-xs overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
-      <div className="flex items-center gap-3">
+    <div className="relative w-full max-w-xs overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
+      {!fondoUrl && (
+        <MasPlusWatermark
+          className="pointer-events-none absolute -right-10 -top-6 h-40 w-72 opacity-[0.14] blur-[2px]"
+          style={{ color: texto }}
+        />
+      )}
+      <div className="relative z-10 flex items-center gap-3">
         {logo ? (
           <img src={logo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
         ) : (
@@ -52,7 +59,7 @@ export default function CardPreview({
       </div>
 
       {esCupon ? (
-        <div className="my-5">
+        <div className="relative z-10 my-5">
           <div className="flex items-center justify-between">
             <div
               className="flex h-12 w-12 items-center justify-center rounded-full"
@@ -72,7 +79,7 @@ export default function CardPreview({
           </p>
         </div>
       ) : (
-        <>
+        <div className="relative z-10">
           <p className="my-5 text-sm font-medium uppercase tracking-wide opacity-70">
             Faltan {total - ganados} sello{total - ganados === 1 ? '' : 's'}
           </p>
@@ -96,7 +103,7 @@ export default function CardPreview({
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   )
