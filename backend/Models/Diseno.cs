@@ -8,6 +8,10 @@ public class Diseno
     public int? TemplateId { get; set; }
 
     public string? Nombre { get; set; }
+
+    /// <summary>"sellos" (tarjeta de estampas) o "cupon". Determina qué campos aplican y cómo se genera el pase.</summary>
+    public string Tipo { get; set; } = "sellos";
+
     public string? Logo { get; set; }
     public string? ColorPrimario { get; set; }
     public string? ColorSecundario { get; set; }
@@ -17,9 +21,13 @@ public class Diseno
     /// <summary>Imagen de fondo de la tarjeta (wallet web y strip del pase de Apple Wallet).</summary>
     public string? FondoUrl { get; set; }
 
-    /// <summary>Cantidad de sellos necesarios para canjear un premio (si TipoRecompensa = "sellos").</summary>
+    /// <summary>Cantidad de sellos necesarios para canjear un premio (si Tipo = "sellos").</summary>
     public int SellosRequeridos { get; set; } = 10;
 
+    /// <summary>Fecha límite del cupón (si Tipo = "cupon"). Null = sin vencimiento.</summary>
+    public DateTime? Vencimiento { get; set; }
+
+    /// <summary>Premio (tipo "sellos") o descripción de la oferta (tipo "cupon", ej. "2x1 en combo").</summary>
     public string? Descripcion { get; set; }
 
     /// <summary>JSON con overrides libres de layout/estilo sobre la Estructura del Template.</summary>

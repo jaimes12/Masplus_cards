@@ -44,6 +44,7 @@ public class DisenosService : IDisenosService
             EmpresaId = empresaId,
             TemplateId = request.TemplateId,
             Nombre = request.Nombre,
+            Tipo = NormalizeTipo(request.Tipo),
             Logo = request.Logo,
             ColorPrimario = request.ColorPrimario,
             ColorSecundario = request.ColorSecundario,
@@ -51,6 +52,7 @@ public class DisenosService : IDisenosService
             IconoSello = request.IconoSello,
             FondoUrl = request.FondoUrl,
             SellosRequeridos = request.SellosRequeridos,
+            Vencimiento = request.Vencimiento,
             Descripcion = request.Descripcion,
             Configuracion = request.Configuracion,
         };
@@ -67,6 +69,7 @@ public class DisenosService : IDisenosService
 
         diseno.TemplateId = request.TemplateId;
         diseno.Nombre = request.Nombre;
+        diseno.Tipo = NormalizeTipo(request.Tipo);
         diseno.Logo = request.Logo;
         diseno.ColorPrimario = request.ColorPrimario;
         diseno.ColorSecundario = request.ColorSecundario;
@@ -74,6 +77,7 @@ public class DisenosService : IDisenosService
         diseno.IconoSello = request.IconoSello;
         diseno.FondoUrl = request.FondoUrl;
         diseno.SellosRequeridos = request.SellosRequeridos;
+        diseno.Vencimiento = request.Vencimiento;
         diseno.Descripcion = request.Descripcion;
         diseno.Configuracion = request.Configuracion;
 
@@ -106,9 +110,11 @@ public class DisenosService : IDisenosService
         return true;
     }
 
+    private static string NormalizeTipo(string? tipo) => tipo == "cupon" ? "cupon" : "sellos";
+
     private static DisenoDto ToDto(Diseno d, int? disenoActivoId) => new(
-        d.Id, d.EmpresaId, d.TemplateId, d.Nombre, d.Logo, d.ColorPrimario, d.ColorSecundario, d.ColorTexto,
-        d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Descripcion, d.Configuracion, d.Activo,
+        d.Id, d.EmpresaId, d.TemplateId, d.Nombre, d.Tipo, d.Logo, d.ColorPrimario, d.ColorSecundario, d.ColorTexto,
+        d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Vencimiento, d.Descripcion, d.Configuracion, d.Activo,
         EsActivoDeEmpresa: disenoActivoId.HasValue && disenoActivoId.Value == d.Id,
         d.CreatedAt, d.UpdatedAt);
 }

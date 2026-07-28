@@ -7,6 +7,7 @@ public static class AppleWalletPassInputFactory
     public static AppleWalletPassInput From(TarjetaDto tarjeta, string? webServiceUrl) => new(
         SerialNumber: tarjeta.CodigoQr,
         OrganizationName: tarjeta.EmpresaNombre ?? "Masplus Cards",
+        Tipo: tarjeta.Tipo,
         Logo: tarjeta.Logo,
         ColorPrimario: tarjeta.ColorPrimario,
         ColorTexto: tarjeta.ColorTexto,
@@ -16,6 +17,9 @@ public static class AppleWalletPassInputFactory
         SellosActuales: tarjeta.SellosActuales,
         SellosRequeridos: tarjeta.SellosRequeridos,
         PremiosCanjeados: tarjeta.PremiosCanjeados,
+        Vencimiento: tarjeta.Vencimiento,
+        Descripcion: tarjeta.Descripcion,
+        CuponRedimido: tarjeta.CuponRedimido,
         CodigoQr: tarjeta.CodigoQr,
         WebServiceUrl: webServiceUrl);
 }

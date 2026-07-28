@@ -9,7 +9,7 @@ public class Template
     public string? Descripcion { get; set; }
     public string? PreviewImg { get; set; }
 
-    /// <summary>"sellos" (tarjeta de estampas) o "puntos".</summary>
+    /// <summary>Tipo de tarjeta que define este template: "sellos" (tarjeta de estampas) o "cupon".</summary>
     public string TipoRecompensa { get; set; } = "sellos";
 
     /// <summary>JSON con la configuración base: colores por defecto, cantidad de sellos, estilo de ícono, layout.</summary>

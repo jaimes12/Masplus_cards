@@ -131,6 +131,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.EmpresaId).HasColumnName("empresa_id");
             e.Property(x => x.TemplateId).HasColumnName("template_id");
             e.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(100);
+            e.Property(x => x.Tipo).HasColumnName("tipo").HasMaxLength(20);
             e.Property(x => x.Logo).HasColumnName("logo").HasMaxLength(255);
             e.Property(x => x.ColorPrimario).HasColumnName("color_primario").HasMaxLength(20);
             e.Property(x => x.ColorSecundario).HasColumnName("color_secundario").HasMaxLength(20);
@@ -138,6 +139,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.IconoSello).HasColumnName("icono_sello").HasMaxLength(255);
             e.Property(x => x.FondoUrl).HasColumnName("fondo_url").HasMaxLength(255);
             e.Property(x => x.SellosRequeridos).HasColumnName("sellos_requeridos");
+            e.Property(x => x.Vencimiento).HasColumnName("vencimiento");
             e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(500);
             e.Property(x => x.Configuracion).HasColumnName("configuracion").HasColumnType("json");
             e.Property(x => x.Activo).HasColumnName("activo");
@@ -184,6 +186,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.DisenoId).HasColumnName("diseno_id");
             e.Property(x => x.SellosActuales).HasColumnName("sellos_actuales");
             e.Property(x => x.PremiosCanjeados).HasColumnName("premios_canjeados");
+            e.Property(x => x.CuponRedimido).HasColumnName("cupon_redimido");
             e.Property(x => x.CodigoQr).HasColumnName("codigo_qr").HasMaxLength(255).IsRequired();
             e.Property(x => x.WalletTipo).HasColumnName("wallet_tipo").HasMaxLength(20);
             e.Property(x => x.AppleSerialNumber).HasColumnName("apple_serial_number").HasMaxLength(100);

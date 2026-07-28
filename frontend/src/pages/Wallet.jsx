@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { Check, Ticket } from 'lucide-react'
 import { api, API_URL } from '../lib/api.js'
 
 const POLL_MS = 5000
@@ -51,8 +51,10 @@ export default function Wallet() {
   const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(tarjeta.codigoQr)}`
   const primario = tarjeta.colorPrimario || '#18181B'
   const texto = tarjeta.colorTexto || '#FFFFFF'
+  const esCupon = tarjeta.tipo === 'cupon'
   const faltan = Math.max(tarjeta.sellosRequeridos - tarjeta.sellosActuales, 0)
   const stamps = Array.from({ length: tarjeta.sellosRequeridos }, (_, i) => i < tarjeta.sellosActuales)
+  const cuponVencido = esCupon && tarjeta.vencimiento && new Date(tarjeta.vencimiento) < new Date()
 
   const cardStyle = tarjeta.fondoUrl
     ? {
@@ -76,39 +78,62 @@ export default function Wallet() {
           </div>
         </div>
 
-        <div className="my-5 flex items-baseline justify-between">
-          <p className="text-sm font-medium uppercase tracking-wide opacity-70">
-            {faltan > 0 ? `Faltan ${faltan} sello${faltan === 1 ? '' : 's'}` : '¡Premio disponible!'}
-          </p>
-          {tarjeta.premiosCanjeados > 0 && (
-            <p className="text-xs opacity-70">{tarjeta.premiosCanjeados} premio{tarjeta.premiosCanjeados === 1 ? '' : 's'} canjeado{tarjeta.premiosCanjeados === 1 ? '' : 's'}</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-4 gap-3">
-          {stamps.map((ganado, i) => (
-            <div
-              key={i}
-              className="flex aspect-square items-center justify-center rounded-full border-2 transition-opacity"
-              style={{
-                borderColor: texto,
-                opacity: ganado ? 1 : 0.3,
-                background: ganado ? `${texto}22` : 'transparent',
-              }}
-            >
-              {tarjeta.iconoSello ? (
-                <img
-                  src={tarjeta.iconoSello}
-                  alt=""
-                  className="h-full w-full rounded-full object-cover"
-                  style={{ opacity: ganado ? 1 : 0.35 }}
-                />
-              ) : (
-                ganado && <Check className="h-5 w-5" style={{ color: texto }} />
+        {esCupon ? (
+          <div className="my-5">
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: `${texto}22` }}>
+                <Ticket className="h-6 w-6" style={{ color: texto }} />
+              </div>
+              {tarjeta.cuponRedimido ? (
+                <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-black">CANJEADO</span>
+              ) : cuponVencido ? (
+                <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-black">VENCIDO</span>
+              ) : null}
+            </div>
+            <p className="mt-4 text-xl font-semibold leading-snug">{tarjeta.descripcion || 'Cupón especial'}</p>
+            <p className="mt-2 text-xs uppercase tracking-wide opacity-70">
+              {tarjeta.vencimiento
+                ? `Vence ${new Date(tarjeta.vencimiento).toLocaleDateString('es-MX')}`
+                : 'Sin vencimiento'}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="my-5 flex items-baseline justify-between">
+              <p className="text-sm font-medium uppercase tracking-wide opacity-70">
+                {faltan > 0 ? `Faltan ${faltan} sello${faltan === 1 ? '' : 's'}` : '¡Premio disponible!'}
+              </p>
+              {tarjeta.premiosCanjeados > 0 && (
+                <p className="text-xs opacity-70">{tarjeta.premiosCanjeados} premio{tarjeta.premiosCanjeados === 1 ? '' : 's'} canjeado{tarjeta.premiosCanjeados === 1 ? '' : 's'}</p>
               )}
             </div>
-          ))}
-        </div>
+
+            <div className="grid grid-cols-4 gap-3">
+              {stamps.map((ganado, i) => (
+                <div
+                  key={i}
+                  className="flex aspect-square items-center justify-center rounded-full border-2 transition-opacity"
+                  style={{
+                    borderColor: texto,
+                    opacity: ganado ? 1 : 0.3,
+                    background: ganado ? `${texto}22` : 'transparent',
+                  }}
+                >
+                  {tarjeta.iconoSello ? (
+                    <img
+                      src={tarjeta.iconoSello}
+                      alt=""
+                      className="h-full w-full rounded-full object-cover"
+                      style={{ opacity: ganado ? 1 : 0.35 }}
+                    />
+                  ) : (
+                    ganado && <Check className="h-5 w-5" style={{ color: texto }} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         <div className="mt-6 flex justify-center rounded-lg bg-white p-3">
           <img src={qrImg} alt="Código QR" width={160} height={160} />

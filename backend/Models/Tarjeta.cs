@@ -11,6 +11,9 @@ public class Tarjeta
     public int SellosActuales { get; set; }
     public int PremiosCanjeados { get; set; }
 
+    /// <summary>Si el Diseno es de tipo "cupon", indica si ya se usó.</summary>
+    public bool CuponRedimido { get; set; }
+
     /// <summary>Valor único codificado en el QR/código de barras de la tarjeta.</summary>
     public string CodigoQr { get; set; } = string.Empty;
 

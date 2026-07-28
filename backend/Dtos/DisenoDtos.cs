@@ -5,6 +5,7 @@ public record DisenoDto(
     int EmpresaId,
     int? TemplateId,
     string? Nombre,
+    string Tipo,
     string? Logo,
     string? ColorPrimario,
     string? ColorSecundario,
@@ -12,6 +13,7 @@ public record DisenoDto(
     string? IconoSello,
     string? FondoUrl,
     int SellosRequeridos,
+    DateTime? Vencimiento,
     string? Descripcion,
     string? Configuracion,
     bool Activo,
@@ -22,6 +24,7 @@ public record DisenoDto(
 public record DisenoUpsertRequest(
     int? TemplateId,
     string Nombre,
+    string Tipo,
     string? Logo,
     string? ColorPrimario,
     string? ColorSecundario,
@@ -29,5 +32,6 @@ public record DisenoUpsertRequest(
     string? IconoSello,
     string? FondoUrl,
     int SellosRequeridos,
+    DateTime? Vencimiento,
     string? Descripcion,
     string? Configuracion);

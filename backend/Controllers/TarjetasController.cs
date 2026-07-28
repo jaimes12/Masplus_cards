@@ -67,8 +67,15 @@ public class TarjetasController : ControllerBase
     [Authorize(Roles = "Empresa")]
     public async Task<ActionResult<TarjetaDto>> SumarSello(int id)
     {
-        var updated = await _service.SumarSelloAsync(User.GetEmpresaId(), id);
-        return updated == null ? NotFound() : Ok(updated);
+        try
+        {
+            var updated = await _service.SumarSelloAsync(User.GetEmpresaId(), id);
+            return updated == null ? NotFound() : Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     /// <summary>Suma un sello buscando la tarjeta por su codigo_qr (flujo de escaneo en el punto de venta).</summary>
@@ -76,8 +83,15 @@ public class TarjetasController : ControllerBase
     [Authorize(Roles = "Empresa")]
     public async Task<ActionResult<TarjetaDto>> SumarSelloPorCodigo(string codigoQr)
     {
-        var updated = await _service.SumarSelloPorCodigoAsync(User.GetEmpresaId(), codigoQr);
-        return updated == null ? NotFound(new { error = "No se encontró una tarjeta de tu empresa con ese código." }) : Ok(updated);
+        try
+        {
+            var updated = await _service.SumarSelloPorCodigoAsync(User.GetEmpresaId(), codigoQr);
+            return updated == null ? NotFound(new { error = "No se encontró una tarjeta de tu empresa con ese código." }) : Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpPost("{id:int}/canjear")]
@@ -87,6 +101,21 @@ public class TarjetasController : ControllerBase
         try
         {
             var updated = await _service.CanjearPremioAsync(User.GetEmpresaId(), id);
+            return updated == null ? NotFound() : Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("{id:int}/canjear-cupon")]
+    [Authorize(Roles = "Empresa")]
+    public async Task<ActionResult<TarjetaDto>> CanjearCupon(int id)
+    {
+        try
+        {
+            var updated = await _service.CanjearCuponAsync(User.GetEmpresaId(), id);
             return updated == null ? NotFound() : Ok(updated);
         }
         catch (InvalidOperationException ex)

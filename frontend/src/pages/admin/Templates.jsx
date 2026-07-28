@@ -61,10 +61,10 @@ export default function Templates() {
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required />
           </div>
           <div>
-            <Label>Tipo de recompensa</Label>
+            <Label>Tipo de tarjeta</Label>
             <Select value={form.tipoRecompensa} onChange={(e) => setForm({ ...form, tipoRecompensa: e.target.value })}>
-              <option value="sellos">Sellos</option>
-              <option value="puntos">Puntos</option>
+              <option value="sellos">Sellos (tarjeta de estampas)</option>
+              <option value="cupon">Cupón</option>
             </Select>
           </div>
           <div className="sm:col-span-2">
@@ -83,7 +83,10 @@ export default function Templates() {
           <Card key={t.id} className="flex items-center justify-between">
             <div>
               <p className="font-medium">
-                {t.nombre} <span className="text-sm text-muted-foreground">({t.tipoRecompensa})</span>
+                {t.nombre}{' '}
+                <span className="text-sm text-muted-foreground">
+                  ({t.tipoRecompensa === 'cupon' ? 'Cupón' : 'Sellos'})
+                </span>
               </p>
               <p className="text-sm text-muted-foreground">{t.descripcion}</p>
             </div>

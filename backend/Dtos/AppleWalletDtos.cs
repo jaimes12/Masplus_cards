@@ -4,6 +4,7 @@ namespace MasplusCards.Api.Dtos;
 public record AppleWalletPassInput(
     string SerialNumber,
     string OrganizationName,
+    string Tipo,
     string? Logo,
     string? ColorPrimario,
     string? ColorTexto,
@@ -13,5 +14,8 @@ public record AppleWalletPassInput(
     int SellosActuales,
     int SellosRequeridos,
     int PremiosCanjeados,
+    DateTime? Vencimiento,
+    string? Descripcion,
+    bool CuponRedimido,
     string CodigoQr,
     string? WebServiceUrl = null);

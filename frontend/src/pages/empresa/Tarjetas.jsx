@@ -54,6 +54,15 @@ export default function Tarjetas() {
     }
   }
 
+  async function canjearCupon(id) {
+    try {
+      await api.post(`/api/tarjetas/${id}/canjear-cupon`)
+      await load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   async function handleScan(codigoQr) {
     setScanning(false)
     try {
@@ -143,16 +152,26 @@ export default function Tarjetas() {
                 {t.clienteNombre} · {t.clienteTelefono}
               </p>
               <p className="text-sm text-muted-foreground">
-                {t.sellosActuales} / {t.sellosRequeridos} sellos · {t.premiosCanjeados} premios canjeados
+                {t.tipo === 'cupon'
+                  ? `${t.descripcion || 'Cupón'} · ${t.cuponRedimido ? 'canjeado' : t.vencimiento ? `vence ${new Date(t.vencimiento).toLocaleDateString('es-MX')}` : 'sin vencimiento'}`
+                  : `${t.sellosActuales} / ${t.sellosRequeridos} sellos · ${t.premiosCanjeados} premios canjeados`}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => sumarSello(t.id)}>
-                + Sello
-              </Button>
-              <Button variant="outline" onClick={() => canjear(t.id)}>
-                Canjear premio
-              </Button>
+              {t.tipo === 'cupon' ? (
+                <Button variant="outline" onClick={() => canjearCupon(t.id)} disabled={t.cuponRedimido}>
+                  {t.cuponRedimido ? 'Cupón canjeado' : 'Canjear cupón'}
+                </Button>
+              ) : (
+                <>
+                  <Button variant="outline" onClick={() => sumarSello(t.id)}>
+                    + Sello
+                  </Button>
+                  <Button variant="outline" onClick={() => canjear(t.id)}>
+                    Canjear premio
+                  </Button>
+                </>
+              )}
               <Link to={`/wallet/${t.codigoQr}`} target="_blank">
                 <Button variant="ghost">Ver wallet</Button>
               </Link>

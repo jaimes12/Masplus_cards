@@ -44,65 +44,59 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         var logo = await GetBytesCachedAsync($"{CachePrefix}logo:{logoUrl.GetHashCode():X}", logoUrl, cancellationToken);
         var icon = await GetBytesCachedAsync($"{CachePrefix}icon:{iconUrl.GetHashCode():X}", iconUrl, cancellationToken);
 
-        byte[]? stampIcon = null;
-        if (NonEmpty(input.IconoSello) is { } stampIconUrl)
-        {
-            try
-            {
-                stampIcon = await GetBytesCachedAsync($"{CachePrefix}stamp:{stampIconUrl.GetHashCode():X}", stampIconUrl, cancellationToken);
-            }
-            catch
-            {
-                stampIcon = null;
-            }
-        }
-
-        byte[]? fondo = null;
-        if (NonEmpty(input.FondoUrl) is { } fondoUrl)
-        {
-            try
-            {
-                fondo = await GetBytesCachedAsync($"{CachePrefix}fondo:{fondoUrl.GetHashCode():X}", fondoUrl, cancellationToken);
-            }
-            catch
-            {
-                fondo = null;
-            }
-        }
-
         var backgroundColor = NonEmpty(input.ColorPrimario) ?? DefaultBackgroundColor;
         var foregroundColor = NonEmpty(input.ColorTexto) ?? DefaultForegroundColor;
 
-        var strip = StampStripRenderer.Render(backgroundColor, foregroundColor, input.SellosRequeridos, input.SellosActuales, stampIcon, fondo);
-
-        var request = new PassGeneratorRequest
+        var baseRequest = new PassGeneratorRequest
         {
-            Style = PassStyle.StoreCard,
             PassTypeIdentifier = _cfg.PassTypeIdentifier,
             SerialNumber = input.SerialNumber,
             OrganizationName = input.OrganizationName,
             BackgroundColor = HexToRgb(backgroundColor),
             ForegroundColor = HexToRgb(foregroundColor),
             LabelColor = HexToRgb(DefaultLabelColor),
-            Description = $"Tarjeta de fidelidad {input.OrganizationName}",
             AppleWWDRCACertificate = wwdrCert,
             PassbookCertificate = passbookCert,
             LogoText = input.OrganizationName,
             WebServiceUrl = input.WebServiceUrl,
             AuthenticationToken = input.WebServiceUrl != null ? input.CodigoQr : null,
-            Images =
-            {
-                { PassbookImage.Icon, icon },
-                { PassbookImage.Icon2X, icon },
-                { PassbookImage.Icon3X, icon },
-                { PassbookImage.Logo, logo },
-                { PassbookImage.Logo2X, logo },
-                { PassbookImage.Logo3X, logo },
-                { PassbookImage.Strip, strip },
-                { PassbookImage.Strip2X, strip },
-                { PassbookImage.Strip3X, strip },
-            },
+            Images = { { PassbookImage.Icon, icon }, { PassbookImage.Icon2X, icon }, { PassbookImage.Icon3X, icon },
+                       { PassbookImage.Logo, logo }, { PassbookImage.Logo2X, logo }, { PassbookImage.Logo3X, logo } },
         };
+
+        var request = input.Tipo == "cupon"
+            ? await BuildCuponAsync(baseRequest, input, cancellationToken)
+            : await BuildSellosAsync(baseRequest, input, backgroundColor, foregroundColor, cancellationToken);
+
+        request.AddBarcode(BarcodeType.PKBarcodeFormatQR, input.CodigoQr, "UTF-8", "Powered by Masplus");
+
+        return new PassGenerator().Generate(request);
+    }
+
+    private async Task<PassGeneratorRequest> BuildSellosAsync(
+        PassGeneratorRequest request, AppleWalletPassInput input, string backgroundColor, string foregroundColor, CancellationToken cancellationToken)
+    {
+        byte[]? stampIcon = null;
+        if (NonEmpty(input.IconoSello) is { } stampIconUrl)
+        {
+            try { stampIcon = await GetBytesCachedAsync($"{CachePrefix}stamp:{stampIconUrl.GetHashCode():X}", stampIconUrl, cancellationToken); }
+            catch { stampIcon = null; }
+        }
+
+        byte[]? fondo = null;
+        if (NonEmpty(input.FondoUrl) is { } fondoUrl)
+        {
+            try { fondo = await GetBytesCachedAsync($"{CachePrefix}fondo:{fondoUrl.GetHashCode():X}", fondoUrl, cancellationToken); }
+            catch { fondo = null; }
+        }
+
+        var strip = StampStripRenderer.Render(backgroundColor, foregroundColor, input.SellosRequeridos, input.SellosActuales, stampIcon, fondo);
+
+        request.Style = PassStyle.StoreCard;
+        request.Description = $"Tarjeta de fidelidad {input.OrganizationName}";
+        request.Images.Add(PassbookImage.Strip, strip);
+        request.Images.Add(PassbookImage.Strip2X, strip);
+        request.Images.Add(PassbookImage.Strip3X, strip);
 
         // Sin primaryField a propósito: en el estilo storeCard Apple lo dibuja SUPERPUESTO
         // sobre el strip, y ahí ya está el grid de sellos. El resumen va en el header (no se
@@ -113,9 +107,23 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
         request.AddAuxiliaryField(new StandardField("premios", "PREMIOS", input.PremiosCanjeados.ToString()));
 
-        request.AddBarcode(BarcodeType.PKBarcodeFormatQR, input.CodigoQr, "UTF-8", "Powered by Masplus");
+        return request;
+    }
 
-        return new PassGenerator().Generate(request);
+    private Task<PassGeneratorRequest> BuildCuponAsync(PassGeneratorRequest request, AppleWalletPassInput input, CancellationToken cancellationToken)
+    {
+        request.Style = PassStyle.Coupon;
+        request.Description = NonEmpty(input.Descripcion) ?? $"Cupón {input.OrganizationName}";
+
+        request.AddHeaderField(new StandardField(
+            "estado", "ESTADO", input.CuponRedimido ? "CANJEADO" : "VIGENTE"));
+        request.AddPrimaryField(new StandardField(
+            "oferta", "", NonEmpty(input.Descripcion) ?? "Cupón especial"));
+        request.AddSecondaryField(new StandardField(
+            "vence", "VENCE", input.Vencimiento?.ToString("dd/MM/yyyy") ?? "Sin vencimiento"));
+        request.AddAuxiliaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
+
+        return Task.FromResult(request);
     }
 
     private static string? NonEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;

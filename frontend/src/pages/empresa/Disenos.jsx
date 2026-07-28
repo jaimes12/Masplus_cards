@@ -7,6 +7,7 @@ import ImageUploadInput from '../../components/ImageUploadInput.jsx'
 
 const emptyForm = {
   templateId: '',
+  tipo: 'sellos',
   nombre: '',
   logo: '',
   iconoSello: '',
@@ -15,6 +16,7 @@ const emptyForm = {
   colorSecundario: '#F4F4F5',
   colorTexto: '#FFFFFF',
   sellosRequeridos: 10,
+  vencimiento: '',
   descripcion: '',
 }
 
@@ -43,10 +45,20 @@ export default function Disenos() {
     setForm((f) => ({ ...f, [field]: value }))
   }
 
+  function selectTemplate(templateId) {
+    const template = templates.find((t) => String(t.id) === templateId)
+    setForm((f) => ({
+      ...f,
+      templateId,
+      tipo: template ? template.tipoRecompensa : f.tipo,
+    }))
+  }
+
   function startEdit(diseno) {
     setEditingId(diseno.id)
     setForm({
       templateId: diseno.templateId ? String(diseno.templateId) : '',
+      tipo: diseno.tipo || 'sellos',
       nombre: diseno.nombre || '',
       logo: diseno.logo || '',
       iconoSello: diseno.iconoSello || '',
@@ -55,6 +67,7 @@ export default function Disenos() {
       colorSecundario: diseno.colorSecundario || '#F4F4F5',
       colorTexto: diseno.colorTexto || '#FFFFFF',
       sellosRequeridos: diseno.sellosRequeridos,
+      vencimiento: diseno.vencimiento ? diseno.vencimiento.slice(0, 10) : '',
       descripcion: diseno.descripcion || '',
     })
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
@@ -72,6 +85,7 @@ export default function Disenos() {
     try {
       const payload = {
         templateId: form.templateId ? Number(form.templateId) : null,
+        tipo: form.tipo,
         nombre: form.nombre,
         logo: form.logo || null,
         colorPrimario: form.colorPrimario,
@@ -80,6 +94,7 @@ export default function Disenos() {
         iconoSello: form.iconoSello || null,
         fondoUrl: form.fondoUrl || null,
         sellosRequeridos: Number(form.sellosRequeridos),
+        vencimiento: form.tipo === 'cupon' && form.vencimiento ? form.vencimiento : null,
         descripcion: form.descripcion || null,
         configuracion: null,
       }
@@ -121,8 +136,19 @@ export default function Disenos() {
             <Card key={d.id} className={d.esActivoDeEmpresa ? 'border-primary' : ''}>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-medium">{d.nombre}</p>
-                  <p className="text-sm text-muted-foreground">{d.sellosRequeridos} sellos para el premio</p>
+                  <p className="font-medium">
+                    {d.nombre}{' '}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      ({d.tipo === 'cupon' ? 'Cupón' : 'Sellos'})
+                    </span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {d.tipo === 'cupon'
+                      ? d.vencimiento
+                        ? `Vence ${new Date(d.vencimiento).toLocaleDateString('es-MX')}`
+                        : 'Sin vencimiento'
+                      : `${d.sellosRequeridos} sellos para el premio`}
+                  </p>
                 </div>
                 <div
                   className="h-8 w-8 shrink-0 rounded-full border border-border"
@@ -156,13 +182,20 @@ export default function Disenos() {
             <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Template base (opcional)</Label>
-                <Select value={form.templateId} onChange={(e) => update('templateId', e.target.value)}>
+                <Select value={form.templateId} onChange={(e) => selectTemplate(e.target.value)}>
                   <option value="">Ninguno (desde cero)</option>
                   {templates.map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.nombre}
+                      {t.nombre} ({t.tipoRecompensa === 'cupon' ? 'Cupón' : 'Sellos'})
                     </option>
                   ))}
+                </Select>
+              </div>
+              <div>
+                <Label>Tipo de tarjeta</Label>
+                <Select value={form.tipo} onChange={(e) => update('tipo', e.target.value)}>
+                  <option value="sellos">Sellos (tarjeta de estampas)</option>
+                  <option value="cupon">Cupón</option>
                 </Select>
               </div>
               <div>
@@ -173,24 +206,37 @@ export default function Disenos() {
                 <Label>Logo</Label>
                 <ImageUploadInput value={form.logo} onChange={(url) => update('logo', url)} />
               </div>
-              <div>
-                <Label>Ícono del sello (opcional)</Label>
-                <ImageUploadInput value={form.iconoSello} onChange={(url) => update('iconoSello', url)} />
-              </div>
+              {form.tipo === 'sellos' && (
+                <div>
+                  <Label>Ícono del sello (opcional)</Label>
+                  <ImageUploadInput value={form.iconoSello} onChange={(url) => update('iconoSello', url)} />
+                </div>
+              )}
               <div className="sm:col-span-2">
                 <Label>Fondo de la tarjeta (opcional)</Label>
                 <ImageUploadInput value={form.fondoUrl} onChange={(url) => update('fondoUrl', url)} />
               </div>
-              <div>
-                <Label>Sellos requeridos</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={form.sellosRequeridos}
-                  onChange={(e) => update('sellosRequeridos', e.target.value)}
-                  required
-                />
-              </div>
+              {form.tipo === 'sellos' ? (
+                <div>
+                  <Label>Sellos requeridos</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={form.sellosRequeridos}
+                    onChange={(e) => update('sellosRequeridos', e.target.value)}
+                    required
+                  />
+                </div>
+              ) : (
+                <div>
+                  <Label>Vencimiento (opcional)</Label>
+                  <Input
+                    type="date"
+                    value={form.vencimiento}
+                    onChange={(e) => update('vencimiento', e.target.value)}
+                  />
+                </div>
+              )}
               <div>
                 <Label>Color primario</Label>
                 <Input type="color" value={form.colorPrimario} onChange={(e) => update('colorPrimario', e.target.value)} />
@@ -208,11 +254,11 @@ export default function Disenos() {
                 <Input type="color" value={form.colorTexto} onChange={(e) => update('colorTexto', e.target.value)} />
               </div>
               <div className="sm:col-span-2">
-                <Label>Descripción / premio</Label>
+                <Label>{form.tipo === 'cupon' ? 'Descripción del cupón' : 'Descripción / premio'}</Label>
                 <Input
                   value={form.descripcion}
                   onChange={(e) => update('descripcion', e.target.value)}
-                  placeholder="Ej. Café gratis"
+                  placeholder={form.tipo === 'cupon' ? 'Ej. 2x1 en combo' : 'Ej. Café gratis'}
                 />
               </div>
               {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
@@ -233,12 +279,15 @@ export default function Disenos() {
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Vista previa</p>
             <CardPreview
               empresaNombre={auth?.nombre}
+              tipo={form.tipo}
               logo={form.logo}
               iconoSello={form.iconoSello}
               fondoUrl={form.fondoUrl}
               colorPrimario={form.colorPrimario}
               colorTexto={form.colorTexto}
               sellosRequeridos={form.sellosRequeridos}
+              vencimiento={form.vencimiento}
+              descripcion={form.descripcion}
             />
           </div>
         </div>

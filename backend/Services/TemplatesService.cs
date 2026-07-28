@@ -40,7 +40,7 @@ public class TemplatesService : ITemplatesService
             Nombre = request.Nombre,
             Descripcion = request.Descripcion,
             PreviewImg = request.PreviewImg,
-            TipoRecompensa = request.TipoRecompensa,
+            TipoRecompensa = NormalizeTipo(request.TipoRecompensa),
             Estructura = request.Estructura,
             Activo = request.Activo,
         };
@@ -58,7 +58,7 @@ public class TemplatesService : ITemplatesService
         template.Nombre = request.Nombre;
         template.Descripcion = request.Descripcion;
         template.PreviewImg = request.PreviewImg;
-        template.TipoRecompensa = request.TipoRecompensa;
+        template.TipoRecompensa = NormalizeTipo(request.TipoRecompensa);
         template.Estructura = request.Estructura;
         template.Activo = request.Activo;
 
@@ -75,6 +75,8 @@ public class TemplatesService : ITemplatesService
         await _db.SaveChangesAsync();
         return true;
     }
+
+    private static string NormalizeTipo(string? tipo) => tipo == "cupon" ? "cupon" : "sellos";
 
     private static TemplateDto ToDto(Template t) => new(
         t.Id, t.Nombre, t.Descripcion, t.PreviewImg, t.TipoRecompensa, t.Estructura, t.Activo, t.CreatedAt);
