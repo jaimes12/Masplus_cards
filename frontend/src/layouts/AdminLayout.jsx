@@ -30,7 +30,7 @@ export default function AdminLayout() {
   const [title, subtitle] = TITLES[location.pathname] ?? ['Panel de administración', '']
 
   return (
-    <div className="bg-app-surface flex min-h-svh">
+    <div className="bg-app-surface flex h-svh overflow-hidden">
       <Sidebar
         brand={
           <div className="flex items-center gap-2">
@@ -50,12 +50,16 @@ export default function AdminLayout() {
           </Button>
         }
       />
-      <main className="flex-1 overflow-y-auto p-4 pr-6 pb-6 pt-6">
-        <div className="mx-auto max-w-6xl">
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="mx-auto w-full max-w-6xl shrink-0 px-4 pr-6 pt-6">
           <Navbar title={title} subtitle={subtitle} name={auth?.nombre} />
-          <Outlet />
         </div>
-      </main>
+        <main className="flex-1 overflow-y-auto px-4 pb-6 pr-6">
+          <div className="mx-auto max-w-6xl">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
