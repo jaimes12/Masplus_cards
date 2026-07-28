@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Numerics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -147,45 +146,6 @@ public static class StampStripRenderer
         });
 
         backgroundImage?.Dispose();
-
-        using var ms = new MemoryStream();
-        image.SaveAsPng(ms);
-        return ms.ToArray();
-    }
-
-    /// <summary>Fondo por default (sin foto) para cupones: color plano + una marca de agua difuminada
-    /// del logo de MasPlus (tag + "+"), igual que se ve en la wallet web cuando no hay fondoUrl.</summary>
-    public static byte[] RenderCuponWatermark(string? backgroundHex, string? foregroundHex)
-    {
-        var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
-        var foreground = ParseColor(foregroundHex, new Rgba32(250, 250, 250));
-
-        using var image = new Image<Rgba32>(BackgroundWidth, BackgroundHeight);
-
-        image.Mutate(ctx =>
-        {
-            ctx.Fill(background);
-
-            var cx = BackgroundWidth * 0.72f;
-            var cy = BackgroundHeight * 0.2f;
-            var tagSize = BackgroundWidth * 0.42f;
-            var tint = WithAlpha(foreground, 0.45f);
-
-            IPath tag = new RectangularPolygon(cx - tagSize / 2f, cy - tagSize / 2f, tagSize, tagSize * 1.15f)
-                .Transform(Matrix3x2.CreateRotation(14f * MathF.PI / 180f, new PointF(cx, cy)));
-            ctx.Fill(tint, tag);
-
-            ctx.Draw(tint, tagSize * 0.05f, new EllipsePolygon(cx + tagSize * 0.22f, cy - tagSize * 0.4f, tagSize * 0.1f));
-
-            var plusLen = tagSize * 0.32f;
-            var plusThick = tagSize * 0.1f;
-            var plusColor = WithAlpha(background, 0.95f);
-            ctx.Fill(plusColor, new RectangularPolygon(cx - plusThick / 2f, cy - plusLen / 2f, plusThick, plusLen));
-            ctx.Fill(plusColor, new RectangularPolygon(cx - plusLen / 2f, cy - plusThick / 2f, plusLen, plusThick));
-        });
-
-        // Difuminar toda la marca para que quede sutil (textura de fondo), no un logo nítido.
-        image.Mutate(ctx => ctx.GaussianBlur(16f));
 
         using var ms = new MemoryStream();
         image.SaveAsPng(ms);

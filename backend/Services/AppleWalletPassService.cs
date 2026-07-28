@@ -65,7 +65,7 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         };
 
         var request = input.Tipo == "cupon"
-            ? await BuildCuponAsync(baseRequest, input, backgroundColor, foregroundColor, cancellationToken)
+            ? await BuildCuponAsync(baseRequest, input, backgroundColor, cancellationToken)
             : await BuildSellosAsync(baseRequest, input, backgroundColor, foregroundColor, cancellationToken);
 
         request.AddBarcode(BarcodeType.PKBarcodeFormatQR, input.CodigoQr, "UTF-8", "Powered by Masplus");
@@ -111,7 +111,7 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
     }
 
     private async Task<PassGeneratorRequest> BuildCuponAsync(
-        PassGeneratorRequest request, AppleWalletPassInput input, string backgroundColor, string foregroundColor, CancellationToken cancellationToken)
+        PassGeneratorRequest request, AppleWalletPassInput input, string backgroundColor, CancellationToken cancellationToken)
     {
         byte[]? fondo = null;
         if (NonEmpty(input.FondoUrl) is { } fondoUrl)
@@ -125,13 +125,13 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         request.Style = PassStyle.Generic;
         request.Description = NonEmpty(input.Descripcion) ?? $"Cupón {input.OrganizationName}";
 
-        // Con foto propia se usa esa; si no, un fondo con la marca de agua de Masplus (igual que en la wallet web).
-        var fondoPase = fondo != null
-            ? StampStripRenderer.RenderCuponBackground(backgroundColor, fondo)
-            : StampStripRenderer.RenderCuponWatermark(backgroundColor, foregroundColor);
-        request.Images.Add(PassbookImage.Background, fondoPase);
-        request.Images.Add(PassbookImage.Background2X, fondoPase);
-        request.Images.Add(PassbookImage.Background3X, fondoPase);
+        if (fondo != null)
+        {
+            var fondoPase = StampStripRenderer.RenderCuponBackground(backgroundColor, fondo);
+            request.Images.Add(PassbookImage.Background, fondoPase);
+            request.Images.Add(PassbookImage.Background2X, fondoPase);
+            request.Images.Add(PassbookImage.Background3X, fondoPase);
+        }
 
         request.AddHeaderField(new StandardField(
             "estado", "ESTADO", input.CuponRedimido ? "CANJEADO" : "VIGENTE"));
