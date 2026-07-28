@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<Tarjeta> Tarjetas => Set<Tarjeta>();
     public DbSet<TarjetaLog> TarjetaLogs => Set<TarjetaLog>();
     public DbSet<PassRegistration> PassRegistrations => Set<PassRegistration>();
+    public DbSet<Plan> Planes => Set<Plan>();
 
     public override int SaveChanges()
     {
@@ -93,6 +94,8 @@ public class AppDbContext : DbContext
             e.Property(x => x.Telefono).HasColumnName("telefono").HasMaxLength(20);
             e.Property(x => x.Logo).HasColumnName("logo").HasMaxLength(255);
             e.Property(x => x.DisenoActivoId).HasColumnName("diseno_activo_id");
+            e.Property(x => x.PlanId).HasColumnName("plan_id");
+            e.Property(x => x.PlanRenuevaEl).HasColumnName("plan_renueva_el");
             e.Property(x => x.Estado).HasColumnName("estado").HasMaxLength(20);
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
             e.HasIndex(x => x.Email).IsUnique();
@@ -101,6 +104,28 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.DisenoActivoId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            e.HasOne(x => x.Plan)
+                .WithMany(x => x.Empresas)
+                .HasForeignKey(x => x.PlanId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Plan>(e =>
+        {
+            e.ToTable("planes");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+            e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(300);
+            e.Property(x => x.PrecioMensual).HasColumnName("precio_mensual").HasColumnType("decimal(10,2)");
+            e.Property(x => x.LimiteDisenos).HasColumnName("limite_disenos");
+            e.Property(x => x.LimiteTarjetas).HasColumnName("limite_tarjetas");
+            e.Property(x => x.Caracteristicas).HasColumnName("caracteristicas").HasColumnType("json");
+            e.Property(x => x.Destacado).HasColumnName("destacado");
+            e.Property(x => x.Orden).HasColumnName("orden");
+            e.Property(x => x.Activo).HasColumnName("activo");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
         });
 
         modelBuilder.Entity<Template>(e =>

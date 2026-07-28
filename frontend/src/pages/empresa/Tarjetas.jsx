@@ -121,7 +121,7 @@ export default function Tarjetas() {
       )}
 
       {scanResult && (
-        <Card className={scanResult.ok ? 'border-primary/40' : 'border-destructive/40'}>
+        <Card className={`border-2 ${scanResult.ok ? 'border-primary/40' : 'border-destructive/40'}`}>
           {scanResult.ok ? (
             <p className="text-sm">
               Sello agregado a <span className="font-medium">{scanResult.tarjeta.clienteNombre}</span> —{' '}

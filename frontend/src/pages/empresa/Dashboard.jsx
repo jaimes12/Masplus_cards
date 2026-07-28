@@ -42,7 +42,7 @@ export default function Dashboard() {
       </div>
 
       {!activo && (
-        <Card className="border-destructive/40">
+        <Card className="border-2 border-destructive/40">
           <p className="text-sm">
             Todavía no tenés un diseño activo.{' '}
             <Link to="/empresa/disenos" className="underline">

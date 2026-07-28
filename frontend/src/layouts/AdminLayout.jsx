@@ -1,7 +1,8 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Building2, LayoutDashboard, LogOut, ShieldCheck, LayoutTemplate } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import Sidebar from '../components/Sidebar.jsx'
+import Navbar from '../components/Navbar.jsx'
 import { Button } from '../components/ui.jsx'
 
 const items = [
@@ -10,17 +11,26 @@ const items = [
   { to: '/admin/empresas', label: 'Empresas', icon: Building2 },
 ]
 
+const TITLES = {
+  '/admin': ['Resumen', 'Cómo va Masplus Cards en general.'],
+  '/admin/templates': ['Templates', 'Plantillas base que las empresas personalizan.'],
+  '/admin/empresas': ['Empresas', 'Cuentas registradas en la plataforma.'],
+}
+
 export default function AdminLayout() {
   const { auth, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   function handleLogout() {
     logout()
     navigate('/admin/login')
   }
 
+  const [title, subtitle] = TITLES[location.pathname] ?? ['Panel de administración', '']
+
   return (
-    <div className="flex min-h-svh">
+    <div className="bg-app-surface flex min-h-svh">
       <Sidebar
         brand={
           <div className="flex items-center gap-2">
@@ -40,8 +50,9 @@ export default function AdminLayout() {
           </Button>
         }
       />
-      <main className="flex-1 overflow-y-auto p-8">
-        <div className="mx-auto max-w-5xl">
+      <main className="flex-1 overflow-y-auto p-4 pr-6 pb-6 pt-6">
+        <div className="mx-auto max-w-6xl">
+          <Navbar title={title} subtitle={subtitle} name={auth?.nombre} />
           <Outlet />
         </div>
       </main>
