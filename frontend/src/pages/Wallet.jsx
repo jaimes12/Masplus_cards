@@ -2,27 +2,20 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Check, Ticket } from 'lucide-react'
 import { api, API_URL } from '../lib/api.js'
+import masplusLogo from '../assets/masplus_logo.png'
 
 const POLL_MS = 5000
 
 const pageBackgroundStyle = { background: '#FFFFFF' }
 
-/// Patrón diagonal repetido tipo marca de agua de banco de imágenes, pero con la marca de Masplus:
-/// predominan el blanco y el gris, con toques naranjas.
+/// Patrón diagonal repetido tipo marca de agua de banco de imágenes, con el logo real de Masplus:
+/// predomina el blanco, con el logo difuminado como toque naranja.
 function PageWatermarkPattern() {
   return (
     <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" focusable="false">
       <defs>
-        <pattern id="mp-page-pattern" width="260" height="200" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
-          <text x="10" y="70" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="800" fontSize="42" fill="#9CA3AF" opacity="0.4">
-            más
-          </text>
-          <g transform="translate(150, 20)">
-            <rect width="34" height="42" rx="9" fill="#EA580C" opacity="0.35" />
-            <circle cx="27" cy="10" r="4.5" fill="none" stroke="#EA580C" strokeWidth="2.5" opacity="0.5" />
-            <rect x="12" y="18" width="10" height="18" rx="2" fill="#EA580C" opacity="0.35" />
-            <rect x="5" y="23" width="24" height="8" rx="2" fill="#EA580C" opacity="0.35" />
-          </g>
+        <pattern id="mp-page-pattern" width="280" height="200" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
+          <image href={masplusLogo} x="10" y="30" width="180" height="180" opacity="0.16" />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#mp-page-pattern)" />
