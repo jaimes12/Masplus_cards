@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Award, Check, Ticket } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Award, Check, Ticket } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
 import CardPreview from '../../components/CardPreview.jsx'
 import MiniCardPreview from '../../components/MiniCardPreview.jsx'
+import PhoneFrame from '../../components/PhoneFrame.jsx'
 import ImageUploadInput from '../../components/ImageUploadInput.jsx'
 
 const TIPO_LABEL = { sellos: 'Sellos', cupon: 'Promoción' }
+const STEPS = ['Información', 'Diseño', 'Revisar']
 
 const emptyForm = {
   templateId: '',
@@ -30,6 +32,7 @@ export default function Disenos() {
   const [disenos, setDisenos] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
+  const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -60,6 +63,7 @@ export default function Disenos() {
 
   function startEdit(diseno) {
     setEditingId(diseno.id)
+    setStep(0)
     setForm({
       templateId: diseno.templateId ? String(diseno.templateId) : '',
       tipo: diseno.tipo || 'sellos',
@@ -79,7 +83,22 @@ export default function Disenos() {
 
   function cancelEdit() {
     setEditingId(null)
+    setStep(0)
     setForm(emptyForm)
+  }
+
+  function goNext() {
+    if (step === 0 && !form.nombre.trim()) {
+      setError('Ponele un nombre a tu diseño antes de seguir.')
+      return
+    }
+    setError('')
+    setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  }
+
+  function goBack() {
+    setError('')
+    setStep((s) => Math.max(s - 1, 0))
   }
 
   async function handleSubmit(e) {
@@ -110,6 +129,7 @@ export default function Disenos() {
       }
 
       setEditingId(null)
+      setStep(0)
       setForm(emptyForm)
       await load()
     } catch (err) {
@@ -193,117 +213,171 @@ export default function Disenos() {
         <p className="mb-3 text-sm text-muted-foreground">
           {editingId ? 'Ajustá los detalles de tu diseño.' : 'Elegí qué tipo de tarjeta querés crear y armá el diseño.'}
         </p>
+
         <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
           <Card>
-            <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => update('tipo', 'sellos')}
-                  className={`relative rounded-xl border-2 p-4 text-left transition-colors ${
-                    form.tipo === 'sellos' ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
-                  }`}
-                >
-                  {form.tipo === 'sellos' && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
-                  <Award className="h-6 w-6" />
-                  <p className="mt-2 font-medium">Tarjeta de sellos</p>
-                  <p className="text-sm text-muted-foreground">Tus clientes juntan sellos en cada visita y canjean un premio.</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => update('tipo', 'cupon')}
-                  className={`relative rounded-xl border-2 p-4 text-left transition-colors ${
-                    form.tipo === 'cupon' ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
-                  }`}
-                >
-                  {form.tipo === 'cupon' && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
-                  <Ticket className="h-6 w-6" />
-                  <p className="mt-2 font-medium">Promoción</p>
-                  <p className="text-sm text-muted-foreground">Un cupón u oferta de un solo uso, con vencimiento opcional.</p>
-                </button>
-              </div>
-              <div>
-                <Label>Template base (opcional)</Label>
-                <Select value={form.templateId} onChange={(e) => selectTemplate(e.target.value)}>
-                  <option value="">Ninguno (desde cero)</option>
-                  {templates.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.nombre} ({TIPO_LABEL[t.tipoRecompensa] || 'Sellos'})
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Nombre</Label>
-                <Input value={form.nombre} onChange={(e) => update('nombre', e.target.value)} required />
-              </div>
-              <div>
-                <Label>Logo</Label>
-                <ImageUploadInput value={form.logo} onChange={(url) => update('logo', url)} />
-              </div>
-              {form.tipo === 'sellos' && (
-                <div>
-                  <Label>Ícono del sello (opcional)</Label>
-                  <ImageUploadInput value={form.iconoSello} onChange={(url) => update('iconoSello', url)} />
+            {/* Barra de progreso del wizard */}
+            <div className="mb-6 flex items-center gap-2">
+              {STEPS.map((label, i) => (
+                <div key={label} className="flex-1">
+                  <div className={`h-1.5 rounded-full ${i <= step ? 'bg-primary' : 'bg-secondary'}`} />
+                  <p className={`mt-1.5 text-xs font-medium ${i === step ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              {step === 0 && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => update('tipo', 'sellos')}
+                      className={`relative rounded-xl border-2 p-4 text-left transition-colors ${
+                        form.tipo === 'sellos' ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
+                      }`}
+                    >
+                      {form.tipo === 'sellos' && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
+                      <Award className="h-6 w-6" />
+                      <p className="mt-2 font-medium">Tarjeta de sellos</p>
+                      <p className="text-sm text-muted-foreground">Tus clientes juntan sellos en cada visita y canjean un premio.</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => update('tipo', 'cupon')}
+                      className={`relative rounded-xl border-2 p-4 text-left transition-colors ${
+                        form.tipo === 'cupon' ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
+                      }`}
+                    >
+                      {form.tipo === 'cupon' && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
+                      <Ticket className="h-6 w-6" />
+                      <p className="mt-2 font-medium">Promoción</p>
+                      <p className="text-sm text-muted-foreground">Un cupón u oferta de un solo uso, con vencimiento opcional.</p>
+                    </button>
+                  </div>
+                  <div>
+                    <Label>Template base (opcional)</Label>
+                    <Select value={form.templateId} onChange={(e) => selectTemplate(e.target.value)}>
+                      <option value="">Ninguno (desde cero)</option>
+                      {templates.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.nombre} ({TIPO_LABEL[t.tipoRecompensa] || 'Sellos'})
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Nombre</Label>
+                    <Input value={form.nombre} onChange={(e) => update('nombre', e.target.value)} required />
+                  </div>
+                  {form.tipo === 'sellos' ? (
+                    <div>
+                      <Label>Sellos requeridos</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={form.sellosRequeridos}
+                        onChange={(e) => update('sellosRequeridos', e.target.value)}
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <Label>Vencimiento (opcional)</Label>
+                      <Input type="date" value={form.vencimiento} onChange={(e) => update('vencimiento', e.target.value)} />
+                    </div>
+                  )}
+                  <div className="sm:col-span-2">
+                    <Label>{form.tipo === 'cupon' ? 'Descripción de la promoción' : 'Descripción / premio'}</Label>
+                    <Input
+                      value={form.descripcion}
+                      onChange={(e) => update('descripcion', e.target.value)}
+                      placeholder={form.tipo === 'cupon' ? 'Ej. 2x1 en combo' : 'Ej. Café gratis'}
+                    />
+                  </div>
                 </div>
               )}
-              <div className="sm:col-span-2">
-                <Label>Fondo de la tarjeta (opcional)</Label>
-                <ImageUploadInput value={form.fondoUrl} onChange={(url) => update('fondoUrl', url)} />
-              </div>
-              {form.tipo === 'sellos' ? (
-                <div>
-                  <Label>Sellos requeridos</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={form.sellosRequeridos}
-                    onChange={(e) => update('sellosRequeridos', e.target.value)}
-                    required
-                  />
-                </div>
-              ) : (
-                <div>
-                  <Label>Vencimiento (opcional)</Label>
-                  <Input
-                    type="date"
-                    value={form.vencimiento}
-                    onChange={(e) => update('vencimiento', e.target.value)}
-                  />
+
+              {step === 1 && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label>Logo</Label>
+                    <ImageUploadInput value={form.logo} onChange={(url) => update('logo', url)} />
+                  </div>
+                  {form.tipo === 'sellos' && (
+                    <div>
+                      <Label>Ícono del sello (opcional)</Label>
+                      <ImageUploadInput value={form.iconoSello} onChange={(url) => update('iconoSello', url)} />
+                    </div>
+                  )}
+                  <div className="sm:col-span-2">
+                    <Label>Fondo de la tarjeta (opcional)</Label>
+                    <ImageUploadInput value={form.fondoUrl} onChange={(url) => update('fondoUrl', url)} />
+                  </div>
+                  <div>
+                    <Label>Color primario</Label>
+                    <Input type="color" value={form.colorPrimario} onChange={(e) => update('colorPrimario', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Color secundario</Label>
+                    <Input
+                      type="color"
+                      value={form.colorSecundario}
+                      onChange={(e) => update('colorSecundario', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Color de texto</Label>
+                    <Input type="color" value={form.colorTexto} onChange={(e) => update('colorTexto', e.target.value)} />
+                  </div>
                 </div>
               )}
-              <div>
-                <Label>Color primario</Label>
-                <Input type="color" value={form.colorPrimario} onChange={(e) => update('colorPrimario', e.target.value)} />
-              </div>
-              <div>
-                <Label>Color secundario</Label>
-                <Input
-                  type="color"
-                  value={form.colorSecundario}
-                  onChange={(e) => update('colorSecundario', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label>Color de texto</Label>
-                <Input type="color" value={form.colorTexto} onChange={(e) => update('colorTexto', e.target.value)} />
-              </div>
-              <div className="sm:col-span-2">
-                <Label>{form.tipo === 'cupon' ? 'Descripción de la promoción' : 'Descripción / premio'}</Label>
-                <Input
-                  value={form.descripcion}
-                  onChange={(e) => update('descripcion', e.target.value)}
-                  placeholder={form.tipo === 'cupon' ? 'Ej. 2x1 en combo' : 'Ej. Café gratis'}
-                />
-              </div>
-              {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
-              <div className="flex gap-2 sm:col-span-2">
-                <Button type="submit" disabled={saving} className="flex-1">
-                  {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear diseño'}
-                </Button>
+
+              {step === 2 && (
+                <div className="space-y-3 text-sm">
+                  <p className="text-muted-foreground">Revisá los datos antes de guardar.</p>
+                  <dl className="divide-y divide-border rounded-lg border border-border">
+                    {[
+                      ['Tipo', TIPO_LABEL[form.tipo]],
+                      ['Nombre', form.nombre || '—'],
+                      [
+                        form.tipo === 'cupon' ? 'Vencimiento' : 'Sellos requeridos',
+                        form.tipo === 'cupon' ? form.vencimiento || 'Sin vencimiento' : form.sellosRequeridos,
+                      ],
+                      ['Descripción', form.descripcion || '—'],
+                    ].map(([label, value]) => (
+                      <div key={label} className="flex justify-between px-4 py-2.5">
+                        <dt className="text-muted-foreground">{label}</dt>
+                        <dd className="font-medium">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
+
+              {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
+
+              <div className="mt-6 flex gap-2">
+                {step > 0 && (
+                  <Button type="button" variant="outline" onClick={goBack} className="gap-1.5">
+                    <ArrowLeft className="h-4 w-4" /> Atrás
+                  </Button>
+                )}
                 {editingId && (
-                  <Button type="button" variant="outline" onClick={cancelEdit}>
+                  <Button type="button" variant="ghost" onClick={cancelEdit}>
                     Cancelar
+                  </Button>
+                )}
+                <div className="flex-1" />
+                {step < STEPS.length - 1 ? (
+                  <Button type="button" onClick={goNext} className="gap-1.5">
+                    Siguiente <ArrowRight className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button type="submit" disabled={saving}>
+                    {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear diseño'}
                   </Button>
                 )}
               </div>
@@ -312,18 +386,20 @@ export default function Disenos() {
 
           <div className="flex flex-col items-center gap-2 lg:sticky lg:top-4 lg:self-start">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Vista previa</p>
-            <CardPreview
-              empresaNombre={auth?.nombre}
-              tipo={form.tipo}
-              logo={form.logo}
-              iconoSello={form.iconoSello}
-              fondoUrl={form.fondoUrl}
-              colorPrimario={form.colorPrimario}
-              colorTexto={form.colorTexto}
-              sellosRequeridos={form.sellosRequeridos}
-              vencimiento={form.vencimiento}
-              descripcion={form.descripcion}
-            />
+            <PhoneFrame>
+              <CardPreview
+                empresaNombre={auth?.nombre}
+                tipo={form.tipo}
+                logo={form.logo}
+                iconoSello={form.iconoSello}
+                fondoUrl={form.fondoUrl}
+                colorPrimario={form.colorPrimario}
+                colorTexto={form.colorTexto}
+                sellosRequeridos={form.sellosRequeridos}
+                vencimiento={form.vencimiento}
+                descripcion={form.descripcion}
+              />
+            </PhoneFrame>
             <p className="max-w-xs text-center text-xs text-muted-foreground">
               Así se va a ver en la wallet web y en Apple Wallet.
             </p>
