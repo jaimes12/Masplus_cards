@@ -108,12 +108,17 @@ public static class StampStripRenderer
         return ms.ToArray();
     }
 
-    /// <summary>Strip para tarjetas tipo cupón: solo la foto de fondo con un velo de color, sin grid de sellos.</summary>
-    public static byte[] RenderCupon(string? backgroundHex, byte[]? backgroundImagePng)
+    // Tamaño recomendado por Apple para la imagen "background" (180x220pt @1x): se renderiza a @3x.
+    public const int BackgroundWidth = 540;
+    public const int BackgroundHeight = 660;
+
+    /// <summary>Fondo de pase completo (estilo Generic) para tarjetas tipo cupón: la foto cubre toda la tarjeta,
+    /// como el pase de ejemplo de Apple (museo), en vez del grid de sellos.</summary>
+    public static byte[] RenderCuponBackground(string? backgroundHex, byte[]? backgroundImagePng)
     {
         var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
 
-        using var image = new Image<Rgba32>(Width, Height);
+        using var image = new Image<Rgba32>(BackgroundWidth, BackgroundHeight);
 
         Image<Rgba32>? backgroundImage = null;
         if (backgroundImagePng is { Length: > 0 })
@@ -130,12 +135,13 @@ public static class StampStripRenderer
             {
                 backgroundImage.Mutate(x => x.Resize(new ResizeOptions
                 {
-                    Size = new Size(Width, Height),
+                    Size = new Size(BackgroundWidth, BackgroundHeight),
                     Mode = ResizeMode.Crop,
                     Position = AnchorPositionMode.Center,
                 }));
                 ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
-                ctx.Fill(WithAlpha(background, 0.45f), new RectangularPolygon(0, 0, Width, Height));
+                // Velo parejo (no solo un strip) para que los campos de texto se lean sobre la foto completa.
+                ctx.Fill(WithAlpha(background, 0.35f), new RectangularPolygon(0, 0, BackgroundWidth, BackgroundHeight));
             }
         });
 

@@ -120,24 +120,26 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             catch { fondo = null; }
         }
 
-        request.Style = PassStyle.Coupon;
+        // Estilo Generic: es el único que admite una imagen "background" cubriendo todo el pase
+        // (como el pase de ejemplo de membresía de Apple), en vez de un strip angosto arriba.
+        request.Style = PassStyle.Generic;
         request.Description = NonEmpty(input.Descripcion) ?? $"Cupón {input.OrganizationName}";
 
         if (fondo != null)
         {
-            var strip = StampStripRenderer.RenderCupon(backgroundColor, fondo);
-            request.Images.Add(PassbookImage.Strip, strip);
-            request.Images.Add(PassbookImage.Strip2X, strip);
-            request.Images.Add(PassbookImage.Strip3X, strip);
+            var fondoPase = StampStripRenderer.RenderCuponBackground(backgroundColor, fondo);
+            request.Images.Add(PassbookImage.Background, fondoPase);
+            request.Images.Add(PassbookImage.Background2X, fondoPase);
+            request.Images.Add(PassbookImage.Background3X, fondoPase);
         }
 
         request.AddHeaderField(new StandardField(
             "estado", "ESTADO", input.CuponRedimido ? "CANJEADO" : "VIGENTE"));
         request.AddPrimaryField(new StandardField(
             "oferta", "", NonEmpty(input.Descripcion) ?? "Cupón especial"));
+        request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
         request.AddSecondaryField(new StandardField(
             "vence", "VENCE", input.Vencimiento?.ToString("dd/MM/yyyy") ?? "Sin vencimiento"));
-        request.AddAuxiliaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
 
         return request;
     }
