@@ -28,7 +28,8 @@ public record TarjetaDto(
     DateTime CreatedAt,
     DateTime UpdatedAt);
 
-/// <summary>La empresa emite una tarjeta a un cliente (se crea el cliente si no existe, por telefono).</summary>
-public record EmitirTarjetaRequest(string Nombre, string Telefono, string? Email, string WalletTipo);
+/// <summary>La empresa emite una tarjeta a un cliente (se crea el cliente si no existe, por telefono).
+/// Si DisenoId es null, se usa el diseño activo de la empresa.</summary>
+public record EmitirTarjetaRequest(string Nombre, string Telefono, string? Email, string WalletTipo, int? DisenoId = null);
 
 public record TarjetaLogDto(int Id, string Accion, int? SellosAgregados, string? Descripcion, DateTime CreatedAt);

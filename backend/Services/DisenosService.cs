@@ -20,11 +20,18 @@ public class DisenosService : IDisenosService
         var activoId = await _db.Empresas.Where(e => e.Id == empresaId)
             .Select(e => e.DisenoActivoId).FirstOrDefaultAsync();
 
-        return await _db.Disenos
+        var counts = await _db.Tarjetas
+            .Where(t => t.EmpresaId == empresaId)
+            .GroupBy(t => t.DisenoId)
+            .Select(g => new { DisenoId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.DisenoId, x => x.Count);
+
+        var disenos = await _db.Disenos
             .Where(d => d.EmpresaId == empresaId)
             .OrderByDescending(d => d.CreatedAt)
-            .Select(d => ToDto(d, activoId))
             .ToListAsync();
+
+        return disenos.Select(d => ToDto(d, activoId, counts.GetValueOrDefault(d.Id))).ToList();
     }
 
     public async Task<DisenoDto?> GetByIdAsync(int empresaId, int id)
@@ -34,7 +41,8 @@ public class DisenosService : IDisenosService
 
         var activoId = await _db.Empresas.Where(e => e.Id == empresaId)
             .Select(e => e.DisenoActivoId).FirstOrDefaultAsync();
-        return ToDto(diseno, activoId);
+        var count = await _db.Tarjetas.CountAsync(t => t.DisenoId == id);
+        return ToDto(diseno, activoId, count);
     }
 
     public async Task<DisenoDto> CreateAsync(int empresaId, DisenoUpsertRequest request)
@@ -59,7 +67,7 @@ public class DisenosService : IDisenosService
 
         _db.Disenos.Add(diseno);
         await _db.SaveChangesAsync();
-        return ToDto(diseno, null);
+        return ToDto(diseno, null, 0);
     }
 
     public async Task<DisenoDto?> UpdateAsync(int empresaId, int id, DisenoUpsertRequest request)
@@ -85,7 +93,8 @@ public class DisenosService : IDisenosService
 
         var activoId = await _db.Empresas.Where(e => e.Id == empresaId)
             .Select(e => e.DisenoActivoId).FirstOrDefaultAsync();
-        return ToDto(diseno, activoId);
+        var count = await _db.Tarjetas.CountAsync(t => t.DisenoId == id);
+        return ToDto(diseno, activoId, count);
     }
 
     public async Task<DisenoDto?> ActivarAsync(int empresaId, int id)
@@ -97,7 +106,8 @@ public class DisenosService : IDisenosService
         empresa.DisenoActivoId = diseno.Id;
         await _db.SaveChangesAsync();
 
-        return ToDto(diseno, diseno.Id);
+        var count = await _db.Tarjetas.CountAsync(t => t.DisenoId == id);
+        return ToDto(diseno, diseno.Id, count);
     }
 
     public async Task<bool> DeleteAsync(int empresaId, int id)
@@ -112,9 +122,10 @@ public class DisenosService : IDisenosService
 
     private static string NormalizeTipo(string? tipo) => tipo == "cupon" ? "cupon" : "sellos";
 
-    private static DisenoDto ToDto(Diseno d, int? disenoActivoId) => new(
+    private static DisenoDto ToDto(Diseno d, int? disenoActivoId, int tarjetasCount) => new(
         d.Id, d.EmpresaId, d.TemplateId, d.Nombre, d.Tipo, d.Logo, d.ColorPrimario, d.ColorSecundario, d.ColorTexto,
         d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Vencimiento, d.Descripcion, d.Configuracion, d.Activo,
         EsActivoDeEmpresa: disenoActivoId.HasValue && disenoActivoId.Value == d.Id,
+        TarjetasCount: tarjetasCount,
         d.CreatedAt, d.UpdatedAt);
 }

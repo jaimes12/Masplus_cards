@@ -149,6 +149,9 @@ export default function Disenos() {
                         : 'Sin vencimiento'
                       : `${d.sellosRequeridos} sellos para el premio`}
                   </p>
+                  <p className="text-xs text-muted-foreground">
+                    {d.tarjetasCount} tarjeta{d.tarjetasCount === 1 ? '' : 's'} emitida{d.tarjetasCount === 1 ? '' : 's'}
+                  </p>
                 </div>
                 <div
                   className="h-8 w-8 shrink-0 rounded-full border border-border"

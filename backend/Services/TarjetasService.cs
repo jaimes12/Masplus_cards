@@ -53,8 +53,12 @@ public class TarjetasService : ITarjetasService
         var empresa = await _db.Empresas.FirstOrDefaultAsync(e => e.Id == empresaId)
             ?? throw new InvalidOperationException("Empresa no encontrada.");
 
-        if (empresa.DisenoActivoId == null)
-            throw new InvalidOperationException("La empresa no tiene un diseño activo. Activa un diseño antes de emitir tarjetas.");
+        var disenoId = request.DisenoId ?? empresa.DisenoActivoId
+            ?? throw new InvalidOperationException("Elegí un diseño para emitir la tarjeta.");
+
+        var disenoValido = await _db.Disenos.AnyAsync(d => d.Id == disenoId && d.EmpresaId == empresaId);
+        if (!disenoValido)
+            throw new InvalidOperationException("El diseño elegido no existe o no pertenece a tu empresa.");
 
         var cliente = await _db.Clientes.FirstOrDefaultAsync(c => c.EmpresaId == empresaId && c.Telefono == request.Telefono);
         if (cliente == null)
@@ -68,7 +72,7 @@ public class TarjetasService : ITarjetasService
         {
             ClienteId = cliente.Id,
             EmpresaId = empresaId,
-            DisenoId = empresa.DisenoActivoId.Value,
+            DisenoId = disenoId,
             CodigoQr = Guid.NewGuid().ToString("N"),
             WalletTipo = string.IsNullOrWhiteSpace(request.WalletTipo) ? "web" : request.WalletTipo,
         };
