@@ -148,7 +148,7 @@ export default function Tarjetas() {
               <Select value={form.disenoId} onChange={(e) => setForm({ ...form, disenoId: e.target.value })} required>
                 {disenos.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.nombre} ({d.tipo === 'cupon' ? 'Cupón' : 'Sellos'})
+                    {d.nombre} ({d.tipo === 'cupon' ? 'Promoción' : 'Sellos'})
                   </option>
                 ))}
               </Select>
@@ -186,7 +186,7 @@ export default function Tarjetas() {
                 <div className="mb-3 flex items-center gap-2">
                   <h2 className="text-lg font-medium">{d.nombre}</h2>
                   <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
-                    {d.tipo === 'cupon' ? 'Cupón' : 'Sellos'}
+                    {d.tipo === 'cupon' ? 'Promoción' : 'Sellos'}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     · {tarjetasDelDiseno.length} tarjeta{tarjetasDelDiseno.length === 1 ? '' : 's'}

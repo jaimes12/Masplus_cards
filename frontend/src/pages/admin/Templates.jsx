@@ -64,7 +64,7 @@ export default function Templates() {
             <Label>Tipo de tarjeta</Label>
             <Select value={form.tipoRecompensa} onChange={(e) => setForm({ ...form, tipoRecompensa: e.target.value })}>
               <option value="sellos">Sellos (tarjeta de estampas)</option>
-              <option value="cupon">Cupón</option>
+              <option value="cupon">Promoción</option>
             </Select>
           </div>
           <div className="sm:col-span-2">
@@ -85,7 +85,7 @@ export default function Templates() {
               <p className="font-medium">
                 {t.nombre}{' '}
                 <span className="text-sm text-muted-foreground">
-                  ({t.tipoRecompensa === 'cupon' ? 'Cupón' : 'Sellos'})
+                  ({t.tipoRecompensa === 'cupon' ? 'Promoción' : 'Sellos'})
                 </span>
               </p>
               <p className="text-sm text-muted-foreground">{t.descripcion}</p>

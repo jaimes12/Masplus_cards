@@ -1,9 +1,33 @@
 import { useEffect, useState } from 'react'
+import { Award, Check, Ticket } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
 import CardPreview from '../../components/CardPreview.jsx'
 import ImageUploadInput from '../../components/ImageUploadInput.jsx'
+
+const TIPO_LABEL = { sellos: 'Sellos', cupon: 'Promoción' }
+
+function MiniCardPreview({ diseno, empresaNombre }) {
+  return (
+    <div className="relative h-32 w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-secondary">
+      <div className="pointer-events-none absolute left-0 top-0 origin-top-left" style={{ transform: 'scale(0.3)', width: 320 }}>
+        <CardPreview
+          empresaNombre={empresaNombre}
+          tipo={diseno.tipo}
+          logo={diseno.logo}
+          iconoSello={diseno.iconoSello}
+          fondoUrl={diseno.fondoUrl}
+          colorPrimario={diseno.colorPrimario}
+          colorTexto={diseno.colorTexto}
+          sellosRequeridos={diseno.sellosRequeridos}
+          vencimiento={diseno.vencimiento}
+          descripcion={diseno.descripcion}
+        />
+      </div>
+    </div>
+  )
+}
 
 const emptyForm = {
   templateId: '',
@@ -134,13 +158,12 @@ export default function Disenos() {
         <div className="grid gap-3 sm:grid-cols-2">
           {disenos.map((d) => (
             <Card key={d.id} className={d.esActivoDeEmpresa ? 'border-primary' : ''}>
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex items-start gap-4">
+                <MiniCardPreview diseno={d} empresaNombre={auth?.nombre} />
+                <div className="min-w-0 flex-1">
                   <p className="font-medium">
                     {d.nombre}{' '}
-                    <span className="text-xs font-normal text-muted-foreground">
-                      ({d.tipo === 'cupon' ? 'Cupón' : 'Sellos'})
-                    </span>
+                    <span className="text-xs font-normal text-muted-foreground">({TIPO_LABEL[d.tipo] || 'Sellos'})</span>
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {d.tipo === 'cupon'
@@ -152,26 +175,22 @@ export default function Disenos() {
                   <p className="text-xs text-muted-foreground">
                     {d.tarjetasCount} tarjeta{d.tarjetasCount === 1 ? '' : 's'} emitida{d.tarjetasCount === 1 ? '' : 's'}
                   </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {d.esActivoDeEmpresa && (
+                      <span className="inline-block rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                        Activo
+                      </span>
+                    )}
+                    {!d.esActivoDeEmpresa && (
+                      <Button variant="outline" onClick={() => activar(d.id)}>
+                        Activar
+                      </Button>
+                    )}
+                    <Button variant="ghost" onClick={() => startEdit(d)}>
+                      Editar
+                    </Button>
+                  </div>
                 </div>
-                <div
-                  className="h-8 w-8 shrink-0 rounded-full border border-border"
-                  style={{ background: d.colorPrimario || '#18181B' }}
-                />
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {d.esActivoDeEmpresa && (
-                  <span className="inline-block rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                    Activo
-                  </span>
-                )}
-                {!d.esActivoDeEmpresa && (
-                  <Button variant="outline" onClick={() => activar(d.id)}>
-                    Activar
-                  </Button>
-                )}
-                <Button variant="ghost" onClick={() => startEdit(d)}>
-                  Editar
-                </Button>
               </div>
             </Card>
           ))}
@@ -179,26 +198,48 @@ export default function Disenos() {
       </div>
 
       <div>
-        <h2 className="mb-3 text-lg font-medium">{editingId ? 'Editar diseño' : 'Crear nuevo diseño'}</h2>
+        <h2 className="mb-1 text-lg font-medium">{editingId ? 'Editar diseño' : 'Crear diseño'}</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          {editingId ? 'Ajustá los detalles de tu diseño.' : 'Elegí qué tipo de tarjeta querés crear y armá el diseño.'}
+        </p>
         <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
           <Card>
             <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => update('tipo', 'sellos')}
+                  className={`relative rounded-xl border-2 p-4 text-left transition-colors ${
+                    form.tipo === 'sellos' ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
+                  }`}
+                >
+                  {form.tipo === 'sellos' && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
+                  <Award className="h-6 w-6" />
+                  <p className="mt-2 font-medium">Tarjeta de sellos</p>
+                  <p className="text-sm text-muted-foreground">Tus clientes juntan sellos en cada visita y canjean un premio.</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => update('tipo', 'cupon')}
+                  className={`relative rounded-xl border-2 p-4 text-left transition-colors ${
+                    form.tipo === 'cupon' ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
+                  }`}
+                >
+                  {form.tipo === 'cupon' && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
+                  <Ticket className="h-6 w-6" />
+                  <p className="mt-2 font-medium">Promoción</p>
+                  <p className="text-sm text-muted-foreground">Un cupón u oferta de un solo uso, con vencimiento opcional.</p>
+                </button>
+              </div>
               <div>
                 <Label>Template base (opcional)</Label>
                 <Select value={form.templateId} onChange={(e) => selectTemplate(e.target.value)}>
                   <option value="">Ninguno (desde cero)</option>
                   {templates.map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.nombre} ({t.tipoRecompensa === 'cupon' ? 'Cupón' : 'Sellos'})
+                      {t.nombre} ({TIPO_LABEL[t.tipoRecompensa] || 'Sellos'})
                     </option>
                   ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Tipo de tarjeta</Label>
-                <Select value={form.tipo} onChange={(e) => update('tipo', e.target.value)}>
-                  <option value="sellos">Sellos (tarjeta de estampas)</option>
-                  <option value="cupon">Cupón</option>
                 </Select>
               </div>
               <div>
@@ -257,7 +298,7 @@ export default function Disenos() {
                 <Input type="color" value={form.colorTexto} onChange={(e) => update('colorTexto', e.target.value)} />
               </div>
               <div className="sm:col-span-2">
-                <Label>{form.tipo === 'cupon' ? 'Descripción del cupón' : 'Descripción / premio'}</Label>
+                <Label>{form.tipo === 'cupon' ? 'Descripción de la promoción' : 'Descripción / premio'}</Label>
                 <Input
                   value={form.descripcion}
                   onChange={(e) => update('descripcion', e.target.value)}
@@ -292,6 +333,9 @@ export default function Disenos() {
               vencimiento={form.vencimiento}
               descripcion={form.descripcion}
             />
+            <p className="max-w-xs text-center text-xs text-muted-foreground">
+              Así se va a ver en la wallet web y en Apple Wallet.
+            </p>
           </div>
         </div>
       </div>
