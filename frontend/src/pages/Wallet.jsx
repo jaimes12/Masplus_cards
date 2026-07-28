@@ -2,8 +2,22 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Check, Ticket } from 'lucide-react'
 import { api, API_URL } from '../lib/api.js'
+import MasPlusWatermark from '../components/MasPlusWatermark.jsx'
 
 const POLL_MS = 5000
+
+const pageBackgroundStyle = {
+  background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 60%, #7C2D12 100%)',
+}
+
+function PageWatermarks() {
+  return (
+    <>
+      <MasPlusWatermark className="pointer-events-none absolute -right-32 -top-20 h-[420px] w-[620px] text-white opacity-[0.16] blur-sm" />
+      <MasPlusWatermark className="pointer-events-none absolute -bottom-28 -left-32 h-[360px] w-[560px] rotate-180 text-white opacity-[0.12] blur-sm" />
+    </>
+  )
+}
 
 export default function Wallet() {
   const { codigoQr } = useParams()
@@ -34,16 +48,18 @@ export default function Wallet() {
 
   if (error) {
     return (
-      <div className="flex min-h-svh items-center justify-center p-4">
-        <p className="text-destructive">No se encontró la tarjeta.</p>
+      <div className="relative flex min-h-svh items-center justify-center overflow-hidden p-4" style={pageBackgroundStyle}>
+        <PageWatermarks />
+        <p className="relative z-10 text-destructive">No se encontró la tarjeta.</p>
       </div>
     )
   }
 
   if (!tarjeta) {
     return (
-      <div className="flex min-h-svh items-center justify-center p-4">
-        <p className="text-muted-foreground">Cargando...</p>
+      <div className="relative flex min-h-svh items-center justify-center overflow-hidden p-4" style={pageBackgroundStyle}>
+        <PageWatermarks />
+        <p className="relative z-10 text-white/80">Cargando...</p>
       </div>
     )
   }
@@ -66,8 +82,9 @@ export default function Wallet() {
     : { background: primario, color: texto }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-4">
-      <div className="w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
+    <div className="relative flex min-h-svh flex-col items-center justify-center gap-6 overflow-hidden p-4" style={pageBackgroundStyle}>
+      <PageWatermarks />
+      <div className="relative z-10 w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
         <div className="flex items-center gap-3">
           {tarjeta.logo && (
             <img src={tarjeta.logo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
@@ -144,7 +161,7 @@ export default function Wallet() {
 
       <a
         href={`${API_URL}/api/wallet/apple/${tarjeta.codigoQr}`}
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+        className="relative z-10 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
       >
         Agregar a Apple Wallet
       </a>
