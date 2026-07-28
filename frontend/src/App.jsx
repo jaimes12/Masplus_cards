@@ -10,6 +10,7 @@ import EmpresaDashboard from './pages/empresa/Dashboard.jsx'
 import Disenos from './pages/empresa/Disenos.jsx'
 import Clientes from './pages/empresa/Clientes.jsx'
 import Tarjetas from './pages/empresa/Tarjetas.jsx'
+import Perfil from './pages/empresa/Perfil.jsx'
 import AdminDashboard from './pages/admin/Dashboard.jsx'
 import Templates from './pages/admin/Templates.jsx'
 import Empresas from './pages/admin/Empresas.jsx'
@@ -35,6 +36,7 @@ function App() {
         <Route path="disenos" element={<Disenos />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="tarjetas" element={<Tarjetas />} />
+        <Route path="perfil" element={<Perfil />} />
       </Route>
 
       <Route path="/admin/login" element={<LoginAdmin />} />

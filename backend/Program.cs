@@ -58,6 +58,7 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IPassKitService, PassKitService>();
 builder.Services.AddScoped<IApnsPushService, ApnsPushService>();
 builder.Services.AddScoped<IImagenesService, ImagenesService>();
+builder.Services.AddScoped<IEmpresaProfileService, EmpresaProfileService>();
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))

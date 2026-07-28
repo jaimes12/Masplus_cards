@@ -11,16 +11,20 @@ export default function CardPreview({
   colorPrimario,
   colorTexto,
   sellosRequeridos = 10,
+  sellosActuales,
   vencimiento,
   descripcion,
+  cuponRedimido = false,
 }) {
   const primario = colorPrimario || '#18181B'
   const texto = colorTexto || '#FFFFFF'
   const esCupon = tipo === 'cupon'
 
   const total = Math.max(Number(sellosRequeridos) || 1, 1)
-  const ganados = Math.min(Math.ceil(total * 0.3), total)
+  const ganados =
+    sellosActuales != null ? Math.min(Math.max(Number(sellosActuales) || 0, 0), total) : Math.min(Math.ceil(total * 0.3), total)
   const stamps = Array.from({ length: total }, (_, i) => i < ganados)
+  const cuponVencido = esCupon && vencimiento && new Date(vencimiento) < new Date()
 
   const cardStyle = fondoUrl
     ? {
@@ -49,11 +53,18 @@ export default function CardPreview({
 
       {esCupon ? (
         <div className="my-5">
-          <div
-            className="flex h-12 w-12 items-center justify-center rounded-full"
-            style={{ background: `${texto}22` }}
-          >
-            <Ticket className="h-6 w-6" style={{ color: texto }} />
+          <div className="flex items-center justify-between">
+            <div
+              className="flex h-12 w-12 items-center justify-center rounded-full"
+              style={{ background: `${texto}22` }}
+            >
+              <Ticket className="h-6 w-6" style={{ color: texto }} />
+            </div>
+            {cuponRedimido ? (
+              <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-black">CANJEADO</span>
+            ) : cuponVencido ? (
+              <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-black">VENCIDO</span>
+            ) : null}
           </div>
           <p className="mt-4 text-xl font-semibold leading-snug">{descripcion || 'Cupón especial'}</p>
           <p className="mt-2 text-xs uppercase tracking-wide opacity-70">

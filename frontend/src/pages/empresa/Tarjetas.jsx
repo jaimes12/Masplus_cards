@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ScanLine, X } from 'lucide-react'
 import { api } from '../../lib/api.js'
+import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
+import MiniCardPreview from '../../components/MiniCardPreview.jsx'
 import QrScanner from '../../components/QrScanner.jsx'
 import ErrorBoundary from '../../components/ErrorBoundary.jsx'
 
 const emptyForm = { nombre: '', telefono: '', email: '', disenoId: '' }
 
 export default function Tarjetas() {
+  const { auth } = useAuth()
   const [tarjetas, setTarjetas] = useState([])
   const [disenos, setDisenos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -195,15 +198,32 @@ export default function Tarjetas() {
                 <div className="space-y-3">
                   {tarjetasDelDiseno.map((t) => (
                     <Card key={t.id} className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium">
-                          {t.clienteNombre} · {t.clienteTelefono}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {t.tipo === 'cupon'
-                            ? `${t.descripcion || 'Cupón'} · ${t.cuponRedimido ? 'canjeado' : t.vencimiento ? `vence ${new Date(t.vencimiento).toLocaleDateString('es-MX')}` : 'sin vencimiento'}`
-                            : `${t.sellosActuales} / ${t.sellosRequeridos} sellos · ${t.premiosCanjeados} premios canjeados`}
-                        </p>
+                      <div className="flex items-center gap-4">
+                        <MiniCardPreview
+                          empresaNombre={auth?.nombre}
+                          clienteNombre={t.clienteNombre}
+                          tipo={t.tipo}
+                          logo={t.logo}
+                          iconoSello={t.iconoSello}
+                          fondoUrl={t.fondoUrl}
+                          colorPrimario={t.colorPrimario}
+                          colorTexto={t.colorTexto}
+                          sellosRequeridos={t.sellosRequeridos}
+                          sellosActuales={t.sellosActuales}
+                          vencimiento={t.vencimiento}
+                          descripcion={t.descripcion}
+                          cuponRedimido={t.cuponRedimido}
+                        />
+                        <div>
+                          <p className="font-medium">
+                            {t.clienteNombre} · {t.clienteTelefono}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {t.tipo === 'cupon'
+                              ? `${t.descripcion || 'Cupón'} · ${t.cuponRedimido ? 'canjeado' : t.vencimiento ? `vence ${new Date(t.vencimiento).toLocaleDateString('es-MX')}` : 'sin vencimiento'}`
+                              : `${t.sellosActuales} / ${t.sellosRequeridos} sellos · ${t.premiosCanjeados} premios canjeados`}
+                          </p>
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {t.tipo === 'cupon' ? (

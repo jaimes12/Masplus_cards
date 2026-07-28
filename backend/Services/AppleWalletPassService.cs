@@ -65,7 +65,7 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         };
 
         var request = input.Tipo == "cupon"
-            ? await BuildCuponAsync(baseRequest, input, cancellationToken)
+            ? await BuildCuponAsync(baseRequest, input, backgroundColor, cancellationToken)
             : await BuildSellosAsync(baseRequest, input, backgroundColor, foregroundColor, cancellationToken);
 
         request.AddBarcode(BarcodeType.PKBarcodeFormatQR, input.CodigoQr, "UTF-8", "Powered by Masplus");
@@ -110,10 +110,26 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         return request;
     }
 
-    private Task<PassGeneratorRequest> BuildCuponAsync(PassGeneratorRequest request, AppleWalletPassInput input, CancellationToken cancellationToken)
+    private async Task<PassGeneratorRequest> BuildCuponAsync(
+        PassGeneratorRequest request, AppleWalletPassInput input, string backgroundColor, CancellationToken cancellationToken)
     {
+        byte[]? fondo = null;
+        if (NonEmpty(input.FondoUrl) is { } fondoUrl)
+        {
+            try { fondo = await GetBytesCachedAsync($"{CachePrefix}fondo:{fondoUrl.GetHashCode():X}", fondoUrl, cancellationToken); }
+            catch { fondo = null; }
+        }
+
         request.Style = PassStyle.Coupon;
         request.Description = NonEmpty(input.Descripcion) ?? $"Cupón {input.OrganizationName}";
+
+        if (fondo != null)
+        {
+            var strip = StampStripRenderer.RenderCupon(backgroundColor, fondo);
+            request.Images.Add(PassbookImage.Strip, strip);
+            request.Images.Add(PassbookImage.Strip2X, strip);
+            request.Images.Add(PassbookImage.Strip3X, strip);
+        }
 
         request.AddHeaderField(new StandardField(
             "estado", "ESTADO", input.CuponRedimido ? "CANJEADO" : "VIGENTE"));
@@ -123,7 +139,7 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             "vence", "VENCE", input.Vencimiento?.ToString("dd/MM/yyyy") ?? "Sin vencimiento"));
         request.AddAuxiliaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
 
-        return Task.FromResult(request);
+        return request;
     }
 
     private static string? NonEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;

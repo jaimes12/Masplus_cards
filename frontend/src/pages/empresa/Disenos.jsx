@@ -4,30 +4,10 @@ import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
 import CardPreview from '../../components/CardPreview.jsx'
+import MiniCardPreview from '../../components/MiniCardPreview.jsx'
 import ImageUploadInput from '../../components/ImageUploadInput.jsx'
 
 const TIPO_LABEL = { sellos: 'Sellos', cupon: 'Promoción' }
-
-function MiniCardPreview({ diseno, empresaNombre }) {
-  return (
-    <div className="relative h-32 w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-secondary">
-      <div className="pointer-events-none absolute left-0 top-0 origin-top-left" style={{ transform: 'scale(0.3)', width: 320 }}>
-        <CardPreview
-          empresaNombre={empresaNombre}
-          tipo={diseno.tipo}
-          logo={diseno.logo}
-          iconoSello={diseno.iconoSello}
-          fondoUrl={diseno.fondoUrl}
-          colorPrimario={diseno.colorPrimario}
-          colorTexto={diseno.colorTexto}
-          sellosRequeridos={diseno.sellosRequeridos}
-          vencimiento={diseno.vencimiento}
-          descripcion={diseno.descripcion}
-        />
-      </div>
-    </div>
-  )
-}
 
 const emptyForm = {
   templateId: '',
@@ -159,7 +139,18 @@ export default function Disenos() {
           {disenos.map((d) => (
             <Card key={d.id} className={d.esActivoDeEmpresa ? 'border-primary' : ''}>
               <div className="flex items-start gap-4">
-                <MiniCardPreview diseno={d} empresaNombre={auth?.nombre} />
+                <MiniCardPreview
+                  empresaNombre={auth?.nombre}
+                  tipo={d.tipo}
+                  logo={d.logo}
+                  iconoSello={d.iconoSello}
+                  fondoUrl={d.fondoUrl}
+                  colorPrimario={d.colorPrimario}
+                  colorTexto={d.colorTexto}
+                  sellosRequeridos={d.sellosRequeridos}
+                  vencimiento={d.vencimiento}
+                  descripcion={d.descripcion}
+                />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">
                     {d.nombre}{' '}

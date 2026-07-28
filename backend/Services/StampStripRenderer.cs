@@ -108,6 +108,44 @@ public static class StampStripRenderer
         return ms.ToArray();
     }
 
+    /// <summary>Strip para tarjetas tipo cupón: solo la foto de fondo con un velo de color, sin grid de sellos.</summary>
+    public static byte[] RenderCupon(string? backgroundHex, byte[]? backgroundImagePng)
+    {
+        var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
+
+        using var image = new Image<Rgba32>(Width, Height);
+
+        Image<Rgba32>? backgroundImage = null;
+        if (backgroundImagePng is { Length: > 0 })
+        {
+            try { backgroundImage = Image.Load<Rgba32>(backgroundImagePng); }
+            catch { backgroundImage = null; }
+        }
+
+        image.Mutate(ctx =>
+        {
+            ctx.Fill(background);
+
+            if (backgroundImage != null)
+            {
+                backgroundImage.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new Size(Width, Height),
+                    Mode = ResizeMode.Crop,
+                    Position = AnchorPositionMode.Center,
+                }));
+                ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
+                ctx.Fill(WithAlpha(background, 0.45f), new RectangularPolygon(0, 0, Width, Height));
+            }
+        });
+
+        backgroundImage?.Dispose();
+
+        using var ms = new MemoryStream();
+        image.SaveAsPng(ms);
+        return ms.ToArray();
+    }
+
     private static void DrawCheckmark(IImageProcessingContext ctx, float cx, float cy, float radius, Rgba32 color)
     {
         var s = radius * 0.85f;
