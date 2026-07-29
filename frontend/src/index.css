@@ -168,6 +168,25 @@ body {
   box-shadow: 0 1px 2px rgba(24, 24, 27, 0.04), 0 12px 28px -12px rgba(24, 24, 27, 0.12);
 }
 
+.print-qr-poster {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-qr-poster,
+  .print-qr-poster * {
+    visibility: visible;
+  }
+  .print-qr-poster {
+    display: flex;
+    position: fixed;
+    inset: 0;
+  }
+}
+
 .shadow-soft-lg {
   box-shadow: 0 8px 16px rgba(24, 24, 27, 0.04), 0 24px 48px -16px rgba(24, 24, 27, 0.18);
 }

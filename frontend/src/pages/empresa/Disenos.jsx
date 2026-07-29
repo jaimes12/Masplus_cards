@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight, Award, Check, Copy, Plus, QrCode, Ticket } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Award, Check, Copy, Download, Plus, QrCode, Ticket } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
@@ -7,6 +7,7 @@ import CardPreview from '../../components/CardPreview.jsx'
 import MiniCardPreview from '../../components/MiniCardPreview.jsx'
 import PhoneFrame from '../../components/PhoneFrame.jsx'
 import ImageUploadInput from '../../components/ImageUploadInput.jsx'
+import masplusLogo from '../../assets/masplus_logo.png'
 
 const TIPO_LABEL = { sellos: 'Sellos', cupon: 'Promoción' }
 const STEPS = ['Información', 'Diseño', 'Revisar']
@@ -39,9 +40,31 @@ export default function Disenos() {
   const [error, setError] = useState('')
   const [qrOpenId, setQrOpenId] = useState(null)
   const [copiedId, setCopiedId] = useState(null)
+  const [qrColor, setQrColor] = useState('#18181B')
+  const [qrBgColor, setQrBgColor] = useState('#FFFFFF')
+  const [printDiseno, setPrintDiseno] = useState(null)
 
   function registroUrl(d) {
     return `${window.location.origin}/registro/${d.codigoRegistro}`
+  }
+
+  function qrImageUrl(d, size) {
+    const params = new URLSearchParams({
+      size: `${size}x${size}`,
+      data: registroUrl(d),
+      color: qrColor.replace('#', ''),
+      bgcolor: qrBgColor.replace('#', ''),
+    })
+    return `https://api.qrserver.com/v1/create-qr-code/?${params.toString()}`
+  }
+
+  function toggleQr(d) {
+    setQrOpenId((id) => {
+      if (id === d.id) return null
+      setQrColor(d.colorPrimario || '#18181B')
+      setQrBgColor('#FFFFFF')
+      return d.id
+    })
   }
 
   async function copyLink(d) {
@@ -53,6 +76,25 @@ export default function Disenos() {
       // Clipboard no disponible (permiso denegado, contexto no seguro): el link sigue visible para copiar a mano.
     }
   }
+
+  function downloadPdf(d) {
+    setPrintDiseno(d)
+  }
+
+  useEffect(() => {
+    if (!printDiseno) return
+    // Da tiempo a que la imagen del QR (servida por qrserver.com) termine de cargar antes de imprimir.
+    const timer = setTimeout(() => window.print(), 400)
+    return () => clearTimeout(timer)
+  }, [printDiseno])
+
+  useEffect(() => {
+    function handleAfterPrint() {
+      setPrintDiseno(null)
+    }
+    window.addEventListener('afterprint', handleAfterPrint)
+    return () => window.removeEventListener('afterprint', handleAfterPrint)
+  }, [])
 
   async function load() {
     const [t, d] = await Promise.all([api.get('/api/templates'), api.get('/api/disenos')])
@@ -188,6 +230,7 @@ export default function Disenos() {
                   colorPrimario={d.colorPrimario}
                   colorTexto={d.colorTexto}
                   sellosRequeridos={d.sellosRequeridos}
+                  sellosActuales={0}
                   vencimiento={d.vencimiento}
                   descripcion={d.descripcion}
                 />
@@ -220,11 +263,7 @@ export default function Disenos() {
                     <Button variant="ghost" onClick={() => startEdit(d)}>
                       Editar
                     </Button>
-                    <Button
-                      variant="ghost"
-                      className="gap-1.5"
-                      onClick={() => setQrOpenId((id) => (id === d.id ? null : d.id))}
-                    >
+                    <Button variant="ghost" className="gap-1.5" onClick={() => toggleQr(d)}>
                       <QrCode className="h-4 w-4" /> Código QR
                     </Button>
                   </div>
@@ -232,24 +271,50 @@ export default function Disenos() {
               </div>
 
               {qrOpenId === d.id && (
-                <div className="mt-4 flex flex-col items-center gap-3 border-t border-border pt-4 sm:flex-row sm:items-center">
+                <div className="mt-4 flex flex-col gap-4 border-t border-border pt-4 sm:flex-row">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(registroUrl(d))}`}
+                    src={qrImageUrl(d, 180)}
                     alt={`Código QR de registro para ${d.nombre}`}
                     width={140}
                     height={140}
-                    className="shrink-0 rounded-lg border border-border"
+                    className="shrink-0 self-center rounded-lg border border-border sm:self-start"
                   />
-                  <div className="w-full min-w-0">
+                  <div className="w-full min-w-0 space-y-3">
                     <p className="text-sm text-muted-foreground">
                       Tus clientes escanean este código, ponen su nombre y teléfono, y reciben su tarjeta al instante.
                     </p>
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <Input readOnly value={registroUrl(d)} className="text-xs" onFocus={(e) => e.target.select()} />
                       <Button type="button" variant="outline" className="shrink-0 gap-1.5" onClick={() => copyLink(d)}>
                         <Copy className="h-4 w-4" /> {copiedId === d.id ? 'Copiado' : 'Copiar'}
                       </Button>
                     </div>
+                    <div className="flex flex-wrap items-end gap-4">
+                      <div>
+                        <Label className="mb-1">Color del código</Label>
+                        <Input
+                          type="color"
+                          value={qrColor}
+                          onChange={(e) => setQrColor(e.target.value)}
+                          className="h-9 w-16 p-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="mb-1">Color de fondo</Label>
+                        <Input
+                          type="color"
+                          value={qrBgColor}
+                          onChange={(e) => setQrBgColor(e.target.value)}
+                          className="h-9 w-16 p-1"
+                        />
+                      </div>
+                      <Button type="button" variant="outline" className="gap-1.5" onClick={() => downloadPdf(d)}>
+                        <Download className="h-4 w-4" /> Descargar PDF
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Se abre el diálogo de impresión: elegí "Guardar como PDF" para descargarlo.
+                    </p>
                   </div>
                 </div>
               )}
@@ -449,6 +514,7 @@ export default function Disenos() {
                 colorPrimario={form.colorPrimario}
                 colorTexto={form.colorTexto}
                 sellosRequeridos={form.sellosRequeridos}
+                sellosActuales={0}
                 vencimiento={form.vencimiento}
                 descripcion={form.descripcion}
               />
@@ -459,6 +525,24 @@ export default function Disenos() {
           </div>
         </div>
       </div>
+      )}
+
+      {printDiseno && (
+        <div className="print-qr-poster flex-col items-center justify-center gap-6 p-16 text-center">
+          {printDiseno.logo && <img src={printDiseno.logo} alt="" className="h-20 w-20 rounded-full object-cover" />}
+          <div>
+            <p className="text-2xl font-semibold">{auth?.nombre}</p>
+            <p className="mt-1 text-lg text-muted-foreground">
+              {printDiseno.tipo === 'cupon' ? 'Escaneá para obtener tu cupón' : 'Escaneá para juntar tus sellos'}
+            </p>
+          </div>
+          <img src={qrImageUrl(printDiseno, 500)} alt="Código QR de registro" width={360} height={360} />
+          <p className="max-w-sm break-all text-sm text-muted-foreground">{registroUrl(printDiseno)}</p>
+          <div className="mt-4 flex items-center gap-2 opacity-70">
+            <img src={masplusLogo} alt="" className="h-6 w-6" />
+            <span className="text-sm">Powered by Masplus</span>
+          </div>
+        </div>
       )}
     </div>
   )
