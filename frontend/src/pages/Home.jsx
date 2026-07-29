@@ -286,14 +286,13 @@ function Hero() {
   return (
     <section id="inicio" className="relative overflow-hidden">
       <div
-        className="pointer-events-none absolute inset-0 -z-20 bg-cover bg-center opacity-[0.14] blur-2xl"
+        className="pointer-events-none absolute inset-0 -z-20 bg-cover bg-top opacity-45"
         style={{ backgroundImage: `url(${heroBg})` }}
       />
       <div
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
-          background:
-            'radial-gradient(circle at 50% -10%, rgba(249,115,22,0.18), transparent 45%), radial-gradient(circle at 85% 10%, rgba(234,88,12,0.12), transparent 40%), linear-gradient(to bottom, rgba(255,255,255,0.6), var(--background) 70%)',
+          background: 'linear-gradient(to bottom, transparent 0%, transparent 45%, var(--background) 88%)',
         }}
       />
       <div className="mx-auto max-w-3xl px-6 pb-4 pt-16 text-center md:pt-24">
