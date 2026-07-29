@@ -29,6 +29,7 @@ export default function Plan() {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [pagoPlan, setPagoPlan] = useState(null)
+  const [canjeando, setCanjeando] = useState(null)
 
   const [codigoInput, setCodigoInput] = useState('')
   const [validandoCodigo, setValidandoCodigo] = useState(false)
@@ -68,6 +69,26 @@ export default function Plan() {
     } finally {
       setValidandoCodigo(false)
     }
+  }
+
+  async function elegirPlan(plan) {
+    const resultado = resultadosCodigo?.[plan.id]
+    if (resultado?.valido && Number(resultado.precioConDescuento) === 0) {
+      setCanjeando(plan.id)
+      setError('')
+      try {
+        await api.post('/api/empresa/stripe/canjear-gratis', { planId: plan.id, codigo: codigoInput.trim() })
+        setResultadosCodigo(null)
+        setCodigoInput('')
+        load()
+      } catch (e) {
+        setError(e.message)
+      } finally {
+        setCanjeando(null)
+      }
+      return
+    }
+    setPagoPlan(plan)
   }
 
   if (!data) return <p className="text-muted-foreground">Cargando...</p>
@@ -182,10 +203,10 @@ export default function Plan() {
                 <Button
                   className="mt-6 w-full"
                   variant={esActual ? 'outline' : 'primary'}
-                  disabled={esActual}
-                  onClick={() => setPagoPlan(plan)}
+                  disabled={esActual || canjeando === plan.id}
+                  onClick={() => elegirPlan(plan)}
                 >
-                  {esActual ? 'Plan actual' : 'Elegir este plan'}
+                  {esActual ? 'Plan actual' : canjeando === plan.id ? 'Activando...' : 'Elegir este plan'}
                 </Button>
               </Card>
             )

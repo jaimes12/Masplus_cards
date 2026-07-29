@@ -119,6 +119,43 @@ public class StripeService : IStripeService
         return new CrearSuscripcionResultDto(requiereAccion, requiereAccion ? clientSecret : null, await _planes.GetActualAsync(empresaId));
     }
 
+    public async Task<CrearSuscripcionResultDto> CanjearCodigoGratisAsync(int empresaId, CanjearGratisRequest request, CancellationToken ct = default)
+    {
+        var empresa = await _db.Empresas.FirstOrDefaultAsync(e => e.Id == empresaId, ct)
+            ?? throw new InvalidOperationException("Empresa no encontrada.");
+
+        var plan = await _db.Planes.FirstOrDefaultAsync(p => p.Id == request.PlanId && p.Activo, ct)
+            ?? throw new InvalidOperationException("Plan no encontrado.");
+
+        var validacion = await _codigos.ValidarAsync(empresaId, new ValidarCodigoRequest(request.Codigo, plan.Id));
+        if (!validacion.Valido)
+            throw new InvalidOperationException(validacion.Error ?? "Ese código de descuento no es válido.");
+        if (validacion.PrecioConDescuento != 0)
+            throw new InvalidOperationException("Ese código no cubre el 100% del plan; hay que pagar con tarjeta.");
+
+        if (!string.IsNullOrWhiteSpace(empresa.StripeSubscriptionId))
+        {
+            var subscriptionService = new SubscriptionService();
+            try
+            {
+                await subscriptionService.CancelAsync(empresa.StripeSubscriptionId, cancellationToken: ct);
+            }
+            catch (StripeException)
+            {
+                // Puede que ya estuviera cancelada del lado de Stripe; no bloquea el canje gratis.
+            }
+            empresa.StripeSubscriptionId = null;
+        }
+
+        await _codigos.RedimirAsync(empresaId, validacion.Codigo!);
+
+        empresa.PlanId = plan.Id;
+        empresa.PlanRenuevaEl = MexicoCityTime.Now().AddDays(30);
+        await _db.SaveChangesAsync(ct);
+
+        return new CrearSuscripcionResultDto(false, null, await _planes.GetActualAsync(empresaId));
+    }
+
     private async Task<(List<SubscriptionDiscountOptions>? Discounts, string? Codigo)> CrearDescuentoAsync(
         int empresaId, int planId, string? codigoDescuento, CancellationToken ct)
     {

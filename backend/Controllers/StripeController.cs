@@ -53,6 +53,25 @@ public class StripeController : ControllerBase
         }
     }
 
+    /// <summary>Canjea un código de descuento 100% sin pasar por Stripe (no pide tarjeta).</summary>
+    [HttpPost("api/empresa/stripe/canjear-gratis")]
+    [Authorize(Roles = "Empresa")]
+    public async Task<ActionResult<CrearSuscripcionResultDto>> CanjearGratis([FromBody] CanjearGratisRequest request, CancellationToken ct)
+    {
+        try
+        {
+            return Ok(await _stripe.CanjearCodigoGratisAsync(User.GetEmpresaId(), request, ct));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (StripeException ex)
+        {
+            return BadRequest(new { error = ex.StripeError?.Message ?? ex.Message });
+        }
+    }
+
     /// <summary>Webhook de Stripe: renovaciones, cancelaciones, etc. Sin autenticación de usuario
     /// (Stripe firma el cuerpo con Stripe:WebhookSecret, verificado adentro).</summary>
     [HttpPost("api/stripe/webhook")]
