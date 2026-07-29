@@ -1,12 +1,24 @@
 import { Link } from 'react-router-dom'
-import { Crown } from 'lucide-react'
+import { Crown, Menu } from 'lucide-react'
 
-export default function Navbar({ title, subtitle, logo, name, planNombre, planLinkTo = '/empresa/plan' }) {
+export default function Navbar({ title, subtitle, logo, name, planNombre, planLinkTo = '/empresa/plan', onMenuClick }) {
   return (
-    <header className="shadow-soft mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-card px-6 py-4">
-      <div className="min-w-0">
-        <h1 className="truncate text-xl font-semibold">{title}</h1>
-        {subtitle && <p className="truncate text-sm text-muted-foreground">{subtitle}</p>}
+    <header className="shadow-soft mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-card px-4 py-4 sm:px-6">
+      <div className="flex min-w-0 items-center gap-3">
+        {onMenuClick && (
+          <button
+            type="button"
+            onClick={onMenuClick}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary lg:hidden"
+            aria-label="Abrir menú"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-semibold">{title}</h1>
+          {subtitle && <p className="truncate text-sm text-muted-foreground">{subtitle}</p>}
+        </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-3">

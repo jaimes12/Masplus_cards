@@ -31,6 +31,7 @@ export default function EmpresaLayout() {
   const location = useLocation()
   const [logo, setLogo] = useState(null)
   const [planNombre, setPlanNombre] = useState('')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     api.get('/api/empresa/perfil').then((data) => setLogo(data.logo || null)).catch(() => {})
@@ -68,10 +69,19 @@ export default function EmpresaLayout() {
             <LogOut className="h-4 w-4" /> Salir
           </Button>
         }
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
       />
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="mx-auto w-full max-w-6xl shrink-0 px-4 pr-6 pt-6">
-          <Navbar title={title} subtitle={subtitle} logo={logo} name={auth?.nombre} planNombre={planNombre} />
+          <Navbar
+            title={title}
+            subtitle={subtitle}
+            logo={logo}
+            name={auth?.nombre}
+            planNombre={planNombre}
+            onMenuClick={() => setMobileMenuOpen(true)}
+          />
         </div>
         <main className="flex-1 overflow-y-auto px-4 pb-6 pr-6">
           <div className="mx-auto max-w-6xl">

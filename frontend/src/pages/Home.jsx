@@ -5,10 +5,12 @@ import {
   Bell,
   Check,
   ChevronDown,
+  Menu,
   Palette,
   QrCode,
   Sparkles,
   Users,
+  X,
 } from 'lucide-react'
 import CardPreview from '../components/CardPreview.jsx'
 
@@ -198,6 +200,8 @@ function Logo({ className = '' }) {
 }
 
 function Nav() {
+  const [mobileOpen, setMobileOpen] = useState(false)
+
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -217,12 +221,53 @@ function Nav() {
           </Link>
           <Link
             to="/empresa/registro"
-            className="rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            className="hidden rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 sm:inline-block"
           >
             Empieza gratis
           </Link>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-foreground hover:bg-secondary md:hidden"
+            aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
+
+      {mobileOpen && (
+        <div className="border-t border-border/60 bg-background px-6 py-4 md:hidden">
+          <nav className="flex flex-col gap-1 text-sm font-medium text-muted-foreground">
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-3 py-2.5 transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+          <div className="mt-3 flex flex-col gap-2 border-t border-border/60 pt-3">
+            <Link
+              to="/empresa/login"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
+            >
+              Ingresar
+            </Link>
+            <Link
+              to="/empresa/registro"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-5 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            >
+              Empieza gratis
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

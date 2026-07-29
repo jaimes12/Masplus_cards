@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Building2, LayoutDashboard, LogOut, ShieldCheck, LayoutTemplate } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
@@ -21,6 +22,7 @@ export default function AdminLayout() {
   const { auth, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   function handleLogout() {
     logout()
@@ -49,10 +51,12 @@ export default function AdminLayout() {
             <LogOut className="h-4 w-4" /> Salir
           </Button>
         }
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
       />
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="mx-auto w-full max-w-6xl shrink-0 px-4 pr-6 pt-6">
-          <Navbar title={title} subtitle={subtitle} name={auth?.nombre} />
+          <Navbar title={title} subtitle={subtitle} name={auth?.nombre} onMenuClick={() => setMobileMenuOpen(true)} />
         </div>
         <main className="flex-1 overflow-y-auto px-4 pb-6 pr-6">
           <div className="mx-auto max-w-6xl">
