@@ -2,10 +2,25 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
-import { Button, Card, Input, Label } from '../components/ui.jsx'
+import { Button, Card, Input, Label, Select } from '../components/ui.jsx'
+
+const PAISES = [
+  { codigo: '+52', bandera: '🇲🇽', nombre: 'México' },
+  { codigo: '+1', bandera: '🇺🇸', nombre: 'Estados Unidos' },
+  { codigo: '+57', bandera: '🇨🇴', nombre: 'Colombia' },
+  { codigo: '+34', bandera: '🇪🇸', nombre: 'España' },
+  { codigo: '+54', bandera: '🇦🇷', nombre: 'Argentina' },
+]
 
 export default function RegisterEmpresa() {
-  const [form, setForm] = useState({ nombre: '', email: '', password: '', telefono: '' })
+  const [form, setForm] = useState({
+    nombre: '',
+    email: '',
+    password: '',
+    confirmarPassword: '',
+    codigoPais: PAISES[0].codigo,
+    telefono: '',
+  })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
@@ -18,9 +33,21 @@ export default function RegisterEmpresa() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+
+    if (form.password !== form.confirmarPassword) {
+      setError('Las contraseñas no coinciden.')
+      return
+    }
+
     setLoading(true)
     try {
-      const response = await api.post('/api/auth/empresa/register', { ...form, telefono: form.telefono || null })
+      const telefono = form.telefono.trim() ? `${form.codigoPais} ${form.telefono.trim()}` : null
+      const response = await api.post('/api/auth/empresa/register', {
+        nombre: form.nombre,
+        email: form.email,
+        password: form.password,
+        telefono,
+      })
       login(response)
       navigate('/empresa')
     } catch (err) {
@@ -50,6 +77,33 @@ export default function RegisterEmpresa() {
             />
           </div>
           <div>
+            <Label htmlFor="telefono">Teléfono (opcional)</Label>
+            <div className="flex gap-2">
+              <div className="w-28 shrink-0">
+                <Select
+                  value={form.codigoPais}
+                  onChange={(e) => update('codigoPais', e.target.value)}
+                  aria-label="País"
+                >
+                  {PAISES.map((p) => (
+                    <option key={p.codigo} value={p.codigo}>
+                      {p.bandera} {p.codigo}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="min-w-0 flex-1">
+                <Input
+                  id="telefono"
+                  type="tel"
+                  value={form.telefono}
+                  onChange={(e) => update('telefono', e.target.value)}
+                  placeholder="55 1234 5678"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
             <Label htmlFor="password">Contraseña</Label>
             <Input
               id="password"
@@ -61,8 +115,15 @@ export default function RegisterEmpresa() {
             />
           </div>
           <div>
-            <Label htmlFor="telefono">Teléfono (opcional)</Label>
-            <Input id="telefono" value={form.telefono} onChange={(e) => update('telefono', e.target.value)} />
+            <Label htmlFor="confirmarPassword">Confirmar contraseña</Label>
+            <Input
+              id="confirmarPassword"
+              type="password"
+              value={form.confirmarPassword}
+              onChange={(e) => update('confirmarPassword', e.target.value)}
+              required
+              minLength={6}
+            />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
