@@ -48,10 +48,6 @@ public class StripeService : IStripeService
         var empresa = await _db.Empresas.FirstOrDefaultAsync(e => e.Id == empresaId, ct)
             ?? throw new InvalidOperationException("Empresa no encontrada.");
 
-        if (!string.IsNullOrWhiteSpace(empresa.StripeSubscriptionId))
-            throw new InvalidOperationException(
-                "Ya tienes una suscripción activa. Para cambiar de plan escríbenos a soporte por ahora.");
-
         var plan = await _db.Planes.FirstOrDefaultAsync(p => p.Id == request.PlanId && p.Activo, ct)
             ?? throw new InvalidOperationException("Plan no encontrado.");
 
@@ -67,40 +63,44 @@ public class StripeService : IStripeService
             InvoiceSettings = new CustomerInvoiceSettingsOptions { DefaultPaymentMethod = request.PaymentMethodId },
         }, cancellationToken: ct);
 
-        string? codigoValidado = null;
-        List<SubscriptionDiscountOptions>? discounts = null;
-        if (!string.IsNullOrWhiteSpace(request.CodigoDescuento))
-        {
-            var validacion = await _codigos.ValidarAsync(empresaId, new ValidarCodigoRequest(request.CodigoDescuento, plan.Id));
-            if (!validacion.Valido)
-                throw new InvalidOperationException(validacion.Error ?? "Ese código de descuento no es válido.");
+        var (discounts, codigoValidado) = await CrearDescuentoAsync(empresaId, plan.Id, request.CodigoDescuento, ct);
 
-            var couponService = new CouponService();
-            var coupon = await couponService.CreateAsync(new CouponCreateOptions
-            {
-                Duration = "once",
-                PercentOff = validacion.TipoDescuento == "porcentaje" ? validacion.Valor : null,
-                AmountOff = validacion.TipoDescuento == "monto_fijo" ? (long?)(validacion.Valor!.Value * 100) : null,
-                Currency = validacion.TipoDescuento == "monto_fijo" ? "mxn" : null,
-                Name = $"Código {validacion.Codigo}",
-            }, cancellationToken: ct);
-
-            discounts = new List<SubscriptionDiscountOptions> { new() { Coupon = coupon.Id } };
-            codigoValidado = validacion.Codigo;
-        }
-
-        var subscriptionOptions = new SubscriptionCreateOptions
-        {
-            Customer = customerId,
-            Items = new List<SubscriptionItemOptions> { new() { Price = priceId } },
-            DefaultPaymentMethod = request.PaymentMethodId,
-            PaymentBehavior = "default_incomplete",
-            Discounts = discounts,
-        };
-        subscriptionOptions.AddExpand("latest_invoice.confirmation_secret");
-
+        Subscription subscription;
         var subscriptionService = new SubscriptionService();
-        var subscription = await subscriptionService.CreateAsync(subscriptionOptions, cancellationToken: ct);
+
+        if (!string.IsNullOrWhiteSpace(empresa.StripeSubscriptionId))
+        {
+            // Ya tiene una suscripción activa: se cambia el precio del item existente en vez de
+            // crear una suscripción nueva, para que Stripe prorratee la diferencia automáticamente.
+            var actual = await subscriptionService.GetAsync(empresa.StripeSubscriptionId, cancellationToken: ct);
+            var itemId = actual.Items.Data.First().Id;
+
+            var updateOptions = new SubscriptionUpdateOptions
+            {
+                Items = new List<SubscriptionItemOptions> { new() { Id = itemId, Price = priceId } },
+                DefaultPaymentMethod = request.PaymentMethodId,
+                PaymentBehavior = "default_incomplete",
+                ProrationBehavior = "always_invoice",
+                Discounts = discounts,
+            };
+            updateOptions.AddExpand("latest_invoice.confirmation_secret");
+
+            subscription = await subscriptionService.UpdateAsync(empresa.StripeSubscriptionId, updateOptions, cancellationToken: ct);
+        }
+        else
+        {
+            var subscriptionOptions = new SubscriptionCreateOptions
+            {
+                Customer = customerId,
+                Items = new List<SubscriptionItemOptions> { new() { Price = priceId } },
+                DefaultPaymentMethod = request.PaymentMethodId,
+                PaymentBehavior = "default_incomplete",
+                Discounts = discounts,
+            };
+            subscriptionOptions.AddExpand("latest_invoice.confirmation_secret");
+
+            subscription = await subscriptionService.CreateAsync(subscriptionOptions, cancellationToken: ct);
+        }
 
         if (codigoValidado != null)
             await _codigos.RedimirAsync(empresaId, codigoValidado);
@@ -117,6 +117,29 @@ public class StripeService : IStripeService
         var clientSecret = subscription.LatestInvoice?.ConfirmationSecret?.ClientSecret;
 
         return new CrearSuscripcionResultDto(requiereAccion, requiereAccion ? clientSecret : null, await _planes.GetActualAsync(empresaId));
+    }
+
+    private async Task<(List<SubscriptionDiscountOptions>? Discounts, string? Codigo)> CrearDescuentoAsync(
+        int empresaId, int planId, string? codigoDescuento, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(codigoDescuento))
+            return (null, null);
+
+        var validacion = await _codigos.ValidarAsync(empresaId, new ValidarCodigoRequest(codigoDescuento, planId));
+        if (!validacion.Valido)
+            throw new InvalidOperationException(validacion.Error ?? "Ese código de descuento no es válido.");
+
+        var couponService = new CouponService();
+        var coupon = await couponService.CreateAsync(new CouponCreateOptions
+        {
+            Duration = "once",
+            PercentOff = validacion.TipoDescuento == "porcentaje" ? validacion.Valor : null,
+            AmountOff = validacion.TipoDescuento == "monto_fijo" ? (long?)(validacion.Valor!.Value * 100) : null,
+            Currency = validacion.TipoDescuento == "monto_fijo" ? "mxn" : null,
+            Name = $"Código {validacion.Codigo}",
+        }, cancellationToken: ct);
+
+        return (new List<SubscriptionDiscountOptions> { new() { Coupon = coupon.Id } }, validacion.Codigo);
     }
 
     public async Task ProcesarWebhookAsync(string json, string firmaHeader, CancellationToken ct = default)
