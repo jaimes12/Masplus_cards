@@ -4,6 +4,7 @@ using MasplusCards.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MasplusCards.Api.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260729063611_AddDiscountCodes")]
+    partial class AddDiscountCodes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -347,16 +350,6 @@ namespace MasplusCards.Api.Data.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("plan_renueva_el");
 
-                    b.Property<string>("StripeCustomerId")
-                        .HasMaxLength(60)
-                        .HasColumnType("varchar(60)")
-                        .HasColumnName("stripe_customer_id");
-
-                    b.Property<string>("StripeSubscriptionId")
-                        .HasMaxLength(60)
-                        .HasColumnType("varchar(60)")
-                        .HasColumnName("stripe_subscription_id");
-
                     b.Property<string>("Telefono")
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)")
@@ -464,11 +457,6 @@ namespace MasplusCards.Api.Data.Migrations
                     b.Property<decimal>("PrecioMensual")
                         .HasColumnType("decimal(10,2)")
                         .HasColumnName("precio_mensual");
-
-                    b.Property<string>("StripePriceId")
-                        .HasMaxLength(60)
-                        .HasColumnType("varchar(60)")
-                        .HasColumnName("stripe_price_id");
 
                     b.HasKey("Id");
 

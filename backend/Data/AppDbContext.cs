@@ -19,6 +19,8 @@ public class AppDbContext : DbContext
     public DbSet<TarjetaLog> TarjetaLogs => Set<TarjetaLog>();
     public DbSet<PassRegistration> PassRegistrations => Set<PassRegistration>();
     public DbSet<Plan> Planes => Set<Plan>();
+    public DbSet<DiscountCode> DiscountCodes => Set<DiscountCode>();
+    public DbSet<DiscountCodeRedemption> DiscountCodeRedemptions => Set<DiscountCodeRedemption>();
 
     public override int SaveChanges()
     {
@@ -96,6 +98,8 @@ public class AppDbContext : DbContext
             e.Property(x => x.DisenoActivoId).HasColumnName("diseno_activo_id");
             e.Property(x => x.PlanId).HasColumnName("plan_id");
             e.Property(x => x.PlanRenuevaEl).HasColumnName("plan_renueva_el");
+            e.Property(x => x.StripeCustomerId).HasColumnName("stripe_customer_id").HasMaxLength(60);
+            e.Property(x => x.StripeSubscriptionId).HasColumnName("stripe_subscription_id").HasMaxLength(60);
             e.Property(x => x.Estado).HasColumnName("estado").HasMaxLength(20);
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
             e.HasIndex(x => x.Email).IsUnique();
@@ -124,8 +128,52 @@ public class AppDbContext : DbContext
             e.Property(x => x.Caracteristicas).HasColumnName("caracteristicas").HasColumnType("json");
             e.Property(x => x.Destacado).HasColumnName("destacado");
             e.Property(x => x.Orden).HasColumnName("orden");
+            e.Property(x => x.StripePriceId).HasColumnName("stripe_price_id").HasMaxLength(60);
             e.Property(x => x.Activo).HasColumnName("activo");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<DiscountCode>(e =>
+        {
+            e.ToTable("discount_codes");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Codigo).HasColumnName("codigo").HasMaxLength(40).IsRequired();
+            e.Property(x => x.TipoDescuento).HasColumnName("tipo_descuento").HasMaxLength(20).IsRequired();
+            e.Property(x => x.Valor).HasColumnName("valor").HasColumnType("decimal(10,2)");
+            e.Property(x => x.PlanId).HasColumnName("plan_id");
+            e.Property(x => x.UsosMaximos).HasColumnName("usos_maximos");
+            e.Property(x => x.UsosActuales).HasColumnName("usos_actuales");
+            e.Property(x => x.FechaExpiracion).HasColumnName("fecha_expiracion");
+            e.Property(x => x.Activo).HasColumnName("activo");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasIndex(x => x.Codigo).IsUnique();
+
+            e.HasOne(x => x.Plan)
+                .WithMany()
+                .HasForeignKey(x => x.PlanId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<DiscountCodeRedemption>(e =>
+        {
+            e.ToTable("discount_code_redemptions");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.DiscountCodeId).HasColumnName("discount_code_id");
+            e.Property(x => x.EmpresaId).HasColumnName("empresa_id");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasIndex(x => new { x.DiscountCodeId, x.EmpresaId }).IsUnique();
+
+            e.HasOne(x => x.DiscountCode)
+                .WithMany(x => x.Redenciones)
+                .HasForeignKey(x => x.DiscountCodeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(x => x.Empresa)
+                .WithMany()
+                .HasForeignKey(x => x.EmpresaId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Template>(e =>

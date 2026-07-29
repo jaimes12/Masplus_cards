@@ -17,6 +17,12 @@ public class Empresa
     /// <summary>Próxima fecha de renovación del plan actual. Null si nunca eligió uno.</summary>
     public DateTime? PlanRenuevaEl { get; set; }
 
+    /// <summary>Id del Customer en Stripe, para cobrar sin volver a pedir los datos de tarjeta cada vez.</summary>
+    public string? StripeCustomerId { get; set; }
+
+    /// <summary>Id de la suscripción activa en Stripe (null si nunca pagó o si la canceló).</summary>
+    public string? StripeSubscriptionId { get; set; }
+
     public string Estado { get; set; } = "activa";
     public DateTime CreatedAt { get; set; }
 

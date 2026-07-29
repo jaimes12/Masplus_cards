@@ -11,10 +11,12 @@ namespace MasplusCards.Api.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _service;
+    private readonly IPlanesService _planes;
 
-    public AdminController(IAdminService service)
+    public AdminController(IAdminService service, IPlanesService planes)
     {
         _service = service;
+        _planes = planes;
     }
 
     [HttpGet("stats")]
@@ -28,4 +30,8 @@ public class AdminController : ControllerBase
     {
         return Ok(await _service.GetEmpresasAsync());
     }
+
+    /// <summary>Catálogo de planes, para elegir a cuál restringir un código de descuento.</summary>
+    [HttpGet("planes")]
+    public async Task<ActionResult<List<PlanDto>>> GetPlanes() => Ok(await _planes.GetCatalogoAsync());
 }

@@ -11,10 +11,12 @@ namespace MasplusCards.Api.Controllers;
 public class PlanesController : ControllerBase
 {
     private readonly IPlanesService _service;
+    private readonly IDiscountCodesService _codigos;
 
-    public PlanesController(IPlanesService service)
+    public PlanesController(IPlanesService service, IDiscountCodesService codigos)
     {
         _service = service;
+        _codigos = codigos;
     }
 
     [HttpGet("api/planes")]
@@ -35,4 +37,9 @@ public class PlanesController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    /// <summary>Valida un código de descuento contra un plan sin canjearlo todavía (el canje real ocurre al cobrar).</summary>
+    [HttpPost("api/empresa/codigo-descuento/validar")]
+    public async Task<ActionResult<ValidarCodigoResultDto>> ValidarCodigo([FromBody] ValidarCodigoRequest request) =>
+        Ok(await _codigos.ValidarAsync(User.GetEmpresaId(), request));
 }

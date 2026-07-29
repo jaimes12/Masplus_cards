@@ -24,5 +24,8 @@ public class Plan
     public bool Activo { get; set; } = true;
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>Id del Price recurrente en Stripe para este plan (se crea solo la primera vez que se usa).</summary>
+    public string? StripePriceId { get; set; }
+
     public List<Empresa> Empresas { get; set; } = new();
 }

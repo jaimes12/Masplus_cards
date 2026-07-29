@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Check, Crown } from 'lucide-react'
+import { Check, Crown, Tag } from 'lucide-react'
 import { api } from '../../lib/api.js'
-import { Button, Card } from '../../components/ui.jsx'
+import { Button, Card, Input, Label } from '../../components/ui.jsx'
+import PagoPlanModal from '../../components/PagoPlanModal.jsx'
 
 function UsageBar({ label, used, limit, dark }) {
   const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : 100
@@ -26,8 +27,13 @@ function UsageBar({ label, used, limit, dark }) {
 
 export default function Plan() {
   const [data, setData] = useState(null)
-  const [cambiando, setCambiando] = useState(null)
   const [error, setError] = useState('')
+  const [pagoPlan, setPagoPlan] = useState(null)
+
+  const [codigoInput, setCodigoInput] = useState('')
+  const [validandoCodigo, setValidandoCodigo] = useState(false)
+  const [resultadosCodigo, setResultadosCodigo] = useState(null)
+  const [errorCodigo, setErrorCodigo] = useState('')
 
   useEffect(() => {
     load()
@@ -37,16 +43,30 @@ export default function Plan() {
     api.get('/api/empresa/plan').then(setData).catch((e) => setError(e.message))
   }
 
-  async function cambiar(planId) {
-    setCambiando(planId)
-    setError('')
+  async function aplicarCodigo(e) {
+    e.preventDefault()
+    if (!codigoInput.trim() || !data) return
+    setValidandoCodigo(true)
+    setErrorCodigo('')
+    setResultadosCodigo(null)
     try {
-      const updated = await api.post(`/api/empresa/plan/${planId}`)
-      setData(updated)
+      const resultados = await Promise.all(
+        data.planes.map((plan) =>
+          api
+            .post('/api/empresa/codigo-descuento/validar', { codigo: codigoInput.trim(), planId: plan.id })
+            .then((r) => [plan.id, r])
+        )
+      )
+      const map = Object.fromEntries(resultados)
+      const algunoValido = Object.values(map).some((r) => r.valido)
+      if (!algunoValido) {
+        setErrorCodigo(Object.values(map)[0]?.error || 'Ese código no es válido.')
+      }
+      setResultadosCodigo(map)
     } catch (e) {
-      setError(e.message)
+      setErrorCodigo(e.message)
     } finally {
-      setCambiando(null)
+      setValidandoCodigo(false)
     }
   }
 
@@ -92,11 +112,37 @@ export default function Plan() {
         </div>
       </Card>
 
+      <Card>
+        <form onSubmit={aplicarCodigo} className="flex flex-wrap items-end gap-3">
+          <div className="min-w-0 flex-1">
+            <Label className="flex items-center gap-1.5">
+              <Tag className="h-3.5 w-3.5" /> ¿Tienes un código de descuento?
+            </Label>
+            <Input
+              value={codigoInput}
+              onChange={(e) => setCodigoInput(e.target.value.toUpperCase())}
+              placeholder="Ej. VERANO20"
+            />
+          </div>
+          <Button type="submit" variant="outline" disabled={validandoCodigo || !codigoInput.trim()}>
+            {validandoCodigo ? 'Validando...' : 'Aplicar'}
+          </Button>
+        </form>
+        {errorCodigo && <p className="mt-2 text-sm text-destructive">{errorCodigo}</p>}
+        {resultadosCodigo && !errorCodigo && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Código aplicado — el precio con descuento aparece marcado abajo. Se confirma al pagar.
+          </p>
+        )}
+      </Card>
+
       <div>
         <h3 className="mb-4 text-lg font-semibold">Todos los planes</h3>
         <div className="grid gap-5 sm:grid-cols-3">
           {planes.map((plan, i) => {
             const esActual = planActual?.id === plan.id
+            const resultado = resultadosCodigo?.[plan.id]
+            const conDescuento = resultado?.valido ? resultado : null
             return (
               <Card
                 key={plan.id}
@@ -111,7 +157,18 @@ export default function Plan() {
                 <h4 className="text-lg font-semibold">{plan.nombre}</h4>
                 <p className="mt-1 text-sm text-muted-foreground">{plan.descripcion}</p>
                 <p className="mt-4">
-                  <span className="text-3xl font-semibold">${Math.round(Number(plan.precioMensual))}</span>
+                  {conDescuento ? (
+                    <>
+                      <span className="text-sm text-muted-foreground line-through">
+                        ${Math.round(Number(plan.precioMensual))}
+                      </span>{' '}
+                      <span className="text-3xl font-semibold text-orange-600">
+                        ${Math.round(Number(conDescuento.precioConDescuento))}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-3xl font-semibold">${Math.round(Number(plan.precioMensual))}</span>
+                  )}
                   <span className="text-sm text-muted-foreground"> MXN/mes</span>
                 </p>
                 <ul className="mt-5 flex-1 space-y-2 text-sm">
@@ -125,16 +182,30 @@ export default function Plan() {
                 <Button
                   className="mt-6 w-full"
                   variant={esActual ? 'outline' : 'primary'}
-                  disabled={esActual || cambiando === plan.id}
-                  onClick={() => cambiar(plan.id)}
+                  disabled={esActual}
+                  onClick={() => setPagoPlan(plan)}
                 >
-                  {esActual ? 'Plan actual' : cambiando === plan.id ? 'Cambiando...' : 'Elegir este plan'}
+                  {esActual ? 'Plan actual' : 'Elegir este plan'}
                 </Button>
               </Card>
             )
           })}
         </div>
       </div>
+
+      {pagoPlan && (
+        <PagoPlanModal
+          plan={pagoPlan}
+          codigoDescuento={resultadosCodigo?.[pagoPlan.id]?.valido ? codigoInput.trim() : null}
+          onClose={() => setPagoPlan(null)}
+          onSuccess={() => {
+            setPagoPlan(null)
+            setResultadosCodigo(null)
+            setCodigoInput('')
+            load()
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -16,6 +16,7 @@ import Plan from './pages/empresa/Plan.jsx'
 import AdminDashboard from './pages/admin/Dashboard.jsx'
 import Templates from './pages/admin/Templates.jsx'
 import Empresas from './pages/admin/Empresas.jsx'
+import DiscountCodes from './pages/admin/DiscountCodes.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
         <Route index element={<AdminDashboard />} />
         <Route path="templates" element={<Templates />} />
         <Route path="empresas" element={<Empresas />} />
+        <Route path="codigos-descuento" element={<DiscountCodes />} />
       </Route>
     </Routes>
   )

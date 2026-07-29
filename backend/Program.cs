@@ -30,6 +30,13 @@ builder.Services.Configure<R2Configuration>(options =>
     options.Endpoint = Environment.GetEnvironmentVariable("R2_ENDPOINT") ?? options.Endpoint;
     options.PublicUrl = Environment.GetEnvironmentVariable("R2_PUBLIC_URL") ?? options.PublicUrl;
 });
+// Railway ya usa la convención Stripe__PublishableKey / Stripe__SecretKey / Stripe__WebhookSecret,
+// así que el binder de configuración de .NET las toma solo (no necesita el override manual del R2).
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+// Stripe.net usa una API key global (no por request); se setea una sola vez al arrancar.
+var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
+if (!string.IsNullOrWhiteSpace(stripeSecretKey))
+    Stripe.StripeConfiguration.ApiKey = stripeSecretKey;
 
 var jwtSigningKey =
     builder.Configuration["Jwt:SigningKey"]
@@ -61,6 +68,8 @@ builder.Services.AddScoped<IImagenesService, ImagenesService>();
 builder.Services.AddScoped<IEmpresaProfileService, EmpresaProfileService>();
 builder.Services.AddScoped<IPlanesService, PlanesService>();
 builder.Services.AddScoped<IRegistroService, RegistroService>();
+builder.Services.AddScoped<IDiscountCodesService, DiscountCodesService>();
+builder.Services.AddScoped<IStripeService, StripeService>();
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))

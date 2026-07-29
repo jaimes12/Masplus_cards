@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Building2, LayoutDashboard, LogOut, ShieldCheck, LayoutTemplate } from 'lucide-react'
+import { Building2, LogOut, ShieldCheck, LayoutTemplate, LayoutDashboard, Percent } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import Sidebar from '../components/Sidebar.jsx'
 import Navbar from '../components/Navbar.jsx'
@@ -10,12 +10,14 @@ const items = [
   { to: '/admin', label: 'Resumen', icon: LayoutDashboard, end: true },
   { to: '/admin/templates', label: 'Templates', icon: LayoutTemplate },
   { to: '/admin/empresas', label: 'Empresas', icon: Building2 },
+  { to: '/admin/codigos-descuento', label: 'Códigos de descuento', icon: Percent },
 ]
 
 const TITLES = {
   '/admin': ['Resumen', 'Cómo va Masplus Cards en general.'],
   '/admin/templates': ['Templates', 'Plantillas base que las empresas personalizan.'],
   '/admin/empresas': ['Empresas', 'Cuentas registradas en la plataforma.'],
+  '/admin/codigos-descuento': ['Códigos de descuento', 'Crea y administra promociones para los planes.'],
 }
 
 export default function AdminLayout() {
