@@ -127,10 +127,10 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
 
         if (fondo != null)
         {
-            var fondoPase = StampStripRenderer.RenderCuponBackground(backgroundColor, fondo);
-            request.Images.Add(PassbookImage.Background, fondoPase);
-            request.Images.Add(PassbookImage.Background2X, fondoPase);
-            request.Images.Add(PassbookImage.Background3X, fondoPase);
+            // Un archivo por escala, cada uno con su tamaño real (ver comentario en RenderCuponBackground).
+            request.Images.Add(PassbookImage.Background, StampStripRenderer.RenderCuponBackground(backgroundColor, fondo, scale: 1));
+            request.Images.Add(PassbookImage.Background2X, StampStripRenderer.RenderCuponBackground(backgroundColor, fondo, scale: 2));
+            request.Images.Add(PassbookImage.Background3X, StampStripRenderer.RenderCuponBackground(backgroundColor, fondo, scale: 3));
 
             // Apple Wallet: si el pase trae imagen "background" Y backgroundColor a la vez, Wallet
             // ignora la imagen y solo pinta el color plano. Hay que quitar backgroundColor para que

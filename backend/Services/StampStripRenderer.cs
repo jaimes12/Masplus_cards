@@ -108,17 +108,22 @@ public static class StampStripRenderer
         return ms.ToArray();
     }
 
-    // Tamaño recomendado por Apple para la imagen "background" (180x220pt @1x): se renderiza a @3x.
-    public const int BackgroundWidth = 540;
-    public const int BackgroundHeight = 660;
+    // Tamaño recomendado por Apple para la imagen "background": 180x220pt @1x.
+    public const int BackgroundWidth = 180;
+    public const int BackgroundHeight = 220;
 
     /// <summary>Fondo de pase completo (estilo Generic) para tarjetas tipo cupón: la foto cubre toda la tarjeta,
-    /// como el pase de ejemplo de Apple (museo), en vez del grid de sellos.</summary>
-    public static byte[] RenderCuponBackground(string? backgroundHex, byte[]? backgroundImagePng)
+    /// como el pase de ejemplo de Apple (museo), en vez del grid de sellos.
+    /// Apple espera un archivo por cada escala (@1x/@2x/@3x) con su tamaño real, no el mismo archivo repetido:
+    /// la pantalla de "Agregar" (antes de instalar el pase) lo decodifica distinto que la tarjeta ya instalada,
+    /// y con un solo tamaño reusado para las tres queda en blanco ahí aunque la tarjeta final se vea bien.</summary>
+    public static byte[] RenderCuponBackground(string? backgroundHex, byte[]? backgroundImagePng, int scale = 3)
     {
         var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
+        var width = BackgroundWidth * scale;
+        var height = BackgroundHeight * scale;
 
-        using var image = new Image<Rgba32>(BackgroundWidth, BackgroundHeight);
+        using var image = new Image<Rgba32>(width, height);
 
         Image<Rgba32>? backgroundImage = null;
         if (backgroundImagePng is { Length: > 0 })
@@ -135,13 +140,13 @@ public static class StampStripRenderer
             {
                 backgroundImage.Mutate(x => x.Resize(new ResizeOptions
                 {
-                    Size = new Size(BackgroundWidth, BackgroundHeight),
+                    Size = new Size(width, height),
                     Mode = ResizeMode.Crop,
                     Position = AnchorPositionMode.Center,
                 }));
                 ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
                 // Velo parejo (no solo un strip) para que los campos de texto se lean sobre la foto completa.
-                ctx.Fill(WithAlpha(background, 0.35f), new RectangularPolygon(0, 0, BackgroundWidth, BackgroundHeight));
+                ctx.Fill(WithAlpha(background, 0.35f), new RectangularPolygon(0, 0, width, height));
             }
         });
 
