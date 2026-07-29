@@ -131,6 +131,11 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             request.Images.Add(PassbookImage.Background, fondoPase);
             request.Images.Add(PassbookImage.Background2X, fondoPase);
             request.Images.Add(PassbookImage.Background3X, fondoPase);
+
+            // Apple Wallet: si el pase trae imagen "background" Y backgroundColor a la vez, Wallet
+            // ignora la imagen y solo pinta el color plano. Hay que quitar backgroundColor para que
+            // la foto se vea (el color ya quedó aplicado como velo dentro de la imagen compuesta).
+            request.BackgroundColor = null;
         }
 
         request.AddHeaderField(new StandardField(
