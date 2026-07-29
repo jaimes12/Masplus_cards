@@ -4,6 +4,7 @@ import LoginEmpresa from './pages/LoginEmpresa.jsx'
 import RegisterEmpresa from './pages/RegisterEmpresa.jsx'
 import LoginAdmin from './pages/LoginAdmin.jsx'
 import Wallet from './pages/Wallet.jsx'
+import Registro from './pages/Registro.jsx'
 import EmpresaLayout from './layouts/EmpresaLayout.jsx'
 import AdminLayout from './layouts/AdminLayout.jsx'
 import EmpresaDashboard from './pages/empresa/Dashboard.jsx'
@@ -22,6 +23,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/wallet/:codigoQr" element={<Wallet />} />
+      <Route path="/registro/:codigo" element={<Registro />} />
 
       <Route path="/empresa/login" element={<LoginEmpresa />} />
       <Route path="/empresa/registro" element={<RegisterEmpresa />} />

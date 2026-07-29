@@ -168,8 +168,10 @@ public class AppDbContext : DbContext
             e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(500);
             e.Property(x => x.Configuracion).HasColumnName("configuracion").HasColumnType("json");
             e.Property(x => x.Activo).HasColumnName("activo");
+            e.Property(x => x.CodigoRegistro).HasColumnName("codigo_registro").HasMaxLength(40).IsRequired();
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
             e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+            e.HasIndex(x => x.CodigoRegistro).IsUnique();
 
             e.HasOne(x => x.Empresa)
                 .WithMany(x => x.Disenos)

@@ -127,5 +127,6 @@ public class DisenosService : IDisenosService
         d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Vencimiento, d.Descripcion, d.Configuracion, d.Activo,
         EsActivoDeEmpresa: disenoActivoId.HasValue && disenoActivoId.Value == d.Id,
         TarjetasCount: tarjetasCount,
+        d.CodigoRegistro,
         d.CreatedAt, d.UpdatedAt);
 }

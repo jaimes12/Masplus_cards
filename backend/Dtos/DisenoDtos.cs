@@ -19,6 +19,7 @@ public record DisenoDto(
     bool Activo,
     bool EsActivoDeEmpresa,
     int TarjetasCount,
+    string CodigoRegistro,
     DateTime CreatedAt,
     DateTime UpdatedAt);
 

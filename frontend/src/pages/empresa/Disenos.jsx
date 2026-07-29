@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight, Award, Check, Plus, Ticket } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Award, Check, Copy, Plus, QrCode, Ticket } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
@@ -37,6 +37,22 @@ export default function Disenos() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [qrOpenId, setQrOpenId] = useState(null)
+  const [copiedId, setCopiedId] = useState(null)
+
+  function registroUrl(d) {
+    return `${window.location.origin}/registro/${d.codigoRegistro}`
+  }
+
+  async function copyLink(d) {
+    try {
+      await navigator.clipboard.writeText(registroUrl(d))
+      setCopiedId(d.id)
+      setTimeout(() => setCopiedId((id) => (id === d.id ? null : id)), 1500)
+    } catch {
+      // Clipboard no disponible (permiso denegado, contexto no seguro): el link sigue visible para copiar a mano.
+    }
+  }
 
   async function load() {
     const [t, d] = await Promise.all([api.get('/api/templates'), api.get('/api/disenos')])
@@ -204,9 +220,39 @@ export default function Disenos() {
                     <Button variant="ghost" onClick={() => startEdit(d)}>
                       Editar
                     </Button>
+                    <Button
+                      variant="ghost"
+                      className="gap-1.5"
+                      onClick={() => setQrOpenId((id) => (id === d.id ? null : d.id))}
+                    >
+                      <QrCode className="h-4 w-4" /> Código QR
+                    </Button>
                   </div>
                 </div>
               </div>
+
+              {qrOpenId === d.id && (
+                <div className="mt-4 flex flex-col items-center gap-3 border-t border-border pt-4 sm:flex-row sm:items-center">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(registroUrl(d))}`}
+                    alt={`Código QR de registro para ${d.nombre}`}
+                    width={140}
+                    height={140}
+                    className="shrink-0 rounded-lg border border-border"
+                  />
+                  <div className="w-full min-w-0">
+                    <p className="text-sm text-muted-foreground">
+                      Tus clientes escanean este código, ponen su nombre y teléfono, y reciben su tarjeta al instante.
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Input readOnly value={registroUrl(d)} className="text-xs" onFocus={(e) => e.target.select()} />
+                      <Button type="button" variant="outline" className="shrink-0 gap-1.5" onClick={() => copyLink(d)}>
+                        <Copy className="h-4 w-4" /> {copiedId === d.id ? 'Copiado' : 'Copiar'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </Card>
           ))}
         </div>

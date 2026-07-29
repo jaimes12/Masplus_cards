@@ -36,6 +36,9 @@ public class Diseno
     /// <summary>Si es false, queda oculto para nuevas emisiones.</summary>
     public bool Activo { get; set; } = true;
 
+    /// <summary>Código público (no adivinable) usado en la URL de autorregistro y su QR. Se genera al crear el diseño.</summary>
+    public string CodigoRegistro { get; set; } = Guid.NewGuid().ToString("N");
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
