@@ -58,10 +58,22 @@ export default function Disenos() {
     return `https://api.qrserver.com/v1/create-qr-code/?${params.toString()}`
   }
 
+  // Si el color de marca del diseño es muy claro (ej. blanco), usarlo como color del QR lo dejaría
+  // invisible sobre el fondo blanco por defecto. En ese caso caemos a negro para que siempre se vea.
+  function esColorOscuro(hex) {
+    const h = (hex || '').replace('#', '')
+    if (h.length !== 6) return false
+    const r = parseInt(h.slice(0, 2), 16)
+    const g = parseInt(h.slice(2, 4), 16)
+    const b = parseInt(h.slice(4, 6), 16)
+    const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    return luminancia < 0.6
+  }
+
   function toggleQr(d) {
     setQrOpenId((id) => {
       if (id === d.id) return null
-      setQrColor(d.colorPrimario || '#18181B')
+      setQrColor(esColorOscuro(d.colorPrimario) ? d.colorPrimario : '#18181B')
       setQrBgColor('#FFFFFF')
       return d.id
     })
