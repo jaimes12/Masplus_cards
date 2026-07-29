@@ -113,7 +113,10 @@ public static class StampStripRenderer
     public const int BackgroundHeight = 660;
 
     /// <summary>Fondo de pase completo (estilo EventTicket) para tarjetas tipo cupón: la foto cubre toda
-    /// la tarjeta en vez del grid de sellos.</summary>
+    /// la tarjeta en vez del grid de sellos.
+    /// Apple Wallet aplica su propio blur automático a la imagen "background" (no es algo que podamos
+    /// desactivar desde el pase). Para que no se note tanto, remuestreamos con Lanczos3 (más nítido que
+    /// el resize por defecto) y afilamos el resultado antes de guardar, para compensar el blur de Apple.</summary>
     public static byte[] RenderCuponBackground(string? backgroundHex, byte[]? backgroundImagePng)
     {
         var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
@@ -140,10 +143,12 @@ public static class StampStripRenderer
                     Size = new Size(width, height),
                     Mode = ResizeMode.Crop,
                     Position = AnchorPositionMode.Center,
+                    Sampler = KnownResamplers.Lanczos3,
                 }));
                 ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
                 // Velo parejo (no solo un strip) para que los campos de texto se lean sobre la foto completa.
                 ctx.Fill(WithAlpha(background, 0.35f), new RectangularPolygon(0, 0, width, height));
+                ctx.GaussianSharpen(1.6f);
             }
         });
 
