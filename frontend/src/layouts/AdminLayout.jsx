@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Building2, LogOut, ShieldCheck, LayoutTemplate, LayoutDashboard, Percent } from 'lucide-react'
+import { Building2, LogOut, LayoutTemplate, LayoutDashboard, Percent, Tag } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import Sidebar from '../components/Sidebar.jsx'
 import Navbar from '../components/Navbar.jsx'
 import { Button } from '../components/ui.jsx'
+import masplusIcon from '../assets/masplus_icon.png'
 
 const items = [
   { to: '/admin', label: 'Resumen', icon: LayoutDashboard, end: true },
   { to: '/admin/templates', label: 'Templates', icon: LayoutTemplate },
   { to: '/admin/empresas', label: 'Empresas', icon: Building2 },
+  { to: '/admin/planes', label: 'Planes', icon: Tag },
   { to: '/admin/codigos-descuento', label: 'Códigos de descuento', icon: Percent },
 ]
 
@@ -17,6 +19,7 @@ const TITLES = {
   '/admin': ['Resumen', 'Cómo va Masplus Cards en general.'],
   '/admin/templates': ['Templates', 'Plantillas base que las empresas personalizan.'],
   '/admin/empresas': ['Empresas', 'Cuentas registradas en la plataforma.'],
+  '/admin/planes': ['Planes', 'Precios y características de los paquetes.'],
   '/admin/codigos-descuento': ['Códigos de descuento', 'Crea y administra promociones para los planes.'],
 }
 
@@ -38,9 +41,7 @@ export default function AdminLayout() {
       <Sidebar
         brand={
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
+            <img src={masplusIcon} alt="MasPlus" className="h-8 w-8 shrink-0 object-contain" />
             <div className="min-w-0">
               <p className="truncate font-semibold leading-tight">{auth?.nombre}</p>
               <p className="text-xs text-muted-foreground">Panel de administración</p>

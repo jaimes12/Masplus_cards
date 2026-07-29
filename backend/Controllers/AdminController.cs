@@ -34,4 +34,21 @@ public class AdminController : ControllerBase
     /// <summary>Catálogo de planes, para elegir a cuál restringir un código de descuento.</summary>
     [HttpGet("planes")]
     public async Task<ActionResult<List<PlanDto>>> GetPlanes() => Ok(await _planes.GetCatalogoAsync());
+
+    /// <summary>Todos los planes (incluye inactivos) para editar precios y características.</summary>
+    [HttpGet("planes/todos")]
+    public async Task<ActionResult<List<PlanAdminDto>>> GetPlanesAdmin() => Ok(await _planes.GetCatalogoAdminAsync());
+
+    [HttpPut("planes/{id:int}")]
+    public async Task<ActionResult<PlanAdminDto>> ActualizarPlan(int id, [FromBody] PlanUpdateRequest request)
+    {
+        try
+        {
+            return Ok(await _planes.ActualizarAsync(id, request));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 }

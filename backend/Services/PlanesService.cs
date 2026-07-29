@@ -61,6 +61,37 @@ public class PlanesService : IPlanesService
             catalogo);
     }
 
+    public async Task<List<PlanAdminDto>> GetCatalogoAdminAsync()
+    {
+        var planes = await _db.Planes.OrderBy(p => p.Orden).ToListAsync();
+        return planes.Select(ToAdminDto).ToList();
+    }
+
+    public async Task<PlanAdminDto> ActualizarAsync(int planId, PlanUpdateRequest request)
+    {
+        var plan = await _db.Planes.FirstOrDefaultAsync(p => p.Id == planId)
+            ?? throw new InvalidOperationException("Plan no encontrado.");
+
+        plan.Nombre = request.Nombre;
+        plan.Descripcion = request.Descripcion;
+        plan.LimiteDisenos = request.LimiteDisenos;
+        plan.LimiteTarjetas = request.LimiteTarjetas;
+        plan.Caracteristicas = JsonSerializer.Serialize(request.Caracteristicas);
+        plan.Destacado = request.Destacado;
+        plan.Orden = request.Orden;
+        plan.Activo = request.Activo;
+
+        // El precio en Stripe es inmutable: si cambia, se limpia el price guardado para que
+        // StripeService cree uno nuevo la próxima vez que alguien se suscriba a este plan.
+        // Las suscripciones ya activas siguen cobrando el precio con el que se dieron de alta.
+        if (plan.PrecioMensual != request.PrecioMensual)
+            plan.StripePriceId = null;
+        plan.PrecioMensual = request.PrecioMensual;
+
+        await _db.SaveChangesAsync();
+        return ToAdminDto(plan);
+    }
+
     private static PlanDto ToDto(Plan p) => new(
         p.Id,
         p.Nombre,
@@ -68,8 +99,23 @@ public class PlanesService : IPlanesService
         p.PrecioMensual,
         p.LimiteDisenos,
         p.LimiteTarjetas,
-        string.IsNullOrWhiteSpace(p.Caracteristicas)
-            ? new List<string>()
-            : JsonSerializer.Deserialize<List<string>>(p.Caracteristicas) ?? new List<string>(),
+        DeserializeCaracteristicas(p.Caracteristicas),
         p.Destacado);
+
+    private static PlanAdminDto ToAdminDto(Plan p) => new(
+        p.Id,
+        p.Nombre,
+        p.Descripcion,
+        p.PrecioMensual,
+        p.LimiteDisenos,
+        p.LimiteTarjetas,
+        DeserializeCaracteristicas(p.Caracteristicas),
+        p.Destacado,
+        p.Orden,
+        p.Activo);
+
+    private static List<string> DeserializeCaracteristicas(string? json) =>
+        string.IsNullOrWhiteSpace(json)
+            ? new List<string>()
+            : JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
 }

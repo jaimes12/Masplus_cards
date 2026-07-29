@@ -16,3 +16,27 @@ public record EmpresaPlanDto(
     int DisenosUsados,
     int TarjetasUsadas,
     List<PlanDto> Planes);
+
+/// <summary>Vista completa de un plan para el panel de administración (incluye inactivos y orden).</summary>
+public record PlanAdminDto(
+    int Id,
+    string Nombre,
+    string? Descripcion,
+    decimal PrecioMensual,
+    int? LimiteDisenos,
+    int? LimiteTarjetas,
+    List<string> Caracteristicas,
+    bool Destacado,
+    int Orden,
+    bool Activo);
+
+public record PlanUpdateRequest(
+    string Nombre,
+    string? Descripcion,
+    decimal PrecioMensual,
+    int? LimiteDisenos,
+    int? LimiteTarjetas,
+    List<string> Caracteristicas,
+    bool Destacado,
+    int Orden,
+    bool Activo);
