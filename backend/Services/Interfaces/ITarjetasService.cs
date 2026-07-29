@@ -10,6 +10,8 @@ public interface ITarjetasService
     Task<TarjetaDto> EmitirAsync(int empresaId, EmitirTarjetaRequest request);
     Task<TarjetaDto?> SumarSelloAsync(int empresaId, int id);
     Task<TarjetaDto?> SumarSelloPorCodigoAsync(int empresaId, string codigoQr);
+    Task<TarjetaDto?> RestarSelloAsync(int empresaId, int id);
+    Task<TarjetaDto?> EditarSellosAsync(int empresaId, int id, int sellosActuales);
     Task<TarjetaDto?> CanjearPremioAsync(int empresaId, int id);
     Task<TarjetaDto?> CanjearCuponAsync(int empresaId, int id);
     Task<List<TarjetaLogDto>> GetLogsAsync(int empresaId, int id);

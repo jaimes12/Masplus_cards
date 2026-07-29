@@ -115,6 +115,49 @@ public class TarjetasService : ITarjetasService
         return ToDto(updated);
     }
 
+    public async Task<TarjetaDto?> RestarSelloAsync(int empresaId, int id)
+    {
+        var tarjeta = await _db.Tarjetas.Include(t => t.Diseno)
+            .FirstOrDefaultAsync(t => t.Id == id && t.EmpresaId == empresaId);
+        if (tarjeta == null) return null;
+
+        if (tarjeta.Diseno?.Tipo == "cupon")
+            throw new InvalidOperationException("Esta tarjeta es un cupón, no acumula sellos.");
+
+        if (tarjeta.SellosActuales <= 0)
+            throw new InvalidOperationException("Esta tarjeta no tiene sellos que quitar.");
+
+        tarjeta.SellosActuales -= 1;
+        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "sello_quitado", SellosAgregados = -1 });
+        await _db.SaveChangesAsync();
+
+        var updated = await BaseQuery().FirstAsync(t => t.Id == id);
+        await NotifyPassUpdatedAsync(updated.CodigoQr);
+        return ToDto(updated);
+    }
+
+    public async Task<TarjetaDto?> EditarSellosAsync(int empresaId, int id, int sellosActuales)
+    {
+        var tarjeta = await _db.Tarjetas.Include(t => t.Diseno)
+            .FirstOrDefaultAsync(t => t.Id == id && t.EmpresaId == empresaId);
+        if (tarjeta == null) return null;
+
+        if (tarjeta.Diseno?.Tipo == "cupon")
+            throw new InvalidOperationException("Esta tarjeta es un cupón, no acumula sellos.");
+
+        if (sellosActuales < 0)
+            throw new InvalidOperationException("El número de sellos no puede ser negativo.");
+
+        var diferencia = sellosActuales - tarjeta.SellosActuales;
+        tarjeta.SellosActuales = sellosActuales;
+        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "sellos_editados", SellosAgregados = diferencia });
+        await _db.SaveChangesAsync();
+
+        var updated = await BaseQuery().FirstAsync(t => t.Id == id);
+        await NotifyPassUpdatedAsync(updated.CodigoQr);
+        return ToDto(updated);
+    }
+
     public async Task<TarjetaDto?> CanjearPremioAsync(int empresaId, int id)
     {
         var tarjeta = await _db.Tarjetas.Include(t => t.Diseno)

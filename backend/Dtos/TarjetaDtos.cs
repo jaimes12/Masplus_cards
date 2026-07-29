@@ -33,3 +33,6 @@ public record TarjetaDto(
 public record EmitirTarjetaRequest(string Nombre, string Telefono, string? Email, string WalletTipo, int? DisenoId = null);
 
 public record TarjetaLogDto(int Id, string Accion, int? SellosAgregados, string? Descripcion, DateTime CreatedAt);
+
+/// <summary>Ajusta el contador de sellos a un valor exacto (corrección manual).</summary>
+public record EditarSellosRequest(int SellosActuales);

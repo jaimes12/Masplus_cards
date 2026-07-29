@@ -94,6 +94,37 @@ public class TarjetasController : ControllerBase
         }
     }
 
+    [HttpPost("{id:int}/sello/quitar")]
+    [Authorize(Roles = "Empresa")]
+    public async Task<ActionResult<TarjetaDto>> RestarSello(int id)
+    {
+        try
+        {
+            var updated = await _service.RestarSelloAsync(User.GetEmpresaId(), id);
+            return updated == null ? NotFound() : Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>Corrige manualmente el contador de sellos a un valor exacto.</summary>
+    [HttpPut("{id:int}/sellos")]
+    [Authorize(Roles = "Empresa")]
+    public async Task<ActionResult<TarjetaDto>> EditarSellos(int id, [FromBody] EditarSellosRequest request)
+    {
+        try
+        {
+            var updated = await _service.EditarSellosAsync(User.GetEmpresaId(), id, request.SellosActuales);
+            return updated == null ? NotFound() : Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpPost("{id:int}/canjear")]
     [Authorize(Roles = "Empresa")]
     public async Task<ActionResult<TarjetaDto>> CanjearPremio(int id)
