@@ -108,20 +108,17 @@ public static class StampStripRenderer
         return ms.ToArray();
     }
 
-    // Tamaño recomendado por Apple para la imagen "background": 180x220pt @1x.
-    public const int BackgroundWidth = 180;
-    public const int BackgroundHeight = 220;
+    // Tamaño @3x de la imagen "background" (180x220pt @1x); se reusa la misma imagen para @1x/@2x/@3x.
+    public const int BackgroundWidth = 540;
+    public const int BackgroundHeight = 660;
 
-    /// <summary>Fondo de pase completo (estilo Generic) para tarjetas tipo cupón: la foto cubre toda la tarjeta,
-    /// como el pase de ejemplo de Apple (museo), en vez del grid de sellos.
-    /// Apple espera un archivo por cada escala (@1x/@2x/@3x) con su tamaño real, no el mismo archivo repetido:
-    /// la pantalla de "Agregar" (antes de instalar el pase) lo decodifica distinto que la tarjeta ya instalada,
-    /// y con un solo tamaño reusado para las tres queda en blanco ahí aunque la tarjeta final se vea bien.</summary>
-    public static byte[] RenderCuponBackground(string? backgroundHex, byte[]? backgroundImagePng, int scale = 3)
+    /// <summary>Fondo de pase completo (estilo EventTicket) para tarjetas tipo cupón: la foto cubre toda
+    /// la tarjeta en vez del grid de sellos.</summary>
+    public static byte[] RenderCuponBackground(string? backgroundHex, byte[]? backgroundImagePng)
     {
         var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
-        var width = BackgroundWidth * scale;
-        var height = BackgroundHeight * scale;
+        var width = BackgroundWidth;
+        var height = BackgroundHeight;
 
         using var image = new Image<Rgba32>(width, height);
 

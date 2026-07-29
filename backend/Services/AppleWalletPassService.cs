@@ -120,22 +120,17 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             catch { fondo = null; }
         }
 
-        // Estilo Generic: es el único que admite una imagen "background" cubriendo todo el pase
-        // (como el pase de ejemplo de membresía de Apple), en vez de un strip angosto arriba.
-        request.Style = PassStyle.Generic;
+        // EventTicket (no Generic): es el estilo que de verdad renderiza la imagen "background"
+        // de forma confiable en la pantalla de "Agregar" (probado en producción en otro proyecto).
+        request.Style = PassStyle.EventTicket;
         request.Description = NonEmpty(input.Descripcion) ?? $"Cupón {input.OrganizationName}";
 
         if (fondo != null)
         {
-            // Un archivo por escala, cada uno con su tamaño real (ver comentario en RenderCuponBackground).
-            request.Images.Add(PassbookImage.Background, StampStripRenderer.RenderCuponBackground(backgroundColor, fondo, scale: 1));
-            request.Images.Add(PassbookImage.Background2X, StampStripRenderer.RenderCuponBackground(backgroundColor, fondo, scale: 2));
-            request.Images.Add(PassbookImage.Background3X, StampStripRenderer.RenderCuponBackground(backgroundColor, fondo, scale: 3));
-
-            // Apple Wallet: si el pase trae imagen "background" Y backgroundColor a la vez, Wallet
-            // ignora la imagen y solo pinta el color plano. Hay que quitar backgroundColor para que
-            // la foto se vea (el color ya quedó aplicado como velo dentro de la imagen compuesta).
-            request.BackgroundColor = null;
+            var fondoPase = StampStripRenderer.RenderCuponBackground(backgroundColor, fondo);
+            request.Images.Add(PassbookImage.Background, fondoPase);
+            request.Images.Add(PassbookImage.Background2X, fondoPase);
+            request.Images.Add(PassbookImage.Background3X, fondoPase);
         }
 
         request.AddHeaderField(new StandardField(
