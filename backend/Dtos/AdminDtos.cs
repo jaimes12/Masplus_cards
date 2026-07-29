@@ -15,4 +15,5 @@ public record AdminEmpresaListItemDto(
     string Estado,
     DateTime CreatedAt,
     int TotalDisenos,
-    int TotalTarjetas);
+    int TotalTarjetas,
+    string? PlanNombre);

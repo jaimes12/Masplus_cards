@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react'
 import CardPreview from '../components/CardPreview.jsx'
+import masplusLogo from '../assets/masplus_logo_wide.png'
 
 const DEMO_WALLET_URL = '/wallet/05102f7dbbc74eeea98ddfda98f39738'
 
@@ -190,11 +191,8 @@ const FAQS = [
 
 function Logo({ className = '' }) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-sm font-bold text-white">
-        M+
-      </div>
-      <span className="text-lg font-semibold tracking-tight">MasPlus</span>
+    <div className={`flex items-center ${className}`}>
+      <img src={masplusLogo} alt="MasPlus" className="h-9 w-auto object-contain" />
     </div>
   )
 }

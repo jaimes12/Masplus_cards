@@ -37,7 +37,8 @@ public class AdminService : IAdminService
                 e.Estado,
                 e.CreatedAt,
                 e.Disenos.Count,
-                e.Tarjetas.Count))
+                e.Tarjetas.Count,
+                e.Plan != null ? e.Plan.Nombre : null))
             .ToListAsync();
     }
 }
