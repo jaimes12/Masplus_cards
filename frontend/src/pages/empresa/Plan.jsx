@@ -196,6 +196,11 @@ export default function Plan() {
       {pagoPlan && (
         <PagoPlanModal
           plan={pagoPlan}
+          precioMostrar={
+            resultadosCodigo?.[pagoPlan.id]?.valido
+              ? resultadosCodigo[pagoPlan.id].precioConDescuento
+              : pagoPlan.precioMensual
+          }
           codigoDescuento={resultadosCodigo?.[pagoPlan.id]?.valido ? codigoInput.trim() : null}
           onClose={() => setPagoPlan(null)}
           onSuccess={() => {

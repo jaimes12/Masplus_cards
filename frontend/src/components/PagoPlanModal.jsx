@@ -16,7 +16,7 @@ const CARD_ELEMENT_OPTIONS = {
   },
 }
 
-function CardForm({ plan, codigoDescuento, clientSecret, onClose, onSuccess }) {
+function CardForm({ plan, precioMostrar, codigoDescuento, clientSecret, onClose, onSuccess }) {
   const stripe = useStripe()
   const elements = useElements()
   const [procesando, setProcesando] = useState(false)
@@ -63,17 +63,20 @@ function CardForm({ plan, codigoDescuento, clientSecret, onClose, onSuccess }) {
           Cancelar
         </Button>
         <Button type="submit" className="flex-1" disabled={!stripe || procesando}>
-          {procesando ? 'Procesando...' : `Pagar $${Math.round(Number(plan.precioMensual))} MXN`}
+          {procesando ? 'Procesando...' : `Pagar $${Math.round(Number(precioMostrar))} MXN`}
         </Button>
       </div>
     </form>
   )
 }
 
-export default function PagoPlanModal({ plan, codigoDescuento, onClose, onSuccess }) {
+export default function PagoPlanModal({ plan, precioMostrar, codigoDescuento, onClose, onSuccess }) {
   const [stripePromise, setStripePromise] = useState(null)
   const [clientSecret, setClientSecret] = useState(null)
   const [error, setError] = useState('')
+
+  const precioFinal = precioMostrar ?? plan.precioMensual
+  const conDescuento = Number(precioFinal) !== Number(plan.precioMensual)
 
   useEffect(() => {
     api
@@ -95,13 +98,22 @@ export default function PagoPlanModal({ plan, codigoDescuento, onClose, onSucces
           </button>
         </div>
         <p className="mb-4 text-sm text-muted-foreground">
-          Se te cobrará ${Math.round(Number(plan.precioMensual))} MXN hoy y cada mes hasta que canceles.
+          {conDescuento ? (
+            <>
+              Con tu código de descuento se te cobrará <strong>${Math.round(Number(precioFinal))} MXN</strong> hoy. A
+              partir del próximo mes se cobrará el precio regular, ${Math.round(Number(plan.precioMensual))} MXN/mes,
+              hasta que canceles.
+            </>
+          ) : (
+            <>Se te cobrará ${Math.round(Number(precioFinal))} MXN hoy y cada mes hasta que canceles.</>
+          )}
         </p>
         {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
         {clientSecret && stripePromise ? (
           <Elements stripe={stripePromise}>
             <CardForm
               plan={plan}
+              precioMostrar={precioFinal}
               codigoDescuento={codigoDescuento}
               clientSecret={clientSecret}
               onClose={onClose}
