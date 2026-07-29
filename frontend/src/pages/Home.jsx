@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import CardPreview from '../components/CardPreview.jsx'
 import masplusLogo from '../assets/masplus_logo_wide.png'
+import heroBg from '../assets/bg-naranja-blanco.webp'
 
 const DEMO_WALLET_URL = '/wallet/05102f7dbbc74eeea98ddfda98f39738'
 
@@ -285,10 +286,14 @@ function Hero() {
   return (
     <section id="inicio" className="relative overflow-hidden">
       <div
+        className="pointer-events-none absolute inset-0 -z-20 bg-cover bg-center opacity-[0.14] blur-2xl"
+        style={{ backgroundImage: `url(${heroBg})` }}
+      />
+      <div
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            'radial-gradient(circle at 50% -10%, rgba(249,115,22,0.18), transparent 45%), radial-gradient(circle at 85% 10%, rgba(234,88,12,0.12), transparent 40%)',
+            'radial-gradient(circle at 50% -10%, rgba(249,115,22,0.18), transparent 45%), radial-gradient(circle at 85% 10%, rgba(234,88,12,0.12), transparent 40%), linear-gradient(to bottom, rgba(255,255,255,0.6), var(--background) 70%)',
         }}
       />
       <div className="mx-auto max-w-3xl px-6 pb-4 pt-16 text-center md:pt-24">
