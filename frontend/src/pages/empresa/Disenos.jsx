@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight, Award, Check, Ticket } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Award, Check, Plus, Ticket } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
@@ -32,6 +32,7 @@ export default function Disenos() {
   const [disenos, setDisenos] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
+  const [showForm, setShowForm] = useState(false)
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -63,6 +64,7 @@ export default function Disenos() {
 
   function startEdit(diseno) {
     setEditingId(diseno.id)
+    setShowForm(true)
     setStep(0)
     setForm({
       templateId: diseno.templateId ? String(diseno.templateId) : '',
@@ -83,6 +85,7 @@ export default function Disenos() {
 
   function cancelEdit() {
     setEditingId(null)
+    setShowForm(false)
     setStep(0)
     setForm(emptyForm)
   }
@@ -129,6 +132,7 @@ export default function Disenos() {
       }
 
       setEditingId(null)
+      setShowForm(false)
       setStep(0)
       setForm(emptyForm)
       await load()
@@ -208,6 +212,11 @@ export default function Disenos() {
         </div>
       </div>
 
+      {!showForm ? (
+        <Button onClick={() => setShowForm(true)} className="gap-1.5">
+          <Plus className="h-4 w-4" /> Agregar nuevo diseño
+        </Button>
+      ) : (
       <div>
         <h2 className="mb-1 text-lg font-medium">{editingId ? 'Editar diseño' : 'Crear diseño'}</h2>
         <p className="mb-3 text-sm text-muted-foreground">
@@ -365,11 +374,9 @@ export default function Disenos() {
                     <ArrowLeft className="h-4 w-4" /> Atrás
                   </Button>
                 )}
-                {editingId && (
-                  <Button type="button" variant="ghost" onClick={cancelEdit}>
-                    Cancelar
-                  </Button>
-                )}
+                <Button type="button" variant="ghost" onClick={cancelEdit}>
+                  Cancelar
+                </Button>
                 <div className="flex-1" />
                 {step < STEPS.length - 1 ? (
                   <Button type="button" onClick={goNext} className="gap-1.5">
@@ -406,6 +413,7 @@ export default function Disenos() {
           </div>
         </div>
       </div>
+      )}
     </div>
   )
 }
