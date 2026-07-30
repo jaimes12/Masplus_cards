@@ -2,26 +2,15 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Check, Ticket } from 'lucide-react'
 import { api, API_URL } from '../lib/api.js'
-import masplusLogo from '../assets/masplus_logo.png'
 import addToAppleWallet from '../assets/add-to-apple-wallet-logo.png'
+import walletBg from '../assets/bg-naranja-blanco.webp'
 
 const POLL_MS = 5000
 
-const pageBackgroundStyle = { background: '#FFFFFF' }
-
-/// Patrón diagonal repetido tipo marca de agua de banco de imágenes, con el logo real de Masplus:
-/// predomina el blanco, con el logo difuminado como toque naranja.
-function PageWatermarkPattern() {
-  return (
-    <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" focusable="false">
-      <defs>
-        <pattern id="mp-page-pattern" width="280" height="200" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
-          <image href={masplusLogo} x="10" y="30" width="180" height="180" opacity="0.16" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#mp-page-pattern)" />
-    </svg>
-  )
+const pageBackgroundStyle = {
+  backgroundImage: `url(${walletBg})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
 }
 
 export default function Wallet() {
@@ -54,7 +43,6 @@ export default function Wallet() {
   if (error) {
     return (
       <div className="relative flex min-h-svh items-center justify-center overflow-hidden p-4" style={pageBackgroundStyle}>
-        <PageWatermarkPattern />
         <p className="relative z-10 text-destructive">No se encontró la tarjeta.</p>
       </div>
     )
@@ -63,7 +51,6 @@ export default function Wallet() {
   if (!tarjeta) {
     return (
       <div className="relative flex min-h-svh items-center justify-center overflow-hidden p-4" style={pageBackgroundStyle}>
-        <PageWatermarkPattern />
         <p className="relative z-10 text-muted-foreground">Cargando...</p>
       </div>
     )
@@ -88,7 +75,6 @@ export default function Wallet() {
 
   return (
     <div className="relative flex min-h-svh flex-col items-center justify-center gap-6 overflow-hidden p-4" style={pageBackgroundStyle}>
-      <PageWatermarkPattern />
       <div className="animate-card-in relative z-10 w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-lg" style={cardStyle}>
         <div
           className="animate-card-shimmer pointer-events-none absolute -inset-y-10 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent"
