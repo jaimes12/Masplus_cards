@@ -54,7 +54,7 @@ public static class StampStripRenderer
                     Sampler = KnownResamplers.Lanczos3,
                 }));
                 ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
-                ctx.GaussianSharpen(3f);
+                ctx.GaussianSharpen(6f);
                 ApplyLegibilityVeils(ctx, width, height, background, bottomStartFraction: 0.55f);
             }
         });
@@ -115,7 +115,7 @@ public static class StampStripRenderer
                     Sampler = KnownResamplers.Lanczos3,
                 }));
                 ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
-                ctx.GaussianSharpen(3f);
+                ctx.GaussianSharpen(6f);
                 ApplyLegibilityVeils(ctx, width, height, background, bottomStartFraction: 0.48f);
             }
 
