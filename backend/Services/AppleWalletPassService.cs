@@ -139,7 +139,7 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
 
         if (fondo != null)
         {
-            var strip = StampStripRenderer.RenderCuponStrip(fondo);
+            var strip = StampStripRenderer.RenderCuponStrip(backgroundColor, fondo);
             request.Images.Add(PassbookImage.Strip, strip);
             request.Images.Add(PassbookImage.Strip2X, strip);
             request.Images.Add(PassbookImage.Strip3X, strip);

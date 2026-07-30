@@ -113,18 +113,22 @@ public static class StampStripRenderer
     public const int BackgroundHeight = 660;
 
     // Strip del pase estilo Coupon: mucho más alto que el de storeCard (375x300pt @1x) porque en Coupon
-    // la foto es el elemento dominante de la tarjeta, con los campos de texto abajo sobre el
-    // backgroundColor del pase (no encima de la foto).
+    // la foto es el elemento dominante de la tarjeta (como en los pases reales de referencia: museo,
+    // food truck, gimnasio), no solo un banner arriba.
     public const int CouponStripWidth = 1125;
-    public const int CouponStripHeight = 900;
+    public const int CouponStripHeight = 1500;
 
-    /// <summary>Strip del pase (estilo Coupon) para tarjetas tipo cupón: la foto va como banner grande
-    /// arriba, y nombre/premio/QR quedan abajo sobre el color de marca (ver AppleWalletPassService).
-    /// Apple Wallet aplica su propio blur automático a las imágenes de pase (no es algo que podamos
-    /// desactivar). Para que no se note tanto, remuestreamos con Lanczos3 (más nítido que el resize por
-    /// defecto) y afilamos el resultado antes de guardar, para compensar el blur de Apple.</summary>
-    public static byte[] RenderCuponStrip(byte[]? backgroundImagePng)
+    /// <summary>Strip del pase (estilo Coupon) para tarjetas tipo cupón: la foto domina toda la tarjeta.
+    /// Apple dibuja los campos (premio/cliente/estado) y el QR en la franja debajo del strip usando el
+    /// backgroundColor del pase; para que no se vea como una foto con un bloque de color "pegado" abajo,
+    /// el propio strip se funde con ese mismo color en su tercio inferior (degradado), como en los pases
+    /// reales de referencia (foto de fondo con el texto flotando sobre un velo oscuro, sin corte visible).
+    /// Apple Wallet además aplica su propio blur automático a las imágenes de pase (no es algo que
+    /// podamos desactivar). Para que no se note tanto, remuestreamos con Lanczos3 (más nítido que el
+    /// resize por defecto) y afilamos el resultado antes de guardar, para compensar el blur de Apple.</summary>
+    public static byte[] RenderCuponStrip(string? backgroundHex, byte[]? backgroundImagePng)
     {
+        var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
         var width = CouponStripWidth;
         var height = CouponStripHeight;
 
@@ -139,6 +143,8 @@ public static class StampStripRenderer
 
         image.Mutate(ctx =>
         {
+            ctx.Fill(background);
+
             if (backgroundImage != null)
             {
                 backgroundImage.Mutate(x => x.Resize(new ResizeOptions
@@ -150,6 +156,13 @@ public static class StampStripRenderer
                 }));
                 ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
                 ctx.GaussianSharpen(1.6f);
+
+                var gradientStart = (int)(height * 0.55f);
+                var brush = new LinearGradientBrush(
+                    new PointF(0, gradientStart), new PointF(0, height), GradientRepetitionMode.None,
+                    new ColorStop(0f, WithAlpha(background, 0f)),
+                    new ColorStop(1f, WithAlpha(background, 1f)));
+                ctx.Fill(brush, new RectangularPolygon(0, gradientStart, width, height - gradientStart));
             }
         });
 

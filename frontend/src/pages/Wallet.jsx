@@ -93,16 +93,17 @@ export default function Wallet() {
       <PageWatermarkPattern />
 
       {esCupon ? (
-        // Misma estructura que el pase Apple Wallet estilo Coupon: foto grande arriba (strip),
-        // logo/vencimiento superpuestos, y abajo el bloque de color de marca con premio + QR.
-        <div className="animate-card-in relative z-10 w-full max-w-sm overflow-hidden rounded-2xl shadow-lg" style={{ background: primario, color: texto }}>
-          <div className="relative aspect-[5/4] w-full overflow-hidden">
+        // Una sola foto de fondo a toda la tarjeta (sin bloque de color separado abajo), con
+        // logo/vencimiento superpuestos arriba y QR + premio + cliente sobre un degradado abajo,
+        // igual que el pase Apple Wallet estilo Coupon.
+        <div className="animate-card-in relative z-10 w-full max-w-sm overflow-hidden rounded-2xl shadow-lg">
+          <div className="relative aspect-[3/4] w-full">
             {tarjeta.fondoUrl ? (
-              <img src={tarjeta.fondoUrl} alt="" className="h-full w-full object-cover" />
+              <img src={tarjeta.fondoUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
-              <div className="h-full w-full" style={{ background: `${texto}14` }} />
+              <div className="absolute inset-0" style={{ background: primario }} />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/85" />
 
             <div className="absolute left-4 top-4 flex min-w-0 items-center gap-2">
               {tarjeta.logo ? (
@@ -120,19 +121,20 @@ export default function Wallet() {
                 ? `Vence ${new Date(tarjeta.vencimiento).toLocaleDateString('es-MX')}`
                 : 'Sin vencimiento'}
             </div>
-          </div>
 
-          <div className="animate-fade-up relative px-6 py-5" style={{ animationDelay: '120ms' }}>
-            <p className="text-xl font-semibold leading-snug">{tarjeta.descripcion || 'Cupón especial'}</p>
-            <div className="mt-3 flex items-center justify-between text-xs font-medium uppercase tracking-wide opacity-70">
-              <span className="truncate">{tarjeta.clienteNombre}</span>
-              <span className="shrink-0">{cuponEstadoLabel}</span>
+            <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-6 pt-10">
+              <div className="animate-fade-up rounded-lg bg-white p-3" style={{ animationDelay: '160ms' }}>
+                <img src={qrImg} alt="Código QR" width={140} height={140} />
+              </div>
+              <p className="animate-fade-up mt-4 text-center text-lg font-semibold leading-snug text-white" style={{ animationDelay: '220ms' }}>
+                {tarjeta.descripcion || 'Cupón especial'}
+              </p>
+              <div className="animate-fade-up mt-2 flex w-full items-center justify-between text-xs font-medium uppercase tracking-wide text-white/75" style={{ animationDelay: '280ms' }}>
+                <span className="truncate">{tarjeta.clienteNombre}</span>
+                <span className="shrink-0">{cuponEstadoLabel}</span>
+              </div>
+              <p className="animate-fade-up mt-3 text-center text-[11px] text-white/50" style={{ animationDelay: '320ms' }}>Powered by Masplus</p>
             </div>
-
-            <div className="animate-fade-up mt-5 flex justify-center rounded-lg bg-white p-3" style={{ animationDelay: '260ms' }}>
-              <img src={qrImg} alt="Código QR" width={160} height={160} />
-            </div>
-            <p className="animate-fade-up mt-3 text-center text-xs opacity-60" style={{ animationDelay: '320ms' }}>Powered by Masplus</p>
           </div>
         </div>
       ) : (
