@@ -91,20 +91,21 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             catch { fondo = null; }
         }
 
-        var strip = StampStripRenderer.Render(backgroundColor, foregroundColor, input.SellosRequeridos, input.SellosActuales, stampIcon, fondo);
+        var strip = StampStripRenderer.RenderSellosStrip(
+            backgroundColor, foregroundColor, input.SellosRequeridos, input.SellosActuales, stampIcon, fondo);
 
-        request.Style = PassStyle.StoreCard;
+        // Coupon (no StoreCard): así la foto de fondo cubre toda la tarjeta en vez de solo el
+        // banner del strip. El grid de sellos ya viene dibujado dentro de la propia imagen del
+        // strip (ver StampStripRenderer.RenderSellosStrip), igual que hacemos con los cupones.
+        request.Style = PassStyle.Coupon;
         request.Description = $"Tarjeta de fidelidad {input.OrganizationName}";
         request.Images.Add(PassbookImage.Strip, strip);
         request.Images.Add(PassbookImage.Strip2X, strip);
         request.Images.Add(PassbookImage.Strip3X, strip);
 
-        // Sin primaryField a propósito: en el estilo storeCard Apple lo dibuja SUPERPUESTO
-        // sobre el strip, y ahí ya está el grid de sellos. El resumen va en el header (no se
-        // superpone) y el detalle en secondary/auxiliary, que se muestran debajo del strip.
         var faltan = Math.Max(input.SellosRequeridos - input.SellosActuales, 0);
-        request.AddHeaderField(new StandardField(
-            "restantes", faltan > 0 ? "FALTAN" : "LISTO", faltan > 0 ? faltan.ToString() : "🎁"));
+        request.AddPrimaryField(new StandardField(
+            "restantes", "", faltan > 0 ? $"Faltan {faltan} sello{(faltan == 1 ? "" : "s")}" : "¡Premio disponible!"));
         request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
         request.AddAuxiliaryField(new StandardField("premios", "PREMIOS", input.PremiosCanjeados.ToString()));
 

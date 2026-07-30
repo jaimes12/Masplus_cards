@@ -10,108 +10,6 @@ namespace MasplusCards.Api.Services;
 /// <summary>Genera la imagen del strip del pase Apple Wallet: el mismo grid de sellos que se ve en la wallet web.</summary>
 public static class StampStripRenderer
 {
-    public const int Width = 1125;
-    public const int Height = 369;
-
-    public static byte[] Render(
-        string? backgroundHex, string? foregroundHex, int sellosRequeridos, int sellosActuales,
-        byte[]? iconPng, byte[]? backgroundImagePng = null)
-    {
-        var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
-        var foreground = ParseColor(foregroundHex, new Rgba32(250, 250, 250));
-
-        sellosRequeridos = Math.Clamp(sellosRequeridos, 1, 20);
-        sellosActuales = Math.Clamp(sellosActuales, 0, sellosRequeridos);
-
-        var columns = Math.Min(sellosRequeridos, 4);
-        var rows = (int)Math.Ceiling(sellosRequeridos / (double)columns);
-
-        using var image = new Image<Rgba32>(Width, Height);
-
-        Image<Rgba32>? icon = null;
-        if (iconPng is { Length: > 0 })
-        {
-            try { icon = Image.Load<Rgba32>(iconPng); }
-            catch { icon = null; }
-        }
-
-        Image<Rgba32>? backgroundImage = null;
-        if (backgroundImagePng is { Length: > 0 })
-        {
-            try { backgroundImage = Image.Load<Rgba32>(backgroundImagePng); }
-            catch { backgroundImage = null; }
-        }
-
-        image.Mutate(ctx =>
-        {
-            ctx.Fill(background);
-
-            if (backgroundImage != null)
-            {
-                backgroundImage.Mutate(x => x.Resize(new ResizeOptions
-                {
-                    Size = new Size(Width, Height),
-                    Mode = ResizeMode.Crop,
-                    Position = AnchorPositionMode.Center,
-                }));
-                ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
-                // Overlay semitransparente para que el grid de sellos siga siendo legible sobre la foto.
-                ctx.Fill(WithAlpha(background, 0.55f), new RectangularPolygon(0, 0, Width, Height));
-            }
-
-            const int padding = 60;
-            var cellSize = Math.Min((Width - padding * 2) / columns, (Height - padding * 2) / rows);
-            var circleRadius = cellSize * 0.34f;
-            var gapX = (Width - columns * cellSize) / 2f;
-            var gapY = (Height - rows * cellSize) / 2f;
-
-            for (var i = 0; i < sellosRequeridos; i++)
-            {
-                var col = i % columns;
-                var row = i / columns;
-                var cx = gapX + col * cellSize + cellSize / 2f;
-                var cy = gapY + row * cellSize + cellSize / 2f;
-                var filled = i < sellosActuales;
-
-                var ring = new EllipsePolygon(cx, cy, circleRadius);
-
-                if (filled)
-                    ctx.Fill(WithAlpha(foreground, 0.16f), ring);
-
-                if (icon != null)
-                {
-                    var iconDiameter = (int)(circleRadius * 1.9f);
-                    using var resized = icon.Clone(x => x.Resize(new ResizeOptions
-                    {
-                        Size = new Size(iconDiameter, iconDiameter),
-                        Mode = ResizeMode.Crop,
-                        Position = AnchorPositionMode.Center,
-                    }));
-                    var iconRing = new EllipsePolygon(cx, cy, iconDiameter / 2f);
-                    var opacity = filled ? 1f : 0.35f;
-                    ctx.Fill(new DrawingOptions { GraphicsOptions = new GraphicsOptions { BlendPercentage = opacity } }, new ImageBrush(resized), iconRing);
-                }
-                else if (filled)
-                {
-                    DrawCheckmark(ctx, cx, cy, circleRadius, foreground);
-                }
-
-                ctx.Draw(WithAlpha(foreground, filled ? 0.95f : 0.35f), 4f, ring);
-            }
-        });
-
-        icon?.Dispose();
-        backgroundImage?.Dispose();
-
-        using var ms = new MemoryStream();
-        image.SaveAsPng(ms);
-        return ms.ToArray();
-    }
-
-    // Tamaño @3x de la imagen "background" (180x220pt @1x); se reusa la misma imagen para @1x/@2x/@3x.
-    public const int BackgroundWidth = 540;
-    public const int BackgroundHeight = 660;
-
     // Strip del pase estilo Coupon: mucho más alto que el de storeCard (375x300pt @1x) porque en Coupon
     // la foto es el elemento dominante de la tarjeta (como en los pases reales de referencia: museo,
     // food truck, gimnasio), no solo un banner arriba.
@@ -166,6 +64,117 @@ public static class StampStripRenderer
             }
         });
 
+        backgroundImage?.Dispose();
+
+        using var ms = new MemoryStream();
+        image.SaveAsPng(ms);
+        return ms.ToArray();
+    }
+
+    /// <summary>Strip del pase (también estilo Coupon, ahora usado para sellos) con la misma foto a toda
+    /// la tarjeta + degradado que <see cref="RenderCuponStrip"/>, pero con el grid de sellos dibujado
+    /// dentro de la franja inferior ya oscurecida por el degradado (o sobre el color sólido si no hay
+    /// foto), para que sea legible sin necesitar un overlay parejo sobre toda la imagen.</summary>
+    public static byte[] RenderSellosStrip(
+        string? backgroundHex, string? foregroundHex, int sellosRequeridos, int sellosActuales,
+        byte[]? iconPng, byte[]? backgroundImagePng)
+    {
+        var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
+        var foreground = ParseColor(foregroundHex, new Rgba32(250, 250, 250));
+
+        sellosRequeridos = Math.Clamp(sellosRequeridos, 1, 20);
+        sellosActuales = Math.Clamp(sellosActuales, 0, sellosRequeridos);
+
+        var width = CouponStripWidth;
+        var height = CouponStripHeight;
+
+        using var image = new Image<Rgba32>(width, height);
+
+        Image<Rgba32>? icon = null;
+        if (iconPng is { Length: > 0 })
+        {
+            try { icon = Image.Load<Rgba32>(iconPng); }
+            catch { icon = null; }
+        }
+
+        Image<Rgba32>? backgroundImage = null;
+        if (backgroundImagePng is { Length: > 0 })
+        {
+            try { backgroundImage = Image.Load<Rgba32>(backgroundImagePng); }
+            catch { backgroundImage = null; }
+        }
+
+        var gridTop = (int)(height * 0.6f);
+
+        image.Mutate(ctx =>
+        {
+            ctx.Fill(background);
+
+            if (backgroundImage != null)
+            {
+                backgroundImage.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new Size(width, height),
+                    Mode = ResizeMode.Crop,
+                    Position = AnchorPositionMode.Center,
+                    Sampler = KnownResamplers.Lanczos3,
+                }));
+                ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
+                ctx.GaussianSharpen(1.6f);
+
+                var gradientStart = (int)(height * 0.45f);
+                var brush = new LinearGradientBrush(
+                    new PointF(0, gradientStart), new PointF(0, height), GradientRepetitionMode.None,
+                    new ColorStop(0f, WithAlpha(background, 0f)),
+                    new ColorStop(1f, WithAlpha(background, 1f)));
+                ctx.Fill(brush, new RectangularPolygon(0, gradientStart, width, height - gradientStart));
+            }
+
+            const int padding = 70;
+            var columns = Math.Min(sellosRequeridos, 4);
+            var rows = (int)Math.Ceiling(sellosRequeridos / (double)columns);
+            var gridHeight = height - gridTop;
+            var cellSize = Math.Min((width - padding * 2) / columns, (gridHeight - padding * 2) / rows);
+            var circleRadius = cellSize * 0.34f;
+            var gapX = (width - columns * cellSize) / 2f;
+            var gapY = gridTop + (gridHeight - rows * cellSize) / 2f;
+
+            for (var i = 0; i < sellosRequeridos; i++)
+            {
+                var col = i % columns;
+                var row = i / columns;
+                var cx = gapX + col * cellSize + cellSize / 2f;
+                var cy = gapY + row * cellSize + cellSize / 2f;
+                var filled = i < sellosActuales;
+
+                var ring = new EllipsePolygon(cx, cy, circleRadius);
+
+                if (filled)
+                    ctx.Fill(WithAlpha(foreground, 0.16f), ring);
+
+                if (icon != null)
+                {
+                    var iconDiameter = (int)(circleRadius * 1.9f);
+                    using var resized = icon.Clone(x => x.Resize(new ResizeOptions
+                    {
+                        Size = new Size(iconDiameter, iconDiameter),
+                        Mode = ResizeMode.Crop,
+                        Position = AnchorPositionMode.Center,
+                    }));
+                    var iconRing = new EllipsePolygon(cx, cy, iconDiameter / 2f);
+                    var opacity = filled ? 1f : 0.35f;
+                    ctx.Fill(new DrawingOptions { GraphicsOptions = new GraphicsOptions { BlendPercentage = opacity } }, new ImageBrush(resized), iconRing);
+                }
+                else if (filled)
+                {
+                    DrawCheckmark(ctx, cx, cy, circleRadius, foreground);
+                }
+
+                ctx.Draw(WithAlpha(foreground, filled ? 0.95f : 0.35f), 4f, ring);
+            }
+        });
+
+        icon?.Dispose();
         backgroundImage?.Dispose();
 
         using var ms = new MemoryStream();
