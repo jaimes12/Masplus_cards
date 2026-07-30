@@ -12,9 +12,13 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import CardPreview from '../components/CardPreview.jsx'
 import masplusLogo from '../assets/masplus_logo_wide.png'
 import heroBg from '../assets/bg-naranja-blanco.webp'
+import ejemplo1 from '../assets/ejemplo1.webp'
+import ejemplo2 from '../assets/ejemplo2.webp'
+import ejemplo3 from '../assets/ejemplo3.webp'
+import ejemplo4 from '../assets/ejemplo4.webp'
+import ejemplo5 from '../assets/ejemplo5.webp'
 
 const DEMO_WALLET_URL = '/wallet/05102f7dbbc74eeea98ddfda98f39738'
 
@@ -271,16 +275,7 @@ function Nav() {
   )
 }
 
-const SHOWCASE_CARDS = [
-  { primario: '#18181B', texto: '#FAFAFA', sellos: 8, fondo: 'https://picsum.photos/seed/masplus-barberia/500/620' },
-  { primario: '#EA580C', texto: '#FFFFFF', sellos: 5 },
-  { primario: '#FFFFFF', texto: '#18181B', sellos: 6, bordered: true },
-  { primario: '#F97316', texto: '#FFFFFF', sellos: 4, fondo: 'https://picsum.photos/seed/masplus-cafeteria/500/620' },
-  { primario: '#27272A', texto: '#FAFAFA', sellos: 7 },
-  { primario: '#EA580C', texto: '#FFFFFF', sellos: 3, fondo: 'https://picsum.photos/seed/masplus-spa/500/620' },
-  { primario: '#18181B', texto: '#FAFAFA', sellos: 6, fondo: 'https://picsum.photos/seed/masplus-panaderia/500/620' },
-  { primario: '#FFFFFF', texto: '#18181B', sellos: 9, bordered: true },
-]
+const SHOWCASE_CARDS = [ejemplo1, ejemplo2, ejemplo3, ejemplo4, ejemplo5]
 
 function Hero() {
   return (
@@ -336,21 +331,15 @@ function Hero() {
         </div>
       </div>
 
-      <div className="relative mt-10 h-72 overflow-hidden sm:h-80">
-        <div className="absolute inset-0 flex w-max animate-marquee-slow gap-6 px-6">
-          {[...SHOWCASE_CARDS, ...SHOWCASE_CARDS].map((c, i) => (
-            <div key={i} className="w-56 shrink-0 drop-shadow-xl sm:w-64">
-              <div className={c.bordered ? 'overflow-hidden rounded-2xl border border-border' : 'overflow-hidden rounded-2xl'}>
-                <CardPreview
-                  empresaNombre="Tu Negocio"
-                  clienteNombre="Cliente frecuente"
-                  colorPrimario={c.primario}
-                  colorTexto={c.texto}
-                  sellosRequeridos={c.sellos}
-                  fondoUrl={c.fondo}
-                />
-              </div>
-            </div>
+      <div className="relative mt-10 h-[26rem] overflow-hidden sm:h-[30rem]">
+        <div className="absolute inset-0 flex w-max animate-marquee-slow items-center gap-6 px-6">
+          {[...SHOWCASE_CARDS, ...SHOWCASE_CARDS].map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt="Ejemplo de tarjeta Masplus"
+              className="h-full w-auto shrink-0 rounded-2xl object-contain drop-shadow-xl"
+            />
           ))}
         </div>
       </div>
