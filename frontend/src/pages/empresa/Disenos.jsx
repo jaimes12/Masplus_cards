@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowRight, Award, Check, Copy, Download, Plus, QrCode, Ticket } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
-import { Button, Card, ColorInput, Input, Label, Select } from '../../components/ui.jsx'
+import { Button, Card, ColorInput, Input, Label } from '../../components/ui.jsx'
 import CardPreview from '../../components/CardPreview.jsx'
 import MiniCardPreview from '../../components/MiniCardPreview.jsx'
 import PhoneFrame from '../../components/PhoneFrame.jsx'
@@ -13,7 +13,6 @@ const TIPO_LABEL = { sellos: 'Sellos', cupon: 'Promoción' }
 const STEPS = ['Información', 'Diseño', 'Revisar']
 
 const emptyForm = {
-  templateId: '',
   tipo: 'sellos',
   nombre: '',
   logo: '',
@@ -31,7 +30,6 @@ const emptyForm = {
 
 export default function Disenos() {
   const { auth } = useAuth()
-  const [templates, setTemplates] = useState([])
   const [disenos, setDisenos] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
@@ -112,8 +110,7 @@ export default function Disenos() {
   }, [])
 
   async function load() {
-    const [t, d] = await Promise.all([api.get('/api/templates'), api.get('/api/disenos')])
-    setTemplates(t)
+    const d = await api.get('/api/disenos')
     setDisenos(d)
     setLoading(false)
   }
@@ -126,21 +123,11 @@ export default function Disenos() {
     setForm((f) => ({ ...f, [field]: value }))
   }
 
-  function selectTemplate(templateId) {
-    const template = templates.find((t) => String(t.id) === templateId)
-    setForm((f) => ({
-      ...f,
-      templateId,
-      tipo: template ? template.tipoRecompensa : f.tipo,
-    }))
-  }
-
   function startEdit(diseno) {
     setEditingId(diseno.id)
     setShowForm(true)
     setStep(0)
     setForm({
-      templateId: diseno.templateId ? String(diseno.templateId) : '',
       tipo: diseno.tipo || 'sellos',
       nombre: diseno.nombre || '',
       logo: diseno.logo || '',
@@ -185,7 +172,7 @@ export default function Disenos() {
     setError('')
     try {
       const payload = {
-        templateId: form.templateId ? Number(form.templateId) : null,
+        templateId: null,
         tipo: form.tipo,
         nombre: form.nombre,
         logo: form.logo || null,
@@ -423,17 +410,6 @@ export default function Disenos() {
                       <p className="mt-2 font-medium">Promoción</p>
                       <p className="text-sm text-muted-foreground">Un cupón u oferta de un solo uso, con vencimiento opcional.</p>
                     </button>
-                  </div>
-                  <div>
-                    <Label>Template base (opcional)</Label>
-                    <Select value={form.templateId} onChange={(e) => selectTemplate(e.target.value)}>
-                      <option value="">Ninguno (desde cero)</option>
-                      {templates.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.nombre} ({TIPO_LABEL[t.tipoRecompensa] || 'Sellos'})
-                        </option>
-                      ))}
-                    </Select>
                   </div>
                   <div>
                     <Label>Nombre</Label>
