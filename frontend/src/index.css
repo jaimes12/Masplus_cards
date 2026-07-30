@@ -206,6 +206,13 @@ body {
     align-items: center;
     justify-content: center;
   }
+  /* Los navegadores no imprimen background-image/background-color por defecto salvo que el
+     usuario active "Gráficos de fondo" en el diálogo de impresión; esto lo fuerza siempre,
+     para el fondo del póster (color o imagen). */
+  .print-poster * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }
 
 .shadow-soft-lg {
