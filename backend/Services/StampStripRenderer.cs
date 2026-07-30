@@ -112,16 +112,21 @@ public static class StampStripRenderer
     public const int BackgroundWidth = 540;
     public const int BackgroundHeight = 660;
 
-    /// <summary>Fondo de pase completo (estilo EventTicket) para tarjetas tipo cupón: la foto cubre toda
-    /// la tarjeta en vez del grid de sellos.
-    /// Apple Wallet aplica su propio blur automático a la imagen "background" (no es algo que podamos
-    /// desactivar desde el pase). Para que no se note tanto, remuestreamos con Lanczos3 (más nítido que
-    /// el resize por defecto) y afilamos el resultado antes de guardar, para compensar el blur de Apple.</summary>
-    public static byte[] RenderCuponBackground(string? backgroundHex, byte[]? backgroundImagePng)
+    // Strip del pase estilo Coupon: mucho más alto que el de storeCard (375x300pt @1x) porque en Coupon
+    // la foto es el elemento dominante de la tarjeta, con los campos de texto abajo sobre el
+    // backgroundColor del pase (no encima de la foto).
+    public const int CouponStripWidth = 1125;
+    public const int CouponStripHeight = 900;
+
+    /// <summary>Strip del pase (estilo Coupon) para tarjetas tipo cupón: la foto va como banner grande
+    /// arriba, y nombre/premio/QR quedan abajo sobre el color de marca (ver AppleWalletPassService).
+    /// Apple Wallet aplica su propio blur automático a las imágenes de pase (no es algo que podamos
+    /// desactivar). Para que no se note tanto, remuestreamos con Lanczos3 (más nítido que el resize por
+    /// defecto) y afilamos el resultado antes de guardar, para compensar el blur de Apple.</summary>
+    public static byte[] RenderCuponStrip(byte[]? backgroundImagePng)
     {
-        var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
-        var width = BackgroundWidth;
-        var height = BackgroundHeight;
+        var width = CouponStripWidth;
+        var height = CouponStripHeight;
 
         using var image = new Image<Rgba32>(width, height);
 
@@ -134,8 +139,6 @@ public static class StampStripRenderer
 
         image.Mutate(ctx =>
         {
-            ctx.Fill(background);
-
             if (backgroundImage != null)
             {
                 backgroundImage.Mutate(x => x.Resize(new ResizeOptions
@@ -146,8 +149,6 @@ public static class StampStripRenderer
                     Sampler = KnownResamplers.Lanczos3,
                 }));
                 ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
-                // Velo parejo (no solo un strip) para que los campos de texto se lean sobre la foto completa.
-                ctx.Fill(WithAlpha(background, 0.35f), new RectangularPolygon(0, 0, width, height));
                 ctx.GaussianSharpen(1.6f);
             }
         });

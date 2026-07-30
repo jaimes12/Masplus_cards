@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Passbook.Generator;
 using Passbook.Generator.Fields;
 using MasplusCards.Api.Dtos;
+using MasplusCards.Api.Infrastructure;
 using MasplusCards.Api.Models;
 using MasplusCards.Api.Services.Interfaces;
 
@@ -129,26 +130,28 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             catch { fondo = null; }
         }
 
-        // EventTicket (no Generic): es el estilo que de verdad renderiza la imagen "background"
-        // de forma confiable en la pantalla de "Agregar" (probado en producción en otro proyecto).
-        request.Style = PassStyle.EventTicket;
+        // Coupon: es el template oficial de Apple para este caso (logo arriba-izq, fecha de
+        // vencimiento arriba-der nativa, strip de foto grande, y campos abajo). Antes usábamos
+        // EventTicket a mano; con el diagrama oficial de Apple confirmado, Coupon es el correcto.
+        request.Style = PassStyle.Coupon;
         request.Description = NonEmpty(input.Descripcion) ?? $"Cupón {input.OrganizationName}";
+        request.ExpirationDate = input.Vencimiento;
 
         if (fondo != null)
         {
-            var fondoPase = StampStripRenderer.RenderCuponBackground(backgroundColor, fondo);
-            request.Images.Add(PassbookImage.Background, fondoPase);
-            request.Images.Add(PassbookImage.Background2X, fondoPase);
-            request.Images.Add(PassbookImage.Background3X, fondoPase);
+            var strip = StampStripRenderer.RenderCuponStrip(fondo);
+            request.Images.Add(PassbookImage.Strip, strip);
+            request.Images.Add(PassbookImage.Strip2X, strip);
+            request.Images.Add(PassbookImage.Strip3X, strip);
         }
 
-        request.AddHeaderField(new StandardField(
-            "estado", "ESTADO", input.CuponRedimido ? "CANJEADO" : "VIGENTE"));
+        var vencido = input.Vencimiento.HasValue && input.Vencimiento.Value < MexicoCityTime.Now();
+        var estado = input.CuponRedimido ? "CANJEADO" : vencido ? "VENCIDO" : "VIGENTE";
+
         request.AddPrimaryField(new StandardField(
             "oferta", "", NonEmpty(input.Descripcion) ?? "Cupón especial"));
         request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
-        request.AddSecondaryField(new StandardField(
-            "vence", "VENCE", input.Vencimiento?.ToString("dd/MM/yyyy") ?? "Sin vencimiento"));
+        request.AddAuxiliaryField(new StandardField("estado", "ESTADO", estado));
 
         return request;
     }
