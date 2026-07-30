@@ -192,6 +192,38 @@ public static class StampStripRenderer
         ctx.Fill(bottomBrush, new RectangularPolygon(0, bottomStart, width, height - bottomStart));
     }
 
+    public const int ThumbnailSize = 300;
+
+    /// <summary>Miniatura cuadrada (imagen "thumbnail") a partir de la misma foto del diseño, usada como
+    /// fallback del pase estilo "generic" clásico (sin foto grande) para clientes en iOS 26 o anterior
+    /// que abren un pase generado como posterGeneric+generic.</summary>
+    public static byte[]? RenderThumbnail(byte[] sourceImagePng)
+    {
+        try
+        {
+            using var image = Image.Load<Rgba32>(sourceImagePng);
+            image.Mutate(ctx =>
+            {
+                ctx.Resize(new ResizeOptions
+                {
+                    Size = new Size(ThumbnailSize, ThumbnailSize),
+                    Mode = ResizeMode.Crop,
+                    Position = AnchorPositionMode.Center,
+                    Sampler = KnownResamplers.Lanczos3,
+                });
+                ctx.GaussianSharpen(3f);
+            });
+
+            using var ms = new MemoryStream();
+            image.SaveAsPng(ms);
+            return ms.ToArray();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private static void DrawCheckmark(IImageProcessingContext ctx, float cx, float cy, float radius, Rgba32 color)
     {
         var s = radius * 0.85f;

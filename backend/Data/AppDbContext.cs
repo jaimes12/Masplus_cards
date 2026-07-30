@@ -217,6 +217,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.Configuracion).HasColumnName("configuracion").HasColumnType("json");
             e.Property(x => x.Activo).HasColumnName("activo");
             e.Property(x => x.RecordatoriosActivos).HasColumnName("recordatorios_activos");
+            e.Property(x => x.EstiloCuponPoster).HasColumnName("estilo_cupon_poster");
             e.Property(x => x.CodigoRegistro).HasColumnName("codigo_registro").HasMaxLength(40).IsRequired();
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
             e.Property(x => x.UpdatedAt).HasColumnName("updated_at");

@@ -271,5 +271,5 @@ public class TarjetasService : ITarjetasService
         t.SellosActuales, t.Diseno?.SellosRequeridos ?? 0, t.PremiosCanjeados,
         t.Diseno?.Vencimiento, t.Diseno?.Descripcion, t.CuponRedimido,
         t.CodigoQr, t.WalletTipo, t.Estado, t.CreatedAt, t.UpdatedAt,
-        t.UltimoRecordatorioMensaje);
+        t.UltimoRecordatorioMensaje, t.Diseno?.EstiloCuponPoster ?? false);
 }

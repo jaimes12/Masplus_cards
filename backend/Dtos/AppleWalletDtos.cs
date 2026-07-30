@@ -19,4 +19,5 @@ public record AppleWalletPassInput(
     bool CuponRedimido,
     string CodigoQr,
     string? WebServiceUrl = null,
-    string? RecordatorioMensaje = null);
+    string? RecordatorioMensaje = null,
+    bool EstiloCuponPoster = false);

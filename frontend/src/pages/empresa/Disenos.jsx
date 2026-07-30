@@ -26,6 +26,7 @@ const emptyForm = {
   vencimiento: '',
   descripcion: '',
   recordatoriosActivos: false,
+  estiloCuponPoster: false,
 }
 
 export default function Disenos() {
@@ -152,6 +153,7 @@ export default function Disenos() {
       vencimiento: diseno.vencimiento ? diseno.vencimiento.slice(0, 10) : '',
       descripcion: diseno.descripcion || '',
       recordatoriosActivos: diseno.recordatoriosActivos || false,
+      estiloCuponPoster: diseno.estiloCuponPoster || false,
     })
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
   }
@@ -197,6 +199,7 @@ export default function Disenos() {
         descripcion: form.descripcion || null,
         configuracion: null,
         recordatoriosActivos: form.tipo === 'sellos' ? !!form.recordatoriosActivos : false,
+        estiloCuponPoster: form.tipo === 'cupon' ? !!form.estiloCuponPoster : false,
       }
 
       if (editingId) {
@@ -464,10 +467,42 @@ export default function Disenos() {
                       </div>
                     </>
                   ) : (
-                    <div>
-                      <Label>Vencimiento (opcional)</Label>
-                      <Input type="date" value={form.vencimiento} onChange={(e) => update('vencimiento', e.target.value)} />
-                    </div>
+                    <>
+                      <div>
+                        <Label>Vencimiento (opcional)</Label>
+                        <Input type="date" value={form.vencimiento} onChange={(e) => update('vencimiento', e.target.value)} />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Estilo del cupón en Apple Wallet</Label>
+                        <div className="mt-1 grid gap-2 sm:grid-cols-2">
+                          <button
+                            type="button"
+                            onClick={() => update('estiloCuponPoster', false)}
+                            className={`relative rounded-xl border-2 p-3 text-left transition-colors ${
+                              !form.estiloCuponPoster ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
+                            }`}
+                          >
+                            {!form.estiloCuponPoster && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
+                            <p className="font-medium">Cupón normal</p>
+                            <p className="text-sm text-muted-foreground">Funciona en cualquier iPhone.</p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => update('estiloCuponPoster', true)}
+                            className={`relative rounded-xl border-2 p-3 text-left transition-colors ${
+                              form.estiloCuponPoster ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
+                            }`}
+                          >
+                            {form.estiloCuponPoster && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
+                            <p className="font-medium">Cupón nuevo (iOS 27)</p>
+                            <p className="text-sm text-muted-foreground">
+                              Foto a toda la tarjeta. Solo se ve así en iPhones actualizados a iOS 27; en los demás se
+                              ve una versión simple sin foto.
+                            </p>
+                          </button>
+                        </div>
+                      </div>
+                    </>
                   )}
                   <div className="sm:col-span-2">
                     <Label>{form.tipo === 'cupon' ? 'Descripción de la promoción' : 'Descripción / premio'}</Label>

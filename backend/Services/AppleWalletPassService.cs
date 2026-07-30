@@ -40,6 +40,13 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         if (string.IsNullOrWhiteSpace(_cfg.PassTypeIdentifier))
             throw new InvalidOperationException("PassTypeIdentifier no está configurado en AppleWalletConfiguration.");
 
+        _logger.LogInformation(
+            "Descarga Apple Wallet: codigoQr={CodigoQr} input.Tipo={Tipo} estiloCuponPoster={Poster}",
+            input.CodigoQr, input.Tipo, input.EstiloCuponPoster);
+
+        if (input.Tipo == "cupon" && input.EstiloCuponPoster)
+            return await GeneratePosterGenericAsync(input, cancellationToken);
+
         var wwdrCert = _cfg.AppleWWDRCACertificate();
         var passbookCert = _cfg.PassbookCertificate();
 
@@ -69,10 +76,6 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
                        { PassbookImage.Logo, logo }, { PassbookImage.Logo2X, logo }, { PassbookImage.Logo3X, logo } },
         };
 
-        _logger.LogInformation(
-            "Descarga Apple Wallet: codigoQr={CodigoQr} input.Tipo={Tipo} rama={Rama}",
-            input.CodigoQr, input.Tipo, input.Tipo == "cupon" ? "BuildCuponAsync" : "BuildSellosAsync");
-
         var request = input.Tipo == "cupon"
             ? await BuildCuponAsync(baseRequest, input, backgroundColor, cancellationToken)
             : await BuildSellosAsync(baseRequest, input, backgroundColor, foregroundColor, cancellationToken);
@@ -83,6 +86,31 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             "Descarga Apple Wallet: codigoQr={CodigoQr} request.Style={Style}", input.CodigoQr, request.Style);
 
         return new PassGenerator().Generate(request);
+    }
+
+    /// <summary>Estilo posterGeneric (iOS 27+, ver PosterGenericPassBuilder): dotnet-passbook no lo
+    /// soporta, así que no pasa por PassGenerator ni por PassGeneratorRequest en absoluto.</summary>
+    private async Task<byte[]> GeneratePosterGenericAsync(AppleWalletPassInput input, CancellationToken cancellationToken)
+    {
+        var logoUrl = NonEmpty(input.Logo) ?? NonEmpty(_cfg.LogoUrl) ?? DefaultLogoFallback;
+        var iconUrl = NonEmpty(_cfg.IconUrl) ?? DefaultIconFallback;
+
+        var logo = await GetBytesCachedAsync($"{CachePrefix}logo:{logoUrl.GetHashCode():X}", logoUrl, cancellationToken);
+        var icon = await GetBytesCachedAsync($"{CachePrefix}icon:{iconUrl.GetHashCode():X}", iconUrl, cancellationToken);
+
+        var backgroundColor = NonEmpty(input.ColorPrimario) ?? DefaultBackgroundColor;
+
+        byte[]? fondo = null;
+        if (NonEmpty(input.FondoUrl) is { } fondoUrl)
+        {
+            try { fondo = await GetBytesCachedAsync($"{CachePrefix}fondo:{fondoUrl.GetHashCode():X}", fondoUrl, cancellationToken); }
+            catch { fondo = null; }
+        }
+
+        var fondoPase = fondo != null ? StampStripRenderer.RenderCuponBackground(backgroundColor, fondo) : null;
+        var thumbnail = fondo != null ? StampStripRenderer.RenderThumbnail(fondo) : null;
+
+        return PosterGenericPassBuilder.Generate(_cfg, input, icon, logo, fondoPase, thumbnail);
     }
 
     private async Task<PassGeneratorRequest> BuildSellosAsync(

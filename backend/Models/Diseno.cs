@@ -41,6 +41,12 @@ public class Diseno
     /// mensajería automática a clientes, la empresa la tiene que prender a propósito.</summary>
     public bool RecordatoriosActivos { get; set; } = false;
 
+    /// <summary>Solo aplica si Tipo = "cupon". Si es true, el pase de Apple Wallet se genera con el
+    /// estilo "posterGeneric" (foto a toda la tarjeta, anunciado por Apple en 2026, requiere iOS 27+)
+    /// en vez del cupón normal (EventTicket). Off por defecto: los clientes con iOS 26 o anterior no
+    /// pueden agregar un pase posterGeneric, así que es una elección explícita de la empresa.</summary>
+    public bool EstiloCuponPoster { get; set; } = false;
+
     /// <summary>Código público (no adivinable) usado en la URL de autorregistro y su QR. Se genera al crear el diseño.</summary>
     public string CodigoRegistro { get; set; } = Guid.NewGuid().ToString("N");
 

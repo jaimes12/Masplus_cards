@@ -22,7 +22,8 @@ public record DisenoDto(
     string CodigoRegistro,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    bool RecordatoriosActivos = false);
+    bool RecordatoriosActivos = false,
+    bool EstiloCuponPoster = false);
 
 public record DisenoUpsertRequest(
     int? TemplateId,
@@ -38,4 +39,5 @@ public record DisenoUpsertRequest(
     DateTime? Vencimiento,
     string? Descripcion,
     string? Configuracion,
-    bool RecordatoriosActivos = false);
+    bool RecordatoriosActivos = false,
+    bool EstiloCuponPoster = false);

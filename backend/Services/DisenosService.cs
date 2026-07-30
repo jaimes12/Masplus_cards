@@ -64,6 +64,7 @@ public class DisenosService : IDisenosService
             Descripcion = request.Descripcion,
             Configuracion = request.Configuracion,
             RecordatoriosActivos = request.RecordatoriosActivos,
+            EstiloCuponPoster = request.EstiloCuponPoster,
         };
 
         _db.Disenos.Add(diseno);
@@ -90,6 +91,7 @@ public class DisenosService : IDisenosService
         diseno.Descripcion = request.Descripcion;
         diseno.Configuracion = request.Configuracion;
         diseno.RecordatoriosActivos = request.RecordatoriosActivos;
+        diseno.EstiloCuponPoster = request.EstiloCuponPoster;
 
         await _db.SaveChangesAsync();
 
@@ -131,5 +133,6 @@ public class DisenosService : IDisenosService
         TarjetasCount: tarjetasCount,
         d.CodigoRegistro,
         d.CreatedAt, d.UpdatedAt,
-        d.RecordatoriosActivos);
+        d.RecordatoriosActivos,
+        d.EstiloCuponPoster);
 }
