@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowRight, Award, Check, Copy, Download, Plus, QrCode, Ticket } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
-import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
+import { Button, Card, ColorInput, Input, Label, Select } from '../../components/ui.jsx'
 import CardPreview from '../../components/CardPreview.jsx'
 import MiniCardPreview from '../../components/MiniCardPreview.jsx'
 import PhoneFrame from '../../components/PhoneFrame.jsx'
@@ -533,19 +533,15 @@ export default function Disenos() {
                   </div>
                   <div>
                     <Label>Color primario</Label>
-                    <Input type="color" value={form.colorPrimario} onChange={(e) => update('colorPrimario', e.target.value)} />
+                    <ColorInput value={form.colorPrimario} onChange={(e) => update('colorPrimario', e.target.value)} />
                   </div>
                   <div>
                     <Label>Color secundario</Label>
-                    <Input
-                      type="color"
-                      value={form.colorSecundario}
-                      onChange={(e) => update('colorSecundario', e.target.value)}
-                    />
+                    <ColorInput value={form.colorSecundario} onChange={(e) => update('colorSecundario', e.target.value)} />
                   </div>
                   <div>
                     <Label>Color de texto</Label>
-                    <Input type="color" value={form.colorTexto} onChange={(e) => update('colorTexto', e.target.value)} />
+                    <ColorInput value={form.colorTexto} onChange={(e) => update('colorTexto', e.target.value)} />
                   </div>
                 </div>
               )}

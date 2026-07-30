@@ -18,6 +18,32 @@ export function Input({ className = '', ...props }) {
   )
 }
 
+export function ColorInput({ value, onChange, className = '' }) {
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      <div
+        className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-input shadow-sm"
+        style={{ background: value }}
+      >
+        <input
+          type="color"
+          value={value}
+          onChange={onChange}
+          className="absolute -inset-2 h-[calc(100%+16px)] w-[calc(100%+16px)] cursor-pointer opacity-0"
+          aria-label="Elegir color"
+        />
+      </div>
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        maxLength={7}
+        className="w-full rounded-xl border border-input bg-card px-3 py-2 text-sm uppercase outline-none focus:ring-2 focus:ring-ring"
+      />
+    </div>
+  )
+}
+
 export function Select({ className = '', children, ...props }) {
   return (
     <select
