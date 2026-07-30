@@ -139,6 +139,8 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/", () => Results.Ok(new { status = "ok", service = "Masplus Cards API", running = true }));
+
 app.MapControllers();
 
 app.Run();
