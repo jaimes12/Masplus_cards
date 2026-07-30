@@ -23,12 +23,16 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
     private readonly AppleWalletConfiguration _cfg;
     private readonly IHttpClientFactory _httpFactory;
     private readonly IMemoryCache _cache;
+    private readonly ILogger<AppleWalletPassService> _logger;
 
-    public AppleWalletPassService(IOptions<AppleWalletConfiguration> options, IHttpClientFactory httpFactory, IMemoryCache cache)
+    public AppleWalletPassService(
+        IOptions<AppleWalletConfiguration> options, IHttpClientFactory httpFactory, IMemoryCache cache,
+        ILogger<AppleWalletPassService> logger)
     {
         _cfg = options.Value;
         _httpFactory = httpFactory;
         _cache = cache;
+        _logger = logger;
     }
 
     public async Task<byte[]> GenerateStoreCardAsync(AppleWalletPassInput input, CancellationToken cancellationToken = default)
@@ -65,11 +69,18 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
                        { PassbookImage.Logo, logo }, { PassbookImage.Logo2X, logo }, { PassbookImage.Logo3X, logo } },
         };
 
+        _logger.LogInformation(
+            "Descarga Apple Wallet: codigoQr={CodigoQr} input.Tipo={Tipo} rama={Rama}",
+            input.CodigoQr, input.Tipo, input.Tipo == "cupon" ? "BuildCuponAsync" : "BuildSellosAsync");
+
         var request = input.Tipo == "cupon"
             ? await BuildCuponAsync(baseRequest, input, backgroundColor, cancellationToken)
             : await BuildSellosAsync(baseRequest, input, backgroundColor, foregroundColor, cancellationToken);
 
         request.AddBarcode(BarcodeType.PKBarcodeFormatQR, input.CodigoQr, "UTF-8", "Powered by Masplus");
+
+        _logger.LogInformation(
+            "Descarga Apple Wallet: codigoQr={CodigoQr} request.Style={Style}", input.CodigoQr, request.Style);
 
         return new PassGenerator().Generate(request);
     }

@@ -198,6 +198,13 @@ export default function Wallet() {
 
       <a
         href={`${API_URL}/api/wallet/apple/${tarjeta.codigoQr}`}
+        onClick={() =>
+          console.log('[Wallet] Descargando pase Apple Wallet', {
+            codigoQr: tarjeta.codigoQr,
+            tipo: tarjeta.tipo,
+            esCupon,
+          })
+        }
         className="animate-fade-up relative z-10 transition-transform hover:scale-105"
         style={{ animationDelay: '380ms' }}
       >
