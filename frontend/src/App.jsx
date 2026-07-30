@@ -13,6 +13,7 @@ import Clientes from './pages/empresa/Clientes.jsx'
 import Tarjetas from './pages/empresa/Tarjetas.jsx'
 import Perfil from './pages/empresa/Perfil.jsx'
 import Plan from './pages/empresa/Plan.jsx'
+import PosterEditor from './pages/empresa/PosterEditor.jsx'
 import AdminDashboard from './pages/admin/Dashboard.jsx'
 import Templates from './pages/admin/Templates.jsx'
 import Empresas from './pages/admin/Empresas.jsx'
@@ -29,6 +30,14 @@ function App() {
 
       <Route path="/empresa/login" element={<LoginEmpresa />} />
       <Route path="/empresa/registro" element={<RegisterEmpresa />} />
+      <Route
+        path="/empresa/disenos/:id/poster"
+        element={
+          <ProtectedRoute role="Empresa">
+            <PosterEditor />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/empresa"
         element={

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight, Award, Check, Copy, Download, Plus, QrCode, Ticket } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Award, Check, Copy, Download, Palette, Plus, QrCode, Ticket } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, ColorInput, Input, Label } from '../../components/ui.jsx'
@@ -345,9 +345,18 @@ export default function Disenos() {
                       <Button type="button" variant="outline" className="gap-1.5" onClick={() => downloadPdf(d)}>
                         <Download className="h-4 w-4" /> Descargar PDF
                       </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="gap-1.5"
+                        onClick={() => window.open(`/empresa/disenos/${d.id}/poster`, '_blank')}
+                      >
+                        <Palette className="h-4 w-4" /> Editar diseño
+                      </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Se abre el diálogo de impresión: elegí "Guardar como PDF" para descargarlo.
+                      "Descargar PDF" usa el póster simple de siempre. "Editar diseño" abre un editor en otra pestaña
+                      donde podés mover el fondo, el texto y el QR a tu gusto (se guarda para la próxima vez).
                     </p>
                   </div>
                 </div>
