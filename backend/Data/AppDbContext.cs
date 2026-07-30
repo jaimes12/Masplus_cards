@@ -216,6 +216,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(500);
             e.Property(x => x.Configuracion).HasColumnName("configuracion").HasColumnType("json");
             e.Property(x => x.Activo).HasColumnName("activo");
+            e.Property(x => x.RecordatoriosActivos).HasColumnName("recordatorios_activos");
             e.Property(x => x.CodigoRegistro).HasColumnName("codigo_registro").HasMaxLength(40).IsRequired();
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
             e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
@@ -266,6 +267,9 @@ public class AppDbContext : DbContext
             e.Property(x => x.WalletTipo).HasColumnName("wallet_tipo").HasMaxLength(20);
             e.Property(x => x.AppleSerialNumber).HasColumnName("apple_serial_number").HasMaxLength(100);
             e.Property(x => x.Estado).HasColumnName("estado").HasMaxLength(20);
+            e.Property(x => x.UltimoSelloEn).HasColumnName("ultimo_sello_en");
+            e.Property(x => x.UltimoRecordatorioEn).HasColumnName("ultimo_recordatorio_en");
+            e.Property(x => x.UltimoRecordatorioMensaje).HasColumnName("ultimo_recordatorio_mensaje").HasMaxLength(300);
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
             e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
 

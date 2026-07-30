@@ -107,6 +107,7 @@ public class TarjetasService : ITarjetasService
             throw new InvalidOperationException("Esta tarjeta es un cupón, no acumula sellos.");
 
         tarjeta.SellosActuales += 1;
+        tarjeta.UltimoSelloEn = MexicoCityTime.Now();
         _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "sello_agregado", SellosAgregados = 1 });
         await _db.SaveChangesAsync();
 
@@ -205,6 +206,46 @@ public class TarjetasService : ITarjetasService
         return ToDto(updated);
     }
 
+    public async Task<int> EnviarRecordatoriosSemanalesAsync(int? empresaId = null, CancellationToken ct = default)
+    {
+        var ahora = MexicoCityTime.Now();
+        var limite = ahora.AddDays(-7);
+
+        var candidatas = await _db.Tarjetas
+            .Include(t => t.Diseno)
+            .Include(t => t.Empresa)
+            .Where(t => (empresaId == null || t.EmpresaId == empresaId)
+                && t.Estado == "activa"
+                && t.Diseno!.Tipo == "sellos"
+                && t.Diseno.Activo
+                && t.Diseno.RecordatoriosActivos
+                && t.SellosActuales > 0
+                && t.SellosActuales < t.Diseno.SellosRequeridos
+                && (t.UltimoSelloEn ?? t.CreatedAt) <= limite
+                && (t.UltimoRecordatorioEn == null || t.UltimoRecordatorioEn <= limite))
+            .Take(500)
+            .ToListAsync(ct);
+
+        foreach (var tarjeta in candidatas)
+        {
+            var faltan = tarjeta.Diseno!.SellosRequeridos - tarjeta.SellosActuales;
+            var negocio = tarjeta.Empresa?.Nombre ?? "tu negocio favorito";
+            var sellosTexto = tarjeta.SellosActuales == 1 ? "1 sello" : $"{tarjeta.SellosActuales} sellos";
+            tarjeta.UltimoRecordatorioMensaje =
+                $"¡Tienes {sellosTexto} en {negocio}! Te falta{(faltan == 1 ? "" : "n")} {faltan} para tu premio 🎁";
+            tarjeta.UltimoRecordatorioEn = ahora;
+        }
+
+        if (candidatas.Count > 0)
+        {
+            await _db.SaveChangesAsync(ct);
+            foreach (var tarjeta in candidatas)
+                await NotifyPassUpdatedAsync(tarjeta.CodigoQr);
+        }
+
+        return candidatas.Count;
+    }
+
     public async Task<List<TarjetaLogDto>> GetLogsAsync(int empresaId, int id)
     {
         var pertenece = await _db.Tarjetas.AnyAsync(t => t.Id == id && t.EmpresaId == empresaId);
@@ -229,5 +270,6 @@ public class TarjetasService : ITarjetasService
         t.Diseno?.ColorTexto, t.Diseno?.IconoSello, t.Diseno?.FondoUrl,
         t.SellosActuales, t.Diseno?.SellosRequeridos ?? 0, t.PremiosCanjeados,
         t.Diseno?.Vencimiento, t.Diseno?.Descripcion, t.CuponRedimido,
-        t.CodigoQr, t.WalletTipo, t.Estado, t.CreatedAt, t.UpdatedAt);
+        t.CodigoQr, t.WalletTipo, t.Estado, t.CreatedAt, t.UpdatedAt,
+        t.UltimoRecordatorioMensaje);
 }

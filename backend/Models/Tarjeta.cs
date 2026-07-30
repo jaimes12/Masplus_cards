@@ -24,6 +24,17 @@ public class Tarjeta
     public string? AppleSerialNumber { get; set; }
 
     public string Estado { get; set; } = "activa";
+
+    /// <summary>Última vez que se sumó un sello (para saber si el cliente dejó de visitar).</summary>
+    public DateTime? UltimoSelloEn { get; set; }
+
+    /// <summary>Última vez que se le envió un recordatorio semanal de sellos pendientes.</summary>
+    public DateTime? UltimoRecordatorioEn { get; set; }
+
+    /// <summary>Texto del último recordatorio enviado; viaja como back field con changeMessage
+    /// en el pase de Apple Wallet para que el push muestre este mensaje.</summary>
+    public string? UltimoRecordatorioMensaje { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

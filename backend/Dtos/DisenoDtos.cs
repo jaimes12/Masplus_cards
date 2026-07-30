@@ -21,7 +21,8 @@ public record DisenoDto(
     int TarjetasCount,
     string CodigoRegistro,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    bool RecordatoriosActivos = false);
 
 public record DisenoUpsertRequest(
     int? TemplateId,
@@ -36,4 +37,5 @@ public record DisenoUpsertRequest(
     int SellosRequeridos,
     DateTime? Vencimiento,
     string? Descripcion,
-    string? Configuracion);
+    string? Configuracion,
+    bool RecordatoriosActivos = false);

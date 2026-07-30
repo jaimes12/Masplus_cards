@@ -107,6 +107,15 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
         request.AddAuxiliaryField(new StandardField("premios", "PREMIOS", input.PremiosCanjeados.ToString()));
 
+        // Back field siempre presente (aunque sin recordatorios todavía) para que Wallet tenga
+        // un valor previo con el que comparar: así, cuando el recordatorio semanal cambia este
+        // valor, ChangeMessage dispara el aviso visible en el push.
+        request.AddBackField(new StandardField(
+            "recordatorio", "Recordatorio", NonEmpty(input.RecordatorioMensaje) ?? "Sin recordatorios por ahora.")
+        {
+            ChangeMessage = "%@",
+        });
+
         return request;
     }
 

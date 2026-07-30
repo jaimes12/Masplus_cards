@@ -25,6 +25,7 @@ const emptyForm = {
   sellosRequeridos: 10,
   vencimiento: '',
   descripcion: '',
+  recordatoriosActivos: false,
 }
 
 export default function Disenos() {
@@ -43,6 +44,7 @@ export default function Disenos() {
   const [qrColor, setQrColor] = useState('#18181B')
   const [qrBgColor, setQrBgColor] = useState('#FFFFFF')
   const [printDiseno, setPrintDiseno] = useState(null)
+  const [recordatorioEnvio, setRecordatorioEnvio] = useState(null)
 
   function registroUrl(d) {
     return `${window.location.origin}/registro/${d.codigoRegistro}`
@@ -149,6 +151,7 @@ export default function Disenos() {
       sellosRequeridos: diseno.sellosRequeridos,
       vencimiento: diseno.vencimiento ? diseno.vencimiento.slice(0, 10) : '',
       descripcion: diseno.descripcion || '',
+      recordatoriosActivos: diseno.recordatoriosActivos || false,
     })
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
   }
@@ -193,6 +196,7 @@ export default function Disenos() {
         vencimiento: form.tipo === 'cupon' && form.vencimiento ? form.vencimiento : null,
         descripcion: form.descripcion || null,
         configuracion: null,
+        recordatoriosActivos: form.tipo === 'sellos' ? !!form.recordatoriosActivos : false,
       }
 
       if (editingId) {
@@ -216,6 +220,16 @@ export default function Disenos() {
   async function activar(id) {
     await api.post(`/api/disenos/${id}/activar`)
     await load()
+  }
+
+  async function enviarRecordatorios(d) {
+    setRecordatorioEnvio({ id: d.id, loading: true })
+    try {
+      const { enviados } = await api.post('/api/tarjetas/recordatorios/enviar-ahora')
+      setRecordatorioEnvio({ id: d.id, enviados })
+    } catch (err) {
+      setRecordatorioEnvio({ id: d.id, error: err.message })
+    }
   }
 
   if (loading) return <p className="text-muted-foreground">Cargando...</p>
@@ -278,7 +292,25 @@ export default function Disenos() {
                     <Button variant="ghost" className="gap-1.5" onClick={() => toggleQr(d)}>
                       <QrCode className="h-4 w-4" /> Código QR
                     </Button>
+                    {d.tipo === 'sellos' && d.recordatoriosActivos && (
+                      <Button
+                        variant="ghost"
+                        onClick={() => enviarRecordatorios(d)}
+                        disabled={recordatorioEnvio?.id === d.id && recordatorioEnvio?.loading}
+                      >
+                        {recordatorioEnvio?.id === d.id && recordatorioEnvio?.loading
+                          ? 'Enviando...'
+                          : 'Enviar recordatorios ahora'}
+                      </Button>
+                    )}
                   </div>
+                  {recordatorioEnvio?.id === d.id && !recordatorioEnvio.loading && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {recordatorioEnvio.error
+                        ? recordatorioEnvio.error
+                        : `Se enviaron ${recordatorioEnvio.enviados} recordatorio${recordatorioEnvio.enviados === 1 ? '' : 's'} en tu empresa.`}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -405,16 +437,32 @@ export default function Disenos() {
                     <Input value={form.nombre} onChange={(e) => update('nombre', e.target.value)} required />
                   </div>
                   {form.tipo === 'sellos' ? (
-                    <div>
-                      <Label>Sellos requeridos</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={form.sellosRequeridos}
-                        onChange={(e) => update('sellosRequeridos', e.target.value)}
-                        required
-                      />
-                    </div>
+                    <>
+                      <div>
+                        <Label>Sellos requeridos</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={form.sellosRequeridos}
+                          onChange={(e) => update('sellosRequeridos', e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="flex items-start gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            className="mt-0.5"
+                            checked={form.recordatoriosActivos}
+                            onChange={(e) => update('recordatoriosActivos', e.target.checked)}
+                          />
+                          <span>
+                            Mandar un recordatorio automático a Apple Wallet una vez por semana a los clientes con
+                            sellos pendientes que no han vuelto en 7 días.
+                          </span>
+                        </label>
+                      </div>
+                    </>
                   ) : (
                     <div>
                       <Label>Vencimiento (opcional)</Label>

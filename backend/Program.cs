@@ -70,6 +70,7 @@ builder.Services.AddScoped<IPlanesService, PlanesService>();
 builder.Services.AddScoped<IRegistroService, RegistroService>();
 builder.Services.AddScoped<IDiscountCodesService, DiscountCodesService>();
 builder.Services.AddScoped<IStripeService, StripeService>();
+builder.Services.AddHostedService<RecordatoriosBackgroundService>();
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))

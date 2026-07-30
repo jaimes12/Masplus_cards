@@ -63,6 +63,7 @@ public class DisenosService : IDisenosService
             Vencimiento = request.Vencimiento,
             Descripcion = request.Descripcion,
             Configuracion = request.Configuracion,
+            RecordatoriosActivos = request.RecordatoriosActivos,
         };
 
         _db.Disenos.Add(diseno);
@@ -88,6 +89,7 @@ public class DisenosService : IDisenosService
         diseno.Vencimiento = request.Vencimiento;
         diseno.Descripcion = request.Descripcion;
         diseno.Configuracion = request.Configuracion;
+        diseno.RecordatoriosActivos = request.RecordatoriosActivos;
 
         await _db.SaveChangesAsync();
 
@@ -128,5 +130,6 @@ public class DisenosService : IDisenosService
         EsActivoDeEmpresa: disenoActivoId.HasValue && disenoActivoId.Value == d.Id,
         TarjetasCount: tarjetasCount,
         d.CodigoRegistro,
-        d.CreatedAt, d.UpdatedAt);
+        d.CreatedAt, d.UpdatedAt,
+        d.RecordatoriosActivos);
 }

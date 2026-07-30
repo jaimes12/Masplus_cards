@@ -24,6 +24,17 @@ public class TarjetasController : ControllerBase
         return Ok(await _service.GetByEmpresaAsync(User.GetEmpresaId()));
     }
 
+    /// <summary>Manda ya mismo el recordatorio de sellos pendientes a las tarjetas elegibles de la
+    /// empresa (mismo criterio que el job automático semanal). Útil para probar o para adelantar
+    /// el envío sin esperar al ciclo de 7 días.</summary>
+    [HttpPost("recordatorios/enviar-ahora")]
+    [Authorize(Roles = "Empresa")]
+    public async Task<ActionResult<object>> EnviarRecordatoriosAhora(CancellationToken ct)
+    {
+        var enviados = await _service.EnviarRecordatoriosSemanalesAsync(User.GetEmpresaId(), ct);
+        return Ok(new { enviados });
+    }
+
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Empresa")]
     public async Task<ActionResult<TarjetaDto>> GetById(int id)

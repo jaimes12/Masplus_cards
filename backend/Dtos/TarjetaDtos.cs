@@ -26,7 +26,8 @@ public record TarjetaDto(
     string WalletTipo,
     string Estado,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    string? RecordatorioMensaje = null);
 
 /// <summary>La empresa emite una tarjeta a un cliente (se crea el cliente si no existe, por telefono).
 /// Si DisenoId es null, se usa el diseño activo de la empresa.</summary>

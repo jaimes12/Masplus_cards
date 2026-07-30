@@ -36,6 +36,11 @@ public class Diseno
     /// <summary>Si es false, queda oculto para nuevas emisiones.</summary>
     public bool Activo { get; set; } = true;
 
+    /// <summary>Si es true, a las tarjetas con sellos pendientes que no vuelven en 7 días se les
+    /// manda un recordatorio push a Apple Wallet ("aprovecha tus sellos"). Off por defecto: es
+    /// mensajería automática a clientes, la empresa la tiene que prender a propósito.</summary>
+    public bool RecordatoriosActivos { get; set; } = false;
+
     /// <summary>Código público (no adivinable) usado en la URL de autorregistro y su QR. Se genera al crear el diseño.</summary>
     public string CodigoRegistro { get; set; } = Guid.NewGuid().ToString("N");
 
