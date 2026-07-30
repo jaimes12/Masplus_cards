@@ -10,25 +10,26 @@ namespace MasplusCards.Api.Services;
 /// <summary>Genera la imagen del strip del pase Apple Wallet: el mismo grid de sellos que se ve en la wallet web.</summary>
 public static class StampStripRenderer
 {
-    // Strip del pase estilo Coupon: mucho más alto que el de storeCard (375x300pt @1x) porque en Coupon
-    // la foto es el elemento dominante de la tarjeta (como en los pases reales de referencia: museo,
-    // food truck, gimnasio), no solo un banner arriba.
-    public const int CouponStripWidth = 1125;
-    public const int CouponStripHeight = 1500;
+    // Tamaño @3x de la imagen "background" documentado por Apple (180x220pt @1x). A diferencia del
+    // "strip" (banner acotado, con una franja de color separada debajo para los campos), "background"
+    // cubre TODA la tarjeta y Apple dibuja header/primary/secondary/auxiliary ENCIMA de la foto — así
+    // se logra el look de los pases de referencia (museo, food truck, gimnasio), sin el corte entre
+    // foto y bloque de color. "background" solo es válido en el estilo EventTicket (y Generic, que no
+    // soporta ninguna imagen grande) según la documentación oficial de PassKit.
+    public const int BackgroundWidth = 540;
+    public const int BackgroundHeight = 660;
 
-    /// <summary>Strip del pase (estilo Coupon) para tarjetas tipo cupón: la foto domina toda la tarjeta.
-    /// Apple dibuja los campos (premio/cliente/estado) y el QR en la franja debajo del strip usando el
-    /// backgroundColor del pase; para que no se vea como una foto con un bloque de color "pegado" abajo,
-    /// el propio strip se funde con ese mismo color en su tercio inferior (degradado), como en los pases
-    /// reales de referencia (foto de fondo con el texto flotando sobre un velo oscuro, sin corte visible).
-    /// Apple Wallet además aplica su propio blur automático a las imágenes de pase (no es algo que
-    /// podamos desactivar). Para que no se note tanto, remuestreamos con Lanczos3 (más nítido que el
-    /// resize por defecto) y afilamos el resultado antes de guardar, para compensar el blur de Apple.</summary>
-    public static byte[] RenderCuponStrip(string? backgroundHex, byte[]? backgroundImagePng)
+    /// <summary>Imagen "background" del pase (estilo EventTicket) para tarjetas tipo cupón: la foto cubre
+    /// toda la tarjeta. Apple dibuja logo/header arriba y primary/secondary/auxiliary abajo ENCIMA de
+    /// esta imagen, así que le agregamos velos (oscuro arriba, degradado hacia el backgroundColor del
+    /// pase abajo) para que ese texto sea legible sin importar la foto. Apple además recorta y difumina
+    /// un poco esta imagen automáticamente (documentado); remuestreamos con Lanczos3 y afilamos después
+    /// para compensar ese blur.</summary>
+    public static byte[] RenderCuponBackground(string? backgroundHex, byte[]? backgroundImagePng)
     {
         var background = ParseColor(backgroundHex, new Rgba32(24, 24, 27));
-        var width = CouponStripWidth;
-        var height = CouponStripHeight;
+        var width = BackgroundWidth;
+        var height = BackgroundHeight;
 
         using var image = new Image<Rgba32>(width, height);
 
@@ -54,13 +55,7 @@ public static class StampStripRenderer
                 }));
                 ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
                 ctx.GaussianSharpen(1.6f);
-
-                var gradientStart = (int)(height * 0.55f);
-                var brush = new LinearGradientBrush(
-                    new PointF(0, gradientStart), new PointF(0, height), GradientRepetitionMode.None,
-                    new ColorStop(0f, WithAlpha(background, 0f)),
-                    new ColorStop(1f, WithAlpha(background, 1f)));
-                ctx.Fill(brush, new RectangularPolygon(0, gradientStart, width, height - gradientStart));
+                ApplyLegibilityVeils(ctx, width, height, background, bottomStartFraction: 0.55f);
             }
         });
 
@@ -71,11 +66,11 @@ public static class StampStripRenderer
         return ms.ToArray();
     }
 
-    /// <summary>Strip del pase (también estilo Coupon, ahora usado para sellos) con la misma foto a toda
-    /// la tarjeta + degradado que <see cref="RenderCuponStrip"/>, pero con el grid de sellos dibujado
-    /// dentro de la franja inferior ya oscurecida por el degradado (o sobre el color sólido si no hay
-    /// foto), para que sea legible sin necesitar un overlay parejo sobre toda la imagen.</summary>
-    public static byte[] RenderSellosStrip(
+    /// <summary>Imagen "background" del pase (también EventTicket, ahora usado para sellos) con la misma
+    /// foto a toda la tarjeta + velos que <see cref="RenderCuponBackground"/>, pero con el grid de sellos
+    /// dibujado dentro de la franja inferior ya oscurecida por el degradado (o sobre el color sólido si
+    /// no hay foto), para que sea legible sin necesitar un overlay parejo sobre toda la imagen.</summary>
+    public static byte[] RenderSellosBackground(
         string? backgroundHex, string? foregroundHex, int sellosRequeridos, int sellosActuales,
         byte[]? iconPng, byte[]? backgroundImagePng)
     {
@@ -85,8 +80,8 @@ public static class StampStripRenderer
         sellosRequeridos = Math.Clamp(sellosRequeridos, 1, 20);
         sellosActuales = Math.Clamp(sellosActuales, 0, sellosRequeridos);
 
-        var width = CouponStripWidth;
-        var height = CouponStripHeight;
+        var width = BackgroundWidth;
+        var height = BackgroundHeight;
 
         using var image = new Image<Rgba32>(width, height);
 
@@ -104,7 +99,7 @@ public static class StampStripRenderer
             catch { backgroundImage = null; }
         }
 
-        var gridTop = (int)(height * 0.6f);
+        var gridTop = (int)(height * 0.58f);
 
         image.Mutate(ctx =>
         {
@@ -121,16 +116,10 @@ public static class StampStripRenderer
                 }));
                 ctx.DrawImage(backgroundImage, new Point(0, 0), 1f);
                 ctx.GaussianSharpen(1.6f);
-
-                var gradientStart = (int)(height * 0.45f);
-                var brush = new LinearGradientBrush(
-                    new PointF(0, gradientStart), new PointF(0, height), GradientRepetitionMode.None,
-                    new ColorStop(0f, WithAlpha(background, 0f)),
-                    new ColorStop(1f, WithAlpha(background, 1f)));
-                ctx.Fill(brush, new RectangularPolygon(0, gradientStart, width, height - gradientStart));
+                ApplyLegibilityVeils(ctx, width, height, background, bottomStartFraction: 0.48f);
             }
 
-            const int padding = 70;
+            const int padding = 40;
             var columns = Math.Min(sellosRequeridos, 4);
             var rows = (int)Math.Ceiling(sellosRequeridos / (double)columns);
             var gridHeight = height - gridTop;
@@ -180,6 +169,27 @@ public static class StampStripRenderer
         using var ms = new MemoryStream();
         image.SaveAsPng(ms);
         return ms.ToArray();
+    }
+
+    /// <summary>Velo oscuro arriba (para el logo/header que Apple dibuja encima) y degradado abajo que se
+    /// funde con el backgroundColor del pase (para primary/secondary/auxiliary), sobre una foto de fondo
+    /// a toda la tarjeta.</summary>
+    private static void ApplyLegibilityVeils(
+        IImageProcessingContext ctx, int width, int height, Rgba32 background, float bottomStartFraction)
+    {
+        var topEnd = (int)(height * 0.22f);
+        var topBrush = new LinearGradientBrush(
+            new PointF(0, 0), new PointF(0, topEnd), GradientRepetitionMode.None,
+            new ColorStop(0f, WithAlpha(new Rgba32(0, 0, 0), 0.5f)),
+            new ColorStop(1f, WithAlpha(new Rgba32(0, 0, 0), 0f)));
+        ctx.Fill(topBrush, new RectangularPolygon(0, 0, width, topEnd));
+
+        var bottomStart = (int)(height * bottomStartFraction);
+        var bottomBrush = new LinearGradientBrush(
+            new PointF(0, bottomStart), new PointF(0, height), GradientRepetitionMode.None,
+            new ColorStop(0f, WithAlpha(background, 0f)),
+            new ColorStop(1f, WithAlpha(background, 1f)));
+        ctx.Fill(bottomBrush, new RectangularPolygon(0, bottomStart, width, height - bottomStart));
     }
 
     private static void DrawCheckmark(IImageProcessingContext ctx, float cx, float cy, float radius, Rgba32 color)

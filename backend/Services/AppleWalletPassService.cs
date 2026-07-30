@@ -102,23 +102,26 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             catch { fondo = null; }
         }
 
-        var strip = StampStripRenderer.RenderSellosStrip(
+        var fondoPase = StampStripRenderer.RenderSellosBackground(
             backgroundColor, foregroundColor, input.SellosRequeridos, input.SellosActuales, stampIcon, fondo);
 
-        // Coupon (no StoreCard): así la foto de fondo cubre toda la tarjeta en vez de solo el
-        // banner del strip. El grid de sellos ya viene dibujado dentro de la propia imagen del
-        // strip (ver StampStripRenderer.RenderSellosStrip), igual que hacemos con los cupones.
-        request.Style = PassStyle.Coupon;
+        // EventTicket (no Coupon/StoreCard): es el único estilo, junto con Generic, que Apple permite
+        // usar con clientes finales sin campos de reserva raros; y a diferencia de Generic (que según
+        // la documentación oficial de PassKit NO admite ninguna imagen grande, solo logo/icon/thumbnail),
+        // EventTicket sí admite "background", la única imagen que cubre TODA la tarjeta (a diferencia de
+        // "strip", que es un banner acotado con una franja de color separada debajo). El grid de sellos
+        // ya viene dibujado dentro de la propia imagen (ver StampStripRenderer.RenderSellosBackground).
+        request.Style = PassStyle.EventTicket;
         request.Description = $"Tarjeta de fidelidad {input.OrganizationName}";
-        request.Images.Add(PassbookImage.Strip, strip);
-        request.Images.Add(PassbookImage.Strip2X, strip);
-        request.Images.Add(PassbookImage.Strip3X, strip);
+        request.Images.Add(PassbookImage.Background, fondoPase);
+        request.Images.Add(PassbookImage.Background2X, fondoPase);
+        request.Images.Add(PassbookImage.Background3X, fondoPase);
 
         var faltan = Math.Max(input.SellosRequeridos - input.SellosActuales, 0);
+        request.AddHeaderField(new StandardField("premios", "PREMIOS", input.PremiosCanjeados.ToString()));
         request.AddPrimaryField(new StandardField(
             "restantes", "", faltan > 0 ? $"Faltan {faltan} sello{(faltan == 1 ? "" : "s")}" : "¡Premio disponible!"));
         request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
-        request.AddAuxiliaryField(new StandardField("premios", "PREMIOS", input.PremiosCanjeados.ToString()));
 
         // Back field siempre presente (aunque sin recordatorios todavía) para que Wallet tenga
         // un valor previo con el que comparar: así, cuando el recordatorio semanal cambia este
@@ -142,28 +145,33 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             catch { fondo = null; }
         }
 
-        // Coupon: es el template oficial de Apple para este caso (logo arriba-izq, fecha de
-        // vencimiento arriba-der nativa, strip de foto grande, y campos abajo). Antes usábamos
-        // EventTicket a mano; con el diagrama oficial de Apple confirmado, Coupon es el correcto.
-        request.Style = PassStyle.Coupon;
+        // EventTicket (no Coupon): según la documentación oficial de PassKit, "background" (la única
+        // imagen que cubre TODA la tarjeta, como en los pases de referencia: museo, food truck,
+        // gimnasio) solo es válida en EventTicket — Coupon/StoreCard solo admiten "strip" (banner
+        // acotado, con una franja de color separada debajo) y Generic no admite ninguna imagen grande.
+        request.Style = PassStyle.EventTicket;
         request.Description = NonEmpty(input.Descripcion) ?? $"Cupón {input.OrganizationName}";
+        // ExpirationDate no se ve en el frente del pase (Apple solo la usa para archivar el pase
+        // automáticamente en "Pases caducados"); el vencimiento visible va en el auxiliaryField de abajo.
         request.ExpirationDate = input.Vencimiento;
 
         if (fondo != null)
         {
-            var strip = StampStripRenderer.RenderCuponStrip(backgroundColor, fondo);
-            request.Images.Add(PassbookImage.Strip, strip);
-            request.Images.Add(PassbookImage.Strip2X, strip);
-            request.Images.Add(PassbookImage.Strip3X, strip);
+            var fondoPase = StampStripRenderer.RenderCuponBackground(backgroundColor, fondo);
+            request.Images.Add(PassbookImage.Background, fondoPase);
+            request.Images.Add(PassbookImage.Background2X, fondoPase);
+            request.Images.Add(PassbookImage.Background3X, fondoPase);
         }
 
         var vencido = input.Vencimiento.HasValue && input.Vencimiento.Value < MexicoCityTime.Now();
         var estado = input.CuponRedimido ? "CANJEADO" : vencido ? "VENCIDO" : "VIGENTE";
 
+        request.AddHeaderField(new StandardField("estado", "ESTADO", estado));
         request.AddPrimaryField(new StandardField(
             "oferta", "", NonEmpty(input.Descripcion) ?? "Cupón especial"));
         request.AddSecondaryField(new StandardField("cliente", "CLIENTE", input.ClienteNombre));
-        request.AddAuxiliaryField(new StandardField("estado", "ESTADO", estado));
+        request.AddAuxiliaryField(new StandardField(
+            "vence", "VENCE", input.Vencimiento?.ToString("dd/MM/yyyy") ?? "Sin vencimiento"));
 
         return request;
     }
