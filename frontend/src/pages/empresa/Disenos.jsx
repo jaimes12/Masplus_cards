@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Award, Check, Copy, CreditCard, Download, Palette, Plus, QrCode, Ticket, Trash2 } from 'lucide-react'
 import { api } from '../../lib/api.js'
@@ -91,16 +92,15 @@ export default function Disenos() {
     }
   }
 
+  // En mobile (sobre todo iOS Safari) window.print() solo funciona si se llama de forma síncrona
+  // dentro del mismo gesto del usuario (tap); si se dispara después con un setTimeout/efecto, el
+  // navegador lo bloquea en silencio — por eso "Descargar PDF" andaba en la laptop pero no en el
+  // celular. flushSync fuerza a que el diseño a imprimir ya esté en el DOM antes de llamar a print,
+  // todo dentro del mismo click, sin ningún delay de por medio.
   function downloadPdf(d) {
-    setPrintDiseno(d)
+    flushSync(() => setPrintDiseno(d))
+    window.print()
   }
-
-  useEffect(() => {
-    if (!printDiseno) return
-    // Da tiempo a que la imagen del QR (servida por qrserver.com) termine de cargar antes de imprimir.
-    const timer = setTimeout(() => window.print(), 400)
-    return () => clearTimeout(timer)
-  }, [printDiseno])
 
   useEffect(() => {
     function handleAfterPrint() {
@@ -333,6 +333,9 @@ export default function Disenos() {
 
               {qrOpenId === d.id && (
                 <div className="mt-4 flex flex-col gap-4 border-t border-border pt-4 sm:flex-row">
+                  {/* Precarga el QR grande que usa el PDF, para que ya esté en caché cuando tocan
+                      "Descargar PDF" y no haga falta esperar a la red antes de imprimir. */}
+                  <img src={qrImageUrl(d, 500)} alt="" width={1} height={1} className="hidden" />
                   <img
                     src={qrImageUrl(d, 180)}
                     alt={`Código QR de registro para ${d.nombre}`}
