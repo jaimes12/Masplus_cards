@@ -1,5 +1,6 @@
 using MasplusCards.Api.Data;
 using MasplusCards.Api.Dtos;
+using MasplusCards.Api.Infrastructure;
 using MasplusCards.Api.Models;
 using MasplusCards.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +48,17 @@ public class DisenosService : IDisenosService
 
     public async Task<DisenoDto> CreateAsync(int empresaId, DisenoUpsertRequest request)
     {
+        var (limiteDisenos, _) = await PlanLimitesHelper.ObtenerLimitesAsync(_db, empresaId);
+        if (limiteDisenos.HasValue)
+        {
+            var disenosActivos = await _db.Disenos.CountAsync(d => d.EmpresaId == empresaId && d.Activo);
+            if (disenosActivos >= limiteDisenos.Value)
+            {
+                throw new InvalidOperationException(
+                    $"Llegaste al límite de {limiteDisenos.Value} diseño{(limiteDisenos.Value == 1 ? "" : "s")} de tu plan actual. Mejorá tu plan para crear más.");
+            }
+        }
+
         var diseno = new Diseno
         {
             EmpresaId = empresaId,

@@ -60,6 +60,17 @@ public class TarjetasService : ITarjetasService
         if (!disenoValido)
             throw new InvalidOperationException("El diseño elegido no existe o no pertenece a tu empresa.");
 
+        var (_, limiteTarjetas) = await PlanLimitesHelper.ObtenerLimitesAsync(_db, empresaId);
+        if (limiteTarjetas.HasValue)
+        {
+            var tarjetasEmitidas = await _db.Tarjetas.CountAsync(t => t.EmpresaId == empresaId);
+            if (tarjetasEmitidas >= limiteTarjetas.Value)
+            {
+                throw new InvalidOperationException(
+                    $"Llegaste al límite de {limiteTarjetas.Value} tarjeta{(limiteTarjetas.Value == 1 ? "" : "s")} de tu plan actual. Mejorá tu plan para emitir más.");
+            }
+        }
+
         var cliente = await _db.Clientes.FirstOrDefaultAsync(c => c.EmpresaId == empresaId && c.Telefono == request.Telefono);
         if (cliente == null)
         {

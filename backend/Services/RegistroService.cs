@@ -1,5 +1,6 @@
 using MasplusCards.Api.Data;
 using MasplusCards.Api.Dtos;
+using MasplusCards.Api.Infrastructure;
 using MasplusCards.Api.Models;
 using MasplusCards.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +72,17 @@ public class RegistroService : IRegistroService
             .FirstOrDefaultAsync(t => t.ClienteId == cliente.Id && t.DisenoId == diseno.Id);
         if (tarjetaExistente != null)
             return new RegistroResultDto(tarjetaExistente.CodigoQr);
+
+        var (_, limiteTarjetas) = await PlanLimitesHelper.ObtenerLimitesAsync(_db, diseno.EmpresaId);
+        if (limiteTarjetas.HasValue)
+        {
+            var tarjetasEmitidas = await _db.Tarjetas.CountAsync(t => t.EmpresaId == diseno.EmpresaId);
+            if (tarjetasEmitidas >= limiteTarjetas.Value)
+            {
+                throw new InvalidOperationException(
+                    "Este negocio llegó al límite de tarjetas de su plan actual. Contactalo directamente para que te agregue.");
+            }
+        }
 
         var tarjeta = new Tarjeta
         {

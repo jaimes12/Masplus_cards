@@ -34,8 +34,15 @@ public class DisenosController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<DisenoDto>> Create([FromBody] DisenoUpsertRequest request)
     {
-        var created = await _service.CreateAsync(User.GetEmpresaId(), request);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        try
+        {
+            var created = await _service.CreateAsync(User.GetEmpresaId(), request);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpPut("{id:int}")]
