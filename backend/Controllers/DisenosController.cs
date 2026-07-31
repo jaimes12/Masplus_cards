@@ -56,7 +56,14 @@ public class DisenosController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var ok = await _service.DeleteAsync(User.GetEmpresaId(), id);
-        return ok ? NoContent() : NotFound();
+        try
+        {
+            var ok = await _service.DeleteAsync(User.GetEmpresaId(), id);
+            return ok ? NoContent() : NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
     }
 }

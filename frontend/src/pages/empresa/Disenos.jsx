@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight, Award, Check, Copy, Download, Palette, Plus, QrCode, Ticket } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Award, Check, Copy, Download, Palette, Plus, QrCode, Ticket, Trash2 } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, ColorInput, Input, Label } from '../../components/ui.jsx'
@@ -222,11 +222,29 @@ export default function Disenos() {
     }
   }
 
+  async function eliminarDiseno(d) {
+    const ok = window.confirm(`¿Estás seguro de que querés eliminar "${d.nombre}"? Esta acción no se puede deshacer.`)
+    if (!ok) return
+    try {
+      await api.delete(`/api/disenos/${d.id}`)
+      await load()
+    } catch (err) {
+      window.alert(err.message)
+    }
+  }
+
   if (loading) return <p className="text-muted-foreground">Cargando...</p>
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">Diseños</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Diseños</h1>
+        {!showForm && (
+          <Button onClick={() => setShowForm(true)} className="gap-1.5">
+            <Plus className="h-4 w-4" /> Agregar nuevo diseño
+          </Button>
+        )}
+      </div>
 
       <div>
         <h2 className="mb-3 text-lg font-medium">Tus diseños</h2>
@@ -281,6 +299,9 @@ export default function Disenos() {
                     </Button>
                     <Button variant="ghost" className="gap-1.5" onClick={() => toggleQr(d)}>
                       <QrCode className="h-4 w-4" /> Código QR
+                    </Button>
+                    <Button variant="ghost" className="gap-1.5 text-destructive" onClick={() => eliminarDiseno(d)}>
+                      <Trash2 className="h-4 w-4" /> Eliminar
                     </Button>
                     {d.tipo === 'sellos' && d.recordatoriosActivos && (
                       <Button
@@ -366,11 +387,7 @@ export default function Disenos() {
         </div>
       </div>
 
-      {!showForm ? (
-        <Button onClick={() => setShowForm(true)} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Agregar nuevo diseño
-        </Button>
-      ) : (
+      {showForm && (
       <div>
         <h2 className="mb-1 text-lg font-medium">{editingId ? 'Editar diseño' : 'Crear diseño'}</h2>
         <p className="mb-3 text-sm text-muted-foreground">

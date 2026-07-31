@@ -119,6 +119,13 @@ public class DisenosService : IDisenosService
         var diseno = await _db.Disenos.FirstOrDefaultAsync(d => d.Id == id && d.EmpresaId == empresaId);
         if (diseno == null) return false;
 
+        var tieneTarjetas = await _db.Tarjetas.AnyAsync(t => t.DisenoId == id);
+        if (tieneTarjetas)
+        {
+            throw new InvalidOperationException(
+                "No se puede eliminar este diseño porque ya tiene tarjetas emitidas a clientes.");
+        }
+
         _db.Disenos.Remove(diseno);
         await _db.SaveChangesAsync();
         return true;
