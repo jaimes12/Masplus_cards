@@ -12,7 +12,7 @@ const items = [
   { to: '/empresa', label: 'Resumen', icon: LayoutDashboard, end: true },
   { to: '/empresa/disenos', label: 'Diseños', icon: Palette },
   { to: '/empresa/tarjetas', label: 'Tarjetas', icon: CreditCard },
-  { to: '/empresa/escanear', label: 'Escanear', icon: ScanLine },
+  { to: '/empresa/escanear', label: 'Escanear', icon: ScanLine, tour: 'sidebar-escanear' },
   { to: '/empresa/clientes', label: 'Clientes', icon: Users },
   { to: '/empresa/plan', label: 'Mi plan', icon: Crown },
   { to: '/empresa/perfil', label: 'Perfil', icon: User },

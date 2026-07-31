@@ -241,7 +241,7 @@ export default function Disenos() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Diseños</h1>
         {!showForm && (
-          <Button onClick={() => setShowForm(true)} className="gap-1.5">
+          <Button data-tour="add-diseno-btn" onClick={() => setShowForm(true)} className="gap-1.5">
             <Plus className="h-4 w-4" /> Agregar nuevo diseño
           </Button>
         )}
@@ -298,7 +298,7 @@ export default function Disenos() {
                     <Button variant="ghost" onClick={() => startEdit(d)}>
                       Editar
                     </Button>
-                    <Button variant="ghost" className="gap-1.5" onClick={() => toggleQr(d)}>
+                    <Button data-tour="diseno-qr-btn" variant="ghost" className="gap-1.5" onClick={() => toggleQr(d)}>
                       <QrCode className="h-4 w-4" /> Código QR
                     </Button>
                     <Link to={`/empresa/tarjetas?disenoId=${d.id}`}>
@@ -419,7 +419,7 @@ export default function Disenos() {
 
             <form onSubmit={handleSubmit}>
               {step === 0 && (
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div data-tour="diseno-step-info" className="grid gap-4 sm:grid-cols-2">
                   <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
                     <button
                       type="button"
@@ -527,7 +527,7 @@ export default function Disenos() {
               )}
 
               {step === 1 && (
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div data-tour="diseno-step-diseno" className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label>Logo</Label>
                     <ImageUploadInput value={form.logo} onChange={(url) => update('logo', url)} />
@@ -558,7 +558,7 @@ export default function Disenos() {
               )}
 
               {step === 2 && (
-                <div className="space-y-3 text-sm">
+                <div data-tour="diseno-step-revisar" className="space-y-3 text-sm">
                   <p className="text-muted-foreground">Revisá los datos antes de guardar.</p>
                   <dl className="divide-y divide-border rounded-lg border border-border">
                     {[
@@ -596,7 +596,7 @@ export default function Disenos() {
                     Siguiente <ArrowRight className="h-4 w-4" />
                   </Button>
                 ) : (
-                  <Button type="submit" disabled={saving}>
+                  <Button data-tour="diseno-guardar-btn" type="submit" disabled={saving}>
                     {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear diseño'}
                   </Button>
                 )}
