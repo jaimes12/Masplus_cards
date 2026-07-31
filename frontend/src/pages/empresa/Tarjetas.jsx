@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Minus, Pencil, Plus, ScanLine, Search, X } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
@@ -69,6 +69,7 @@ function EditarSellosModal({ tarjeta, onClose, onSaved }) {
 
 export default function Tarjetas() {
   const { auth } = useAuth()
+  const [searchParams] = useSearchParams()
   const [tarjetas, setTarjetas] = useState([])
   const [disenos, setDisenos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -83,11 +84,20 @@ export default function Tarjetas() {
   const [busqueda, setBusqueda] = useState('')
   const [editando, setEditando] = useState(null)
 
+  const selectedDiseno = disenos.find((d) => String(d.id) === form.disenoId)
+
   async function load() {
     const [t, d] = await Promise.all([api.get('/api/tarjetas'), api.get('/api/disenos')])
     setTarjetas(t)
     setDisenos(d)
-    setForm((f) => (f.disenoId ? f : { ...f, disenoId: String(d.find((x) => x.esActivoDeEmpresa)?.id ?? d[0]?.id ?? '') }))
+    setForm((f) => {
+      if (f.disenoId) return f
+      const disenoIdUrl = searchParams.get('disenoId')
+      const preferido = disenoIdUrl && d.some((x) => String(x.id) === disenoIdUrl)
+        ? disenoIdUrl
+        : String(d.find((x) => x.esActivoDeEmpresa)?.id ?? d[0]?.id ?? '')
+      return { ...f, disenoId: preferido }
+    })
     setLoading(false)
   }
 
@@ -224,33 +234,53 @@ export default function Tarjetas() {
       ) : (
         <Card>
           <h2 className="mb-3 text-lg font-medium">Emitir tarjeta nueva</h2>
-          <form onSubmit={handleEmitir} className="grid gap-4 sm:grid-cols-4">
-            <div>
-              <Label>Diseño</Label>
-              <Select value={form.disenoId} onChange={(e) => setForm({ ...form, disenoId: e.target.value })} required>
-                {disenos.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.nombre} ({d.tipo === 'cupon' ? 'Promoción' : 'Sellos'})
-                  </option>
-                ))}
-              </Select>
+          <form onSubmit={handleEmitir} className="grid gap-4 sm:grid-cols-[auto_1fr]">
+            <div className="flex justify-center sm:justify-start">
+              {selectedDiseno && (
+                <MiniCardPreview
+                  empresaNombre={auth?.nombre}
+                  clienteNombre={form.nombre || 'Cliente de ejemplo'}
+                  tipo={selectedDiseno.tipo}
+                  logo={selectedDiseno.logo}
+                  iconoSello={selectedDiseno.iconoSello}
+                  fondoUrl={selectedDiseno.fondoUrl}
+                  colorPrimario={selectedDiseno.colorPrimario}
+                  colorTexto={selectedDiseno.colorTexto}
+                  sellosRequeridos={selectedDiseno.sellosRequeridos}
+                  sellosActuales={0}
+                  vencimiento={selectedDiseno.vencimiento}
+                  descripcion={selectedDiseno.descripcion}
+                />
+              )}
             </div>
-            <div>
-              <Label>Nombre</Label>
-              <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required />
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <Label>Diseño</Label>
+                <Select value={form.disenoId} onChange={(e) => setForm({ ...form, disenoId: e.target.value })} required>
+                  {disenos.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.nombre} ({d.tipo === 'cupon' ? 'Promoción' : 'Sellos'})
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label>Nombre</Label>
+                <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required />
+              </div>
+              <div>
+                <Label>Teléfono</Label>
+                <Input value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} required />
+              </div>
+              <div>
+                <Label>Email (opcional)</Label>
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              </div>
+              {error && <p className="text-sm text-destructive sm:col-span-3">{error}</p>}
+              <Button type="submit" disabled={saving} className="sm:col-span-3">
+                {saving ? 'Emitiendo...' : 'Emitir tarjeta'}
+              </Button>
             </div>
-            <div>
-              <Label>Teléfono</Label>
-              <Input value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} required />
-            </div>
-            <div>
-              <Label>Email (opcional)</Label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            </div>
-            {error && <p className="text-sm text-destructive sm:col-span-4">{error}</p>}
-            <Button type="submit" disabled={saving} className="sm:col-span-4">
-              {saving ? 'Emitiendo...' : 'Emitir tarjeta'}
-            </Button>
           </form>
         </Card>
       )}

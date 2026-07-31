@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight, Award, Check, Copy, Download, Palette, Plus, QrCode, Ticket, Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, Award, Check, Copy, CreditCard, Download, Palette, Plus, QrCode, Ticket, Trash2 } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, ColorInput, Input, Label } from '../../components/ui.jsx'
@@ -300,6 +301,11 @@ export default function Disenos() {
                     <Button variant="ghost" className="gap-1.5" onClick={() => toggleQr(d)}>
                       <QrCode className="h-4 w-4" /> Código QR
                     </Button>
+                    <Link to={`/empresa/tarjetas?disenoId=${d.id}`}>
+                      <Button variant="ghost" className="gap-1.5">
+                        <CreditCard className="h-4 w-4" /> Agregar tarjetas
+                      </Button>
+                    </Link>
                     <Button variant="ghost" className="gap-1.5 text-destructive" onClick={() => eliminarDiseno(d)}>
                       <Trash2 className="h-4 w-4" /> Eliminar
                     </Button>
