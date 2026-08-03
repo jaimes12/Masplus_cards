@@ -3,6 +3,21 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { MoreHorizontal, X } from 'lucide-react'
 
+/** Panel con encabezado opcional (equivalente a .panel/.panel-head/.panel-body). */
+export function Panel({ title, action, children, bodyClassName = 'p-5', className = '' }) {
+  return (
+    <div className={`overflow-hidden rounded-2xl border border-border bg-card ${className}`}>
+      {title && (
+        <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+          <h3 className="text-base font-semibold text-foreground">{title}</h3>
+          {action && <div className="ml-auto">{action}</div>}
+        </div>
+      )}
+      <div className={bodyClassName}>{children}</div>
+    </div>
+  )
+}
+
 /** Card de métrica para Inicio/Estadísticas (equivalente a .stat / .kpi del prototipo). */
 export function StatCard({ icon: Icon, label, value, delta, deltaTone = 'flat', className = '' }) {
   const toneClass = deltaTone === 'up' ? 'text-ok' : deltaTone === 'down' ? 'text-bad' : 'text-muted-foreground'
