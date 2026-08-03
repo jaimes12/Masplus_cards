@@ -21,6 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<Plan> Planes => Set<Plan>();
     public DbSet<DiscountCode> DiscountCodes => Set<DiscountCode>();
     public DbSet<DiscountCodeRedemption> DiscountCodeRedemptions => Set<DiscountCodeRedemption>();
+    public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
 
     public override int SaveChanges()
     {
@@ -298,14 +299,38 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.TarjetaId).HasColumnName("tarjeta_id");
+            e.Property(x => x.EmpresaId).HasColumnName("empresa_id");
             e.Property(x => x.Accion).HasColumnName("accion").HasMaxLength(50).IsRequired();
             e.Property(x => x.SellosAgregados).HasColumnName("sellos_agregados");
             e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(500);
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
 
+            e.HasIndex(x => new { x.EmpresaId, x.CreatedAt });
+
             e.HasOne(x => x.Tarjeta)
                 .WithMany(x => x.Logs)
                 .HasForeignKey(x => x.TarjetaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Notificacion>(e =>
+        {
+            e.ToTable("notificaciones");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.EmpresaId).HasColumnName("empresa_id");
+            e.Property(x => x.Tipo).HasColumnName("tipo").HasMaxLength(40).IsRequired();
+            e.Property(x => x.Titulo).HasColumnName("titulo").HasMaxLength(150).IsRequired();
+            e.Property(x => x.Mensaje).HasColumnName("mensaje").HasMaxLength(300).IsRequired();
+            e.Property(x => x.LinkView).HasColumnName("link_view").HasMaxLength(40);
+            e.Property(x => x.Leida).HasColumnName("leida");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+
+            e.HasIndex(x => new { x.EmpresaId, x.CreatedAt });
+
+            e.HasOne(x => x.Empresa)
+                .WithMany()
+                .HasForeignKey(x => x.EmpresaId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

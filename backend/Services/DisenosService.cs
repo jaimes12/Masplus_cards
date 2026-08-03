@@ -10,10 +10,12 @@ namespace MasplusCards.Api.Services;
 public class DisenosService : IDisenosService
 {
     private readonly AppDbContext _db;
+    private readonly INotificacionesService _notificaciones;
 
-    public DisenosService(AppDbContext db)
+    public DisenosService(AppDbContext db, INotificacionesService notificaciones)
     {
         _db = db;
+        _notificaciones = notificaciones;
     }
 
     public async Task<List<DisenoDto>> GetByEmpresaAsync(int empresaId)
@@ -124,6 +126,79 @@ public class DisenosService : IDisenosService
 
         var count = await _db.Tarjetas.CountAsync(t => t.DisenoId == id);
         return ToDto(diseno, diseno.Id, count);
+    }
+
+    public async Task<DisenoDto?> PausarAsync(int empresaId, int id)
+    {
+        var diseno = await _db.Disenos.FirstOrDefaultAsync(d => d.Id == id && d.EmpresaId == empresaId);
+        if (diseno == null) return null;
+
+        diseno.Activo = false;
+        await _db.SaveChangesAsync();
+        await _notificaciones.CrearAsync(
+            empresaId, "diseno_pausado", "Tarjeta pausada",
+            $"Pausaste \"{diseno.Nombre}\". Ya no se puede usar para nuevas emisiones.", "tarjetas");
+
+        var activoId = await _db.Empresas.Where(e => e.Id == empresaId).Select(e => e.DisenoActivoId).FirstOrDefaultAsync();
+        var count = await _db.Tarjetas.CountAsync(t => t.DisenoId == id);
+        return ToDto(diseno, activoId, count);
+    }
+
+    public async Task<DisenoDto?> ReactivarAsync(int empresaId, int id)
+    {
+        var diseno = await _db.Disenos.FirstOrDefaultAsync(d => d.Id == id && d.EmpresaId == empresaId);
+        if (diseno == null) return null;
+
+        diseno.Activo = true;
+        await _db.SaveChangesAsync();
+        await _notificaciones.CrearAsync(
+            empresaId, "diseno_reactivado", "Tarjeta reactivada",
+            $"\"{diseno.Nombre}\" vuelve a estar disponible para nuevas emisiones.", "tarjetas");
+
+        var activoId = await _db.Empresas.Where(e => e.Id == empresaId).Select(e => e.DisenoActivoId).FirstOrDefaultAsync();
+        var count = await _db.Tarjetas.CountAsync(t => t.DisenoId == id);
+        return ToDto(diseno, activoId, count);
+    }
+
+    public async Task<DisenoDto?> DuplicarAsync(int empresaId, int id)
+    {
+        var original = await _db.Disenos.FirstOrDefaultAsync(d => d.Id == id && d.EmpresaId == empresaId);
+        if (original == null) return null;
+
+        var (limiteDisenos, _) = await PlanLimitesHelper.ObtenerLimitesAsync(_db, empresaId);
+        if (limiteDisenos.HasValue)
+        {
+            var disenosActivos = await _db.Disenos.CountAsync(d => d.EmpresaId == empresaId && d.Activo);
+            if (disenosActivos >= limiteDisenos.Value)
+            {
+                throw new InvalidOperationException(
+                    $"Llegaste al límite de {limiteDisenos.Value} diseño{(limiteDisenos.Value == 1 ? "" : "s")} de tu plan actual. Mejorá tu plan para crear más.");
+            }
+        }
+
+        var copia = new Diseno
+        {
+            EmpresaId = empresaId,
+            TemplateId = original.TemplateId,
+            Nombre = string.IsNullOrWhiteSpace(original.Nombre) ? "Copia" : $"{original.Nombre} (copia)",
+            Tipo = original.Tipo,
+            Logo = original.Logo,
+            ColorPrimario = original.ColorPrimario,
+            ColorSecundario = original.ColorSecundario,
+            ColorTexto = original.ColorTexto,
+            IconoSello = original.IconoSello,
+            FondoUrl = original.FondoUrl,
+            SellosRequeridos = original.SellosRequeridos,
+            Vencimiento = original.Vencimiento,
+            Descripcion = original.Descripcion,
+            Configuracion = original.Configuracion,
+            RecordatoriosActivos = original.RecordatoriosActivos,
+            EstiloCuponPoster = original.EstiloCuponPoster,
+        };
+
+        _db.Disenos.Add(copia);
+        await _db.SaveChangesAsync();
+        return ToDto(copia, null, 0);
     }
 
     public async Task<bool> DeleteAsync(int empresaId, int id)

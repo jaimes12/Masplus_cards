@@ -14,13 +14,15 @@ public class StripeService : IStripeService
     private readonly AppDbContext _db;
     private readonly IPlanesService _planes;
     private readonly IDiscountCodesService _codigos;
+    private readonly INotificacionesService _notificaciones;
     private readonly StripeSettings _settings;
 
-    public StripeService(AppDbContext db, IPlanesService planes, IDiscountCodesService codigos, IOptions<StripeSettings> settings)
+    public StripeService(AppDbContext db, IPlanesService planes, IDiscountCodesService codigos, INotificacionesService notificaciones, IOptions<StripeSettings> settings)
     {
         _db = db;
         _planes = planes;
         _codigos = codigos;
+        _notificaciones = notificaciones;
         _settings = settings.Value;
     }
 
@@ -198,6 +200,15 @@ public class StripeService : IStripeService
                 if (periodEnd.HasValue)
                     empresa.PlanRenuevaEl = TimeZoneInfo.ConvertTimeFromUtc(periodEnd.Value, MexicoCityTime.GetTimeZone());
                 await _db.SaveChangesAsync(ct);
+
+                if (subscription.Status == "active")
+                {
+                    await _notificaciones.CrearAsync(
+                        empresa.Id, "pago_procesado",
+                        "Pago procesado",
+                        "Se procesó el pago de tu suscripción correctamente.",
+                        "configuracion");
+                }
                 break;
 
             case "customer.subscription.deleted":

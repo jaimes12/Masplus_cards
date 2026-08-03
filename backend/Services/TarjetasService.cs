@@ -12,12 +12,14 @@ public class TarjetasService : ITarjetasService
     private readonly AppDbContext _db;
     private readonly IPassKitService _passKit;
     private readonly IApnsPushService _apns;
+    private readonly INotificacionesService _notificaciones;
 
-    public TarjetasService(AppDbContext db, IPassKitService passKit, IApnsPushService apns)
+    public TarjetasService(AppDbContext db, IPassKitService passKit, IApnsPushService apns, INotificacionesService notificaciones)
     {
         _db = db;
         _passKit = passKit;
         _apns = apns;
+        _notificaciones = notificaciones;
     }
 
     private async Task NotifyPassUpdatedAsync(string codigoQr)
@@ -91,7 +93,7 @@ public class TarjetasService : ITarjetasService
         _db.Tarjetas.Add(tarjeta);
         await _db.SaveChangesAsync();
 
-        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "tarjeta_creada" });
+        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, EmpresaId = tarjeta.EmpresaId, Accion = "tarjeta_creada" });
         await _db.SaveChangesAsync();
 
         var created = await BaseQuery().FirstAsync(t => t.Id == tarjeta.Id);
@@ -117,13 +119,29 @@ public class TarjetasService : ITarjetasService
         if (tarjeta.Diseno?.Tipo == "cupon")
             throw new InvalidOperationException("Esta tarjeta es un cupón, no acumula sellos.");
 
+        var sellosRequeridos = tarjeta.Diseno?.SellosRequeridos ?? 0;
+        var recienCompletada = sellosRequeridos > 0
+            && tarjeta.SellosActuales < sellosRequeridos
+            && tarjeta.SellosActuales + 1 >= sellosRequeridos;
+
         tarjeta.SellosActuales += 1;
         tarjeta.UltimoSelloEn = MexicoCityTime.Now();
-        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "sello_agregado", SellosAgregados = 1 });
+        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, EmpresaId = tarjeta.EmpresaId, Accion = "sello_agregado", SellosAgregados = 1 });
         await _db.SaveChangesAsync();
 
         var updated = await BaseQuery().FirstAsync(t => t.Id == tarjeta.Id);
         await NotifyPassUpdatedAsync(updated.CodigoQr);
+
+        if (recienCompletada)
+        {
+            var clienteNombre = string.IsNullOrWhiteSpace(updated.Cliente?.Nombre) ? updated.Cliente?.Telefono : updated.Cliente.Nombre;
+            await _notificaciones.CrearAsync(
+                updated.EmpresaId, "tarjeta_completada",
+                "¡Tarjeta completada!",
+                $"{clienteNombre} completó su tarjeta de {updated.Diseno?.Nombre} y ya puede canjear su premio.",
+                "clientes");
+        }
+
         return ToDto(updated);
     }
 
@@ -140,7 +158,7 @@ public class TarjetasService : ITarjetasService
             throw new InvalidOperationException("Esta tarjeta no tiene sellos que quitar.");
 
         tarjeta.SellosActuales -= 1;
-        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "sello_quitado", SellosAgregados = -1 });
+        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, EmpresaId = tarjeta.EmpresaId, Accion = "sello_quitado", SellosAgregados = -1 });
         await _db.SaveChangesAsync();
 
         var updated = await BaseQuery().FirstAsync(t => t.Id == id);
@@ -162,7 +180,7 @@ public class TarjetasService : ITarjetasService
 
         var diferencia = sellosActuales - tarjeta.SellosActuales;
         tarjeta.SellosActuales = sellosActuales;
-        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "sellos_editados", SellosAgregados = diferencia });
+        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, EmpresaId = tarjeta.EmpresaId, Accion = "sellos_editados", SellosAgregados = diferencia });
         await _db.SaveChangesAsync();
 
         var updated = await BaseQuery().FirstAsync(t => t.Id == id);
@@ -185,7 +203,7 @@ public class TarjetasService : ITarjetasService
 
         tarjeta.SellosActuales -= sellosRequeridos;
         tarjeta.PremiosCanjeados += 1;
-        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "premio_canjeado" });
+        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, EmpresaId = tarjeta.EmpresaId, Accion = "premio_canjeado" });
         await _db.SaveChangesAsync();
 
         var updated = await BaseQuery().FirstAsync(t => t.Id == id);
@@ -209,7 +227,7 @@ public class TarjetasService : ITarjetasService
             throw new InvalidOperationException("Este cupón ya venció.");
 
         tarjeta.CuponRedimido = true;
-        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "cupon_canjeado" });
+        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, EmpresaId = tarjeta.EmpresaId, Accion = "cupon_canjeado" });
         await _db.SaveChangesAsync();
 
         var updated = await BaseQuery().FirstAsync(t => t.Id == id);

@@ -95,7 +95,7 @@ public class RegistroService : IRegistroService
         _db.Tarjetas.Add(tarjeta);
         await _db.SaveChangesAsync();
 
-        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, Accion = "tarjeta_creada", Descripcion = "Autorregistro por QR" });
+        _db.TarjetaLogs.Add(new TarjetaLog { TarjetaId = tarjeta.Id, EmpresaId = diseno.EmpresaId, Accion = "tarjeta_creada", Descripcion = "Autorregistro por QR" });
         await _db.SaveChangesAsync();
 
         return new RegistroResultDto(tarjeta.CodigoQr);

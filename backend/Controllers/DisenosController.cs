@@ -60,6 +60,35 @@ public class DisenosController : ControllerBase
         return activated == null ? NotFound() : Ok(activated);
     }
 
+    /// <summary>Oculta este Diseno de nuevas emisiones (no afecta a las tarjetas ya emitidas).</summary>
+    [HttpPost("{id:int}/pausar")]
+    public async Task<ActionResult<DisenoDto>> Pausar(int id)
+    {
+        var paused = await _service.PausarAsync(User.GetEmpresaId(), id);
+        return paused == null ? NotFound() : Ok(paused);
+    }
+
+    [HttpPost("{id:int}/reactivar")]
+    public async Task<ActionResult<DisenoDto>> Reactivar(int id)
+    {
+        var reactivated = await _service.ReactivarAsync(User.GetEmpresaId(), id);
+        return reactivated == null ? NotFound() : Ok(reactivated);
+    }
+
+    [HttpPost("{id:int}/duplicar")]
+    public async Task<ActionResult<DisenoDto>> Duplicar(int id)
+    {
+        try
+        {
+            var copia = await _service.DuplicarAsync(User.GetEmpresaId(), id);
+            return copia == null ? NotFound() : CreatedAtAction(nameof(GetById), new { id = copia.Id }, copia);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

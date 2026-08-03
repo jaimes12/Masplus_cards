@@ -12,10 +12,14 @@ namespace MasplusCards.Api.Controllers;
 public class EmpresaController : ControllerBase
 {
     private readonly IEmpresaProfileService _service;
+    private readonly IHistorialService _historial;
+    private readonly INotificacionesService _notificaciones;
 
-    public EmpresaController(IEmpresaProfileService service)
+    public EmpresaController(IEmpresaProfileService service, IHistorialService historial, INotificacionesService notificaciones)
     {
         _service = service;
+        _historial = historial;
+        _notificaciones = notificaciones;
     }
 
     [HttpGet("perfil")]
@@ -44,5 +48,32 @@ public class EmpresaController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    [HttpGet("historial")]
+    public async Task<ActionResult<HistorialPageDto>> GetHistorial(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? accion = null,
+        [FromQuery] DateTime? desde = null, [FromQuery] DateTime? hasta = null, [FromQuery] string? q = null)
+    {
+        return Ok(await _historial.GetAsync(User.GetEmpresaId(), page, pageSize, accion, desde, hasta, q));
+    }
+
+    [HttpGet("notificaciones")]
+    public async Task<ActionResult<List<NotificacionDto>>> GetNotificaciones()
+    {
+        return Ok(await _notificaciones.GetAsync(User.GetEmpresaId()));
+    }
+
+    [HttpGet("notificaciones/no-leidas")]
+    public async Task<ActionResult<int>> ContarNotificacionesNoLeidas()
+    {
+        return Ok(await _notificaciones.ContarNoLeidasAsync(User.GetEmpresaId()));
+    }
+
+    [HttpPost("notificaciones/marcar-leidas")]
+    public async Task<IActionResult> MarcarNotificacionesLeidas()
+    {
+        await _notificaciones.MarcarLeidasAsync(User.GetEmpresaId());
+        return NoContent();
     }
 }

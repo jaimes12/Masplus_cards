@@ -9,5 +9,8 @@ public interface IDisenosService
     Task<DisenoDto> CreateAsync(int empresaId, DisenoUpsertRequest request);
     Task<DisenoDto?> UpdateAsync(int empresaId, int id, DisenoUpsertRequest request);
     Task<DisenoDto?> ActivarAsync(int empresaId, int id);
+    Task<DisenoDto?> PausarAsync(int empresaId, int id);
+    Task<DisenoDto?> ReactivarAsync(int empresaId, int id);
+    Task<DisenoDto?> DuplicarAsync(int empresaId, int id);
     Task<bool> DeleteAsync(int empresaId, int id);
 }
