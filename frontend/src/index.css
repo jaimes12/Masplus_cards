@@ -49,6 +49,31 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  /* Tokens semánticos (estados, jerarquía de texto secundaria) usados por el panel de empresa. */
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+}
+
+:root {
+  --ink-2: #52525B;
+  --ink-3: #A1A1AA;
+  --surface: #FAFAFA;
+  --surface-2: #F4F4F5;
+  --ok: #16A34A;
+  --ok-soft: #DCFCE7;
+  --warn: #B45309;
+  --warn-soft: #FEF3C7;
+  --bad: #DC2626;
+  --bad-soft: #FEE2E2;
 }
 
 .dark {
@@ -71,26 +96,42 @@
   --ring: #D4D4D8;
 }
 
-/* Tema Golden Hour (theme-factory) — aplicado solo a las cards del login y de Diseños,
-   nunca a las tarjetas de fidelidad (esas usan los colores que elige cada empresa). */
-.theme-golden-hour {
-  --background: #FBF3E4;
-  --foreground: #4A403A;
-  --card: #FFFDF8;
-  --card-foreground: #4A403A;
-  --popover: #FFFDF8;
-  --popover-foreground: #4A403A;
-  --primary: #F4A900;
-  --primary-foreground: #3A2A0E;
-  --secondary: #F0DFC4;
-  --secondary-foreground: #4A403A;
-  --muted: #F0DFC4;
-  --muted-foreground: #8A7154;
-  --accent: #C1666B;
-  --accent-foreground: #FFFDF8;
-  --border: #E3CFA8;
-  --input: #E3CFA8;
-  --ring: #F4A900;
+/* Tema "Más+" (rediseño Modernist, theme-factory) — aplicado al panel de empresa completo
+   (EmpresaLayout) y a las cards de login/registro de empresa, nunca a las tarjetas de
+   fidelidad (esas usan los colores que elige cada empresa). Neutros cálidos + el mismo
+   naranja de marca que ya usa la landing (orange-500/600 de Tailwind, no un hex nuevo). */
+.theme-mas {
+  --background: #FAF9F8;
+  --foreground: #12100F;
+  --card: #FFFFFF;
+  --card-foreground: #12100F;
+  --popover: #FFFFFF;
+  --popover-foreground: #12100F;
+  --primary: #12100F;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F2F0EE;
+  --secondary-foreground: #12100F;
+  --muted: #F2F0EE;
+  --muted-foreground: #8B8480;
+  --accent: #F97316;
+  --accent-foreground: #FFFFFF;
+  --destructive: #C8341F;
+  --destructive-foreground: #FFFFFF;
+  --border: #E8E5E2;
+  --input: #E8E5E2;
+  --ring: #F97316;
+  --radius: 0.875rem;
+
+  --ink-2: #4F4A46;
+  --ink-3: #8B8480;
+  --surface: #FAF9F8;
+  --surface-2: #F2F0EE;
+  --ok: #1A7F4B;
+  --ok-soft: #EAF6EE;
+  --warn: #A9670C;
+  --warn-soft: #FDF3E2;
+  --bad: #C8341F;
+  --bad-soft: #FBECEA;
 }
 
 body {

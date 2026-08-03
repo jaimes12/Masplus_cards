@@ -98,7 +98,7 @@ export default function EmpresaLayout() {
             onMenuClick={() => setMobileMenuOpen(true)}
           />
         </div>
-        <main className="theme-golden-hour flex-1 overflow-y-auto px-4 pb-6 pr-6">
+        <main className="theme-mas flex-1 overflow-y-auto px-4 pb-6 pr-6">
           <div className="mx-auto max-w-6xl">
             <Outlet />
           </div>

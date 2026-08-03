@@ -62,7 +62,7 @@ export default function RegisterEmpresa() {
   return (
     <div className="relative flex min-h-svh items-center justify-center p-4">
       <AuthBackground />
-      <div className="theme-golden-hour w-full max-w-sm rounded-3xl border border-border bg-card p-8 text-card-foreground shadow-2xl">
+      <div className="theme-mas w-full max-w-sm rounded-3xl border border-border bg-card p-8 text-card-foreground shadow-2xl">
         <img src={masplusLogo} alt="MasPlus" className="mb-6 h-7 w-auto" />
         <h1 className="mb-6 text-2xl font-semibold">Registrar empresa</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
