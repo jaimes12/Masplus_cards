@@ -9,7 +9,6 @@ import {
   Menu,
   Palette,
   QrCode,
-  Sparkles,
   Users,
   X,
 } from 'lucide-react'
@@ -324,13 +323,6 @@ function Hero() {
         animate="show"
         variants={{ show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } } }}
       >
-        <motion.div
-          variants={heroItem}
-          className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground"
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          Los sellos se actualizan solos en Apple Wallet
-        </motion.div>
         <motion.h1 variants={heroItem} className="text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
           Convierte cada visita
           <br />
@@ -415,6 +407,57 @@ function BusinessTypes() {
 
 const cardHover = { y: -4, transition: { type: 'spring', stiffness: 300, damping: 22 } }
 
+/** Soft blurred brand-color blob, purely decorative. Never intercepts clicks. */
+function Blob({ className }) {
+  return <div className={`pointer-events-none absolute rounded-full blur-3xl ${className}`} />
+}
+
+function ProductShowcase() {
+  return (
+    <section className="relative overflow-hidden py-24">
+      <Blob className="-left-32 top-4 h-72 w-72 bg-gradient-to-br from-orange-300/40 to-orange-500/5" />
+      <Blob className="-right-24 bottom-0 h-96 w-96 bg-gradient-to-tr from-orange-200/50 to-orange-400/5" />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-16 px-6 lg:grid-cols-2">
+        <Reveal className="relative mx-auto flex h-[22rem] w-full max-w-md items-center justify-center sm:h-[26rem]">
+          <img
+            src={ejemplo4}
+            alt="Tarjeta de sellos con diseño personalizado"
+            className="absolute left-1/2 top-1/2 h-64 w-auto -translate-x-[64%] -translate-y-1/2 -rotate-6 rounded-2xl object-contain shadow-2xl sm:h-72"
+          />
+          <img
+            src={ejemplo2}
+            alt="Tarjeta de cupón con diseño personalizado"
+            className="absolute left-1/2 top-1/2 h-64 w-auto -translate-x-[36%] -translate-y-[57%] rotate-3 rounded-2xl object-contain shadow-2xl sm:h-72"
+          />
+        </Reveal>
+        <Reveal delay={0.1}>
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Cada tarjeta, tan única como tu marca.
+          </h2>
+          <p className="mt-4 max-w-lg text-muted-foreground">
+            Elegís el logo, los colores, el ícono del sello y hasta el fondo. Tu tarjeta se ve
+            como parte de tu negocio, lista para vivir en el Apple Wallet de tus clientes.
+          </p>
+          <ul className="mt-6 space-y-3 text-sm">
+            <li className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+              <span>Tarjetas de sellos o cupones con vencimiento, vos elegís.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+              <span>Vista previa en vivo mientras armás el diseño.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+              <span>Podés tener varios diseños y activar el que estés usando.</span>
+            </li>
+          </ul>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
 function HowItWorks() {
   return (
     <section id="como-funciona" className="mx-auto max-w-6xl px-6 py-24">
@@ -442,8 +485,9 @@ function HowItWorks() {
 
 function Features() {
   return (
-    <section id="funciones" className="bg-secondary/40 py-24">
-      <div className="mx-auto max-w-6xl px-6">
+    <section id="funciones" className="relative overflow-hidden bg-secondary/40 py-24">
+      <Blob className="right-0 top-0 h-80 w-80 bg-gradient-to-bl from-orange-300/30 to-orange-500/5" />
+      <div className="relative mx-auto max-w-6xl px-6">
         <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Dale a tu negocio el poder de la lealtad
@@ -624,34 +668,30 @@ function CtaBanner() {
 
   return (
     <section className="mx-auto max-w-6xl px-6 pb-24">
-      <Reveal
-        className="relative overflow-hidden rounded-3xl px-8 py-14 text-center text-white sm:px-16"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(194,65,12,0.88), rgba(154,52,18,0.92)), url(https://picsum.photos/seed/masplus-cta/1600/700)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Deja el papel. Empieza a fidelizar hoy.
-        </h2>
-        <p className="mx-auto mt-3 max-w-xl text-orange-50">
-          Crea tu cuenta gratis y ten tu primera tarjeta de lealtad lista en minutos.
-        </p>
-        <motion.div
-          className="mt-7 inline-block"
-          whileHover={reduce ? undefined : { scale: 1.03 }}
-          whileTap={reduce ? undefined : { scale: 0.97 }}
-        >
-          <Link
-            to="/empresa/registro"
-            className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-orange-700 hover:opacity-90"
+      <Reveal className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-600 to-orange-800 px-8 py-14 text-center text-white sm:px-16">
+        <Blob className="-left-16 -top-16 h-64 w-64 bg-white/10" />
+        <Blob className="-bottom-20 -right-10 h-72 w-72 bg-white/10" />
+        <div className="relative">
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Deja el papel. Empieza a fidelizar hoy.
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-orange-50">
+            Crea tu cuenta gratis y ten tu primera tarjeta de lealtad lista en minutos.
+          </p>
+          <motion.div
+            className="mt-7 inline-block"
+            whileHover={reduce ? undefined : { scale: 1.03 }}
+            whileTap={reduce ? undefined : { scale: 0.97 }}
           >
-            Empieza gratis
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </motion.div>
+            <Link
+              to="/empresa/registro"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-orange-700 hover:opacity-90"
+            >
+              Empieza gratis
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
+        </div>
       </Reveal>
     </section>
   )
@@ -686,6 +726,7 @@ export default function Home() {
       <TrustStrip />
       <BusinessTypes />
       <HowItWorks />
+      <ProductShowcase />
       <Features />
       <Pricing />
       <Testimonials />

@@ -254,7 +254,7 @@ export default function Disenos() {
         )}
         <div className="grid gap-3 sm:grid-cols-2">
           {disenos.map((d) => (
-            <Card key={d.id} className={d.esActivoDeEmpresa ? 'border-primary' : ''}>
+            <Card key={d.id} className={`theme-golden-hour ${d.esActivoDeEmpresa ? 'border-primary' : ''}`}>
               <div className="flex items-start gap-4">
                 <MiniCardPreview
                   empresaNombre={auth?.nombre}
@@ -404,7 +404,7 @@ export default function Disenos() {
         </p>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
-          <Card>
+          <Card className="theme-golden-hour">
             {/* Barra de progreso del wizard */}
             <div className="mb-6 flex items-center gap-2">
               {STEPS.map((label, i) => (

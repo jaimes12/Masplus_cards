@@ -71,6 +71,28 @@
   --ring: #D4D4D8;
 }
 
+/* Tema Golden Hour (theme-factory) — aplicado solo a las cards del login y de Diseños,
+   nunca a las tarjetas de fidelidad (esas usan los colores que elige cada empresa). */
+.theme-golden-hour {
+  --background: #FBF3E4;
+  --foreground: #4A403A;
+  --card: #FFFDF8;
+  --card-foreground: #4A403A;
+  --popover: #FFFDF8;
+  --popover-foreground: #4A403A;
+  --primary: #F4A900;
+  --primary-foreground: #3A2A0E;
+  --secondary: #F0DFC4;
+  --secondary-foreground: #4A403A;
+  --muted: #F0DFC4;
+  --muted-foreground: #8A7154;
+  --accent: #C1666B;
+  --accent-foreground: #FFFDF8;
+  --border: #E3CFA8;
+  --input: #E3CFA8;
+  --ring: #F4A900;
+}
+
 body {
   margin: 0;
   background: var(--background);
