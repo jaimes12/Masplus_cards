@@ -62,7 +62,11 @@ function CardForm({ plan, precioMostrar, codigoDescuento, clientSecret, onClose,
         <Button type="button" variant="outline" className="flex-1" onClick={onClose} disabled={procesando}>
           Cancelar
         </Button>
-        <Button type="submit" className="flex-1" disabled={!stripe || procesando}>
+        <Button
+          type="submit"
+          className="!bg-gradient-to-br !from-orange-500 !to-orange-600 !text-white flex-1"
+          disabled={!stripe || procesando}
+        >
           {procesando ? 'Procesando...' : `Pagar $${Math.round(Number(precioMostrar))} MXN`}
         </Button>
       </div>

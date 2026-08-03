@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
 import { Check, Crown, Tag } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { Button, Card, Input, Label } from '../../components/ui.jsx'
 import PagoPlanModal from '../../components/PagoPlanModal.jsx'
+
+const cardHover = { y: -6, transition: { type: 'spring', stiffness: 300, damping: 22 } }
 
 function UsageBar({ label, used, limit, dark }) {
   const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : 100
@@ -26,6 +29,7 @@ function UsageBar({ label, used, limit, dark }) {
 }
 
 export default function Plan() {
+  const reduce = useReducedMotion()
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [pagoPlan, setPagoPlan] = useState(null)
@@ -165,50 +169,57 @@ export default function Plan() {
             const resultado = resultadosCodigo?.[plan.id]
             const conDescuento = resultado?.valido ? resultado : null
             return (
-              <Card
+              <motion.div
                 key={plan.id}
-                className={`animate-fade-up relative flex flex-col ${plan.destacado ? 'ring-2 ring-orange-500' : ''}`}
+                className={`animate-fade-up ${plan.destacado ? 'sm:-my-2 sm:scale-[1.03]' : ''}`}
                 style={{ animationDelay: `${i * 60}ms` }}
+                whileHover={reduce ? undefined : cardHover}
               >
-                {plan.destacado && (
-                  <span className="absolute -top-3 left-6 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-3 py-1 text-xs font-semibold text-white">
-                    Más popular
-                  </span>
-                )}
-                <h4 className="text-lg font-semibold">{plan.nombre}</h4>
-                <p className="mt-1 text-sm text-muted-foreground">{plan.descripcion}</p>
-                <p className="mt-4">
-                  {conDescuento ? (
-                    <>
-                      <span className="text-sm text-muted-foreground line-through">
-                        ${Math.round(Number(plan.precioMensual))}
-                      </span>{' '}
-                      <span className="text-3xl font-semibold text-orange-600">
-                        ${Math.round(Number(conDescuento.precioConDescuento))}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-3xl font-semibold">${Math.round(Number(plan.precioMensual))}</span>
-                  )}
-                  <span className="text-sm text-muted-foreground"> MXN/mes</span>
-                </p>
-                <ul className="mt-5 flex-1 space-y-2 text-sm">
-                  {plan.caracteristicas.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  className="mt-6 w-full"
-                  variant={esActual ? 'outline' : 'primary'}
-                  disabled={esActual || canjeando === plan.id}
-                  onClick={() => elegirPlan(plan)}
+                <Card
+                  className={`relative flex h-full flex-col ${
+                    plan.destacado ? 'border-orange-500 bg-gradient-to-b from-orange-50/80 to-card shadow-soft-lg ring-2 ring-orange-500' : ''
+                  }`}
                 >
-                  {esActual ? 'Plan actual' : canjeando === plan.id ? 'Activando...' : 'Elegir este plan'}
-                </Button>
-              </Card>
+                  {plan.destacado && (
+                    <span className="absolute -top-3 left-6 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                      Más popular
+                    </span>
+                  )}
+                  <h4 className="text-lg font-semibold">{plan.nombre}</h4>
+                  <p className="mt-1 text-sm text-muted-foreground">{plan.descripcion}</p>
+                  <p className="mt-4">
+                    {conDescuento ? (
+                      <>
+                        <span className="text-sm text-muted-foreground line-through">
+                          ${Math.round(Number(plan.precioMensual))}
+                        </span>{' '}
+                        <span className="text-3xl font-semibold text-orange-600">
+                          ${Math.round(Number(conDescuento.precioConDescuento))}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-3xl font-semibold">${Math.round(Number(plan.precioMensual))}</span>
+                    )}
+                    <span className="text-sm text-muted-foreground"> MXN/mes</span>
+                  </p>
+                  <ul className="mt-5 flex-1 space-y-2 text-sm">
+                    {plan.caracteristicas.map((f) => (
+                      <li key={f} className="flex items-start gap-2">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    className={`mt-6 w-full ${esActual ? '' : '!bg-gradient-to-br !from-orange-500 !to-orange-600 !text-white'}`}
+                    variant={esActual ? 'outline' : 'primary'}
+                    disabled={esActual || canjeando === plan.id}
+                    onClick={() => elegirPlan(plan)}
+                  >
+                    {esActual ? 'Plan actual' : canjeando === plan.id ? 'Activando...' : 'Elegir este plan'}
+                  </Button>
+                </Card>
+              </motion.div>
             )
           })}
         </div>
