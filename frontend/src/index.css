@@ -91,12 +91,18 @@ body {
   }
 }
 
-.animate-marquee {
-  animation: marquee-left 32s linear infinite;
-}
-
 .animate-marquee-slow {
   animation: marquee-left 40s linear infinite;
+}
+
+.marquee-pausable:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-slow {
+    animation: none;
+  }
 }
 
 @keyframes card-in {
