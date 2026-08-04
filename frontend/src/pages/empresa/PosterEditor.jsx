@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { ArrowLeft, Download, Save } from 'lucide-react'
 import { api } from '../../lib/api.js'
@@ -132,7 +132,22 @@ export default function PosterEditor() {
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState(null)
   const canvasRef = useRef(null)
+  const stageRef = useRef(null)
   const dragState = useRef(null)
+  const [scale, setScale] = useState(1)
+
+  useLayoutEffect(() => {
+    const stage = stageRef.current
+    if (!stage) return
+    const update = () => {
+      const available = stage.clientWidth
+      setScale(available > 0 ? Math.min(1, available / CANVAS_W) : 1)
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(stage)
+    return () => ro.disconnect()
+  }, [])
 
   useEffect(() => {
     api.get(`/api/disenos/${id}`).then((d) => {
@@ -246,14 +261,14 @@ export default function PosterEditor() {
 
   return (
     <div className="flex min-h-svh flex-col bg-secondary/40">
-      <header className="print:hidden flex items-center justify-between border-b border-border bg-card px-6 py-3">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" onClick={() => window.close()} className="gap-1.5">
+      <header className="print:hidden flex flex-col gap-2 border-b border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <Button variant="ghost" onClick={() => window.close()} className="shrink-0 gap-1.5">
             <ArrowLeft className="h-4 w-4" /> Cerrar
           </Button>
-          <p className="font-medium">Editar póster · {diseno.nombre}</p>
+          <p className="min-w-0 truncate font-medium">Editar póster · {diseno.nombre}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {savedAt && <span className="text-xs text-muted-foreground">Guardado</span>}
           <Button variant="outline" onClick={guardar} disabled={saving} className="gap-1.5">
             <Save className="h-4 w-4" /> {saving ? 'Guardando...' : 'Guardar'}
@@ -264,32 +279,34 @@ export default function PosterEditor() {
         </div>
       </header>
 
-      <div className="print:hidden flex flex-1 gap-6 overflow-auto p-6">
-        <div className="flex flex-1 items-start justify-center">
-          <div
-            ref={canvasRef}
-            className="relative shrink-0 overflow-hidden rounded-lg shadow-soft-lg"
-            style={{ ...canvasStyle, userSelect: 'none', touchAction: 'none' }}
-            onPointerDown={() => setSelectedId(null)}
-          >
-            {poster.elements.map((el) => (
-              <PosterElementView
-                key={el.id}
-                el={el}
-                selected={selectedId === el.id}
-                registroUrl={registroUrl}
-                onPointerDownMove={(e) => beginDrag(e, el, 'move')}
-                onPointerDownResize={(e) => beginDrag(e, el, 'resize')}
-              />
-            ))}
-            <div className="pointer-events-none absolute inset-x-0 bottom-3 flex items-center justify-center gap-1.5 opacity-60">
-              <img src={masplusLogo} alt="" className="h-4 w-4" />
-              <span className="text-xs">Powered by Masplus</span>
+      <div className="print:hidden flex flex-1 flex-col gap-6 overflow-auto p-4 sm:p-6 lg:flex-row">
+        <div ref={stageRef} className="flex min-w-0 flex-1 items-start justify-center">
+          <div style={{ width: CANVAS_W * scale, height: CANVAS_H * scale }}>
+            <div
+              ref={canvasRef}
+              className="relative shrink-0 origin-top-left overflow-hidden rounded-lg shadow-soft-lg"
+              style={{ ...canvasStyle, userSelect: 'none', touchAction: 'none', transform: `scale(${scale})` }}
+              onPointerDown={() => setSelectedId(null)}
+            >
+              {poster.elements.map((el) => (
+                <PosterElementView
+                  key={el.id}
+                  el={el}
+                  selected={selectedId === el.id}
+                  registroUrl={registroUrl}
+                  onPointerDownMove={(e) => beginDrag(e, el, 'move')}
+                  onPointerDownResize={(e) => beginDrag(e, el, 'resize')}
+                />
+              ))}
+              <div className="pointer-events-none absolute inset-x-0 bottom-3 flex items-center justify-center gap-1.5 opacity-60">
+                <img src={masplusLogo} alt="" className="h-4 w-4" />
+                <span className="text-xs">Powered by Masplus</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <aside className="w-72 shrink-0 space-y-4">
+        <aside className="w-full shrink-0 space-y-4 lg:w-72">
           <div className="rounded-2xl border border-border bg-card p-4">
             <Label>Fondo</Label>
             <div className="mt-2 flex items-center gap-2">
