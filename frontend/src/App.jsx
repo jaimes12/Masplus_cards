@@ -14,6 +14,11 @@ import Tarjetas from './pages/empresa/Tarjetas.jsx'
 import Escanear from './pages/empresa/Escanear.jsx'
 import Perfil from './pages/empresa/Perfil.jsx'
 import Plan from './pages/empresa/Plan.jsx'
+import Historial from './pages/empresa/Historial.jsx'
+import Estadisticas from './pages/empresa/Estadisticas.jsx'
+import Notificaciones from './pages/empresa/Notificaciones.jsx'
+import Ayuda from './pages/empresa/Ayuda.jsx'
+import Configuracion from './pages/empresa/Configuracion.jsx'
 import PosterEditor from './pages/empresa/PosterEditor.jsx'
 import AdminDashboard from './pages/admin/Dashboard.jsx'
 import Templates from './pages/admin/Templates.jsx'
@@ -52,6 +57,11 @@ function App() {
         <Route path="clientes" element={<Clientes />} />
         <Route path="tarjetas" element={<Tarjetas />} />
         <Route path="escanear" element={<Escanear />} />
+        <Route path="historial" element={<Historial />} />
+        <Route path="estadisticas" element={<Estadisticas />} />
+        <Route path="notificaciones" element={<Notificaciones />} />
+        <Route path="ayuda" element={<Ayuda />} />
+        <Route path="configuracion" element={<Configuracion />} />
         <Route path="plan" element={<Plan />} />
         <Route path="perfil" element={<Perfil />} />
       </Route>

@@ -1,46 +1,52 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { CreditCard, Crown, LayoutDashboard, LogOut, Palette, ScanLine, Store, User, Users } from 'lucide-react'
+import {
+  BarChart3,
+  Bell,
+  Clock,
+  CreditCard,
+  HelpCircle,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Palette,
+  ScanLine,
+  Settings,
+  Users,
+} from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { api } from '../lib/api.js'
 import Sidebar from '../components/Sidebar.jsx'
-import Navbar from '../components/Navbar.jsx'
-import { Button } from '../components/ui.jsx'
 import OnboardingTour, { tourStorageKey } from '../components/OnboardingTour.jsx'
+import masplusLogo from '../assets/masplus_logo_wide.png'
 
 const items = [
-  { to: '/empresa', label: 'Resumen', icon: LayoutDashboard, end: true },
+  { to: '/empresa', label: 'Inicio', icon: LayoutDashboard, end: true },
   { to: '/empresa/disenos', label: 'Diseños', icon: Palette },
   { to: '/empresa/tarjetas', label: 'Tarjetas', icon: CreditCard },
-  { to: '/empresa/escanear', label: 'Escanear', icon: ScanLine, tour: 'sidebar-escanear' },
   { to: '/empresa/clientes', label: 'Clientes', icon: Users },
-  { to: '/empresa/plan', label: 'Mi plan', icon: Crown },
-  { to: '/empresa/perfil', label: 'Perfil', icon: User },
+  { to: '/empresa/escanear', label: 'Escáner', icon: ScanLine, tour: 'sidebar-escanear' },
+  { to: '/empresa/historial', label: 'Historial', icon: Clock },
+  { to: '/empresa/estadisticas', label: 'Estadísticas', icon: BarChart3 },
+  { to: '/empresa/configuracion', label: 'Configuración', icon: Settings },
+  { divider: true },
+  { to: '/empresa/notificaciones', label: 'Notificaciones', icon: Bell, badgeKey: 'notificaciones' },
+  { to: '/empresa/ayuda', label: 'Ayuda', icon: HelpCircle },
 ]
-
-const TITLES = {
-  '/empresa': ['Resumen', 'Cómo va tu programa de fidelidad.'],
-  '/empresa/disenos': ['Diseños', 'Crea y personaliza las tarjetas de tu marca.'],
-  '/empresa/tarjetas': ['Tarjetas', 'Administra las tarjetas emitidas a tus clientes.'],
-  '/empresa/escanear': ['Escanear', 'Sumá sellos escaneando el QR de tus clientes.'],
-  '/empresa/clientes': ['Clientes', 'Todas las personas inscritas en tu programa.'],
-  '/empresa/plan': ['Mi plan', 'Tu suscripción y los límites de tu cuenta.'],
-  '/empresa/perfil': ['Perfil', 'Datos de tu cuenta y tu negocio.'],
-}
 
 export default function EmpresaLayout() {
   const { auth, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [logo, setLogo] = useState(null)
-  const [planNombre, setPlanNombre] = useState('')
+  const [noLeidas, setNoLeidas] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [tourKey, setTourKey] = useState(0)
 
   useEffect(() => {
     api.get('/api/empresa/perfil').then((data) => setLogo(data.logo || null)).catch(() => {})
-    api.get('/api/empresa/plan').then((data) => setPlanNombre(data.planActual?.nombre || '')).catch(() => {})
-  }, [])
+    api.get('/api/empresa/notificaciones/no-leidas').then(setNoLeidas).catch(() => {})
+  }, [location.pathname])
 
   function handleLogout() {
     logout()
@@ -53,57 +59,65 @@ export default function EmpresaLayout() {
     if (location.pathname !== '/empresa/disenos') navigate('/empresa/disenos')
   }
 
-  const [title, subtitle] = TITLES[location.pathname] ?? ['Panel de empresa', '']
+  const itemsWithBadge = items.map((item) =>
+    item.badgeKey === 'notificaciones' ? { ...item, badge: noLeidas } : item
+  )
 
   return (
-    <div className="bg-app-surface flex h-svh overflow-hidden">
+    <div className="bg-app-surface theme-mas flex h-svh overflow-hidden">
       <Sidebar
-        brand={
-          <div className="flex items-center gap-2">
-            {logo ? (
-              <img src={logo} alt="" className="h-8 w-8 shrink-0 rounded-md object-cover" />
-            ) : (
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                <Store className="h-4 w-4" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="truncate font-semibold leading-tight">{auth?.nombre}</p>
-              <p className="text-xs text-muted-foreground">Panel de empresa</p>
-            </div>
-          </div>
-        }
-        items={items}
+        brand={<img src={masplusLogo} alt="Más+" className="h-8 w-auto object-contain" />}
+        items={itemsWithBadge}
         footer={
-          <div className="space-y-1">
-            <Button variant="ghost" className="w-full justify-start gap-2" onClick={replayTour}>
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => navigate('/empresa/perfil')}
+              className="flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition-colors hover:bg-secondary"
+            >
+              {logo ? (
+                <img src={logo} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+              ) : (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
+                  {(auth?.nombre || '?').slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-foreground">{auth?.nombre}</span>
+                <span className="block truncate text-xs text-ink-3">Ver perfil</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={replayTour}
+              className="flex w-full items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-sm font-medium text-ink-2 transition-colors hover:bg-secondary hover:text-foreground"
+            >
               <ScanLine className="h-4 w-4" /> Ver tutorial
-            </Button>
-            <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-sm font-medium text-ink-2 transition-colors hover:bg-secondary hover:text-foreground"
+            >
               <LogOut className="h-4 w-4" /> Salir
-            </Button>
+            </button>
           </div>
         }
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
       />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="mx-auto w-full max-w-6xl shrink-0 px-4 pr-6 pt-6">
-          <Navbar
-            title={title}
-            subtitle={subtitle}
-            logo={logo}
-            name={auth?.nombre}
-            planNombre={planNombre}
-            onMenuClick={() => setMobileMenuOpen(true)}
-          />
+      <main className="flex-1 overflow-y-auto px-5 py-6 sm:px-8">
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(true)}
+          className="mb-4 flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium lg:hidden"
+        >
+          <Menu className="h-4 w-4" /> Menú
+        </button>
+        <div className="mx-auto max-w-6xl">
+          <Outlet />
         </div>
-        <main className="theme-mas flex-1 overflow-y-auto px-4 pb-6 pr-6">
-          <div className="mx-auto max-w-6xl">
-            <Outlet />
-          </div>
-        </main>
-      </div>
+      </main>
       <OnboardingTour key={tourKey} empresaId={auth?.id} />
     </div>
   )

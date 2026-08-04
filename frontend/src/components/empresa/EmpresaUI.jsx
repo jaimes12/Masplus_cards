@@ -3,6 +3,19 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { MoreHorizontal, X } from 'lucide-react'
 
+/** Encabezado de página (equivalente a .page-head): título + subtítulo + acciones a la derecha. */
+export function PageHead({ title, subtitle, actions, className = '' }) {
+  return (
+    <div className={`mb-7 flex flex-wrap items-end gap-4 ${className}`}>
+      <div>
+        <h1 className="text-[28px] leading-tight font-semibold tracking-tight text-foreground">{title}</h1>
+        {subtitle && <p className="mt-1.5 text-sm text-ink-2">{subtitle}</p>}
+      </div>
+      {actions && <div className="ml-auto flex flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  )
+}
+
 /** Panel con encabezado opcional (equivalente a .panel/.panel-head/.panel-body). */
 export function Panel({ title, action, children, bodyClassName = 'p-5', className = '' }) {
   return (

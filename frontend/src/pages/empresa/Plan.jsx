@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { Check, Crown, Tag } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { Button, Card, Input, Label } from '../../components/ui.jsx'
+import { PageHead } from '../../components/empresa/EmpresaUI.jsx'
 import PagoPlanModal from '../../components/PagoPlanModal.jsx'
 
 const cardHover = { y: -6, transition: { type: 'spring', stiffness: 300, damping: 22 } }
@@ -101,6 +102,7 @@ export default function Plan() {
 
   return (
     <div className="space-y-8">
+      <PageHead title="Mi plan" subtitle="Tu suscripción y los límites de tu cuenta." />
       {error && (
         <Card className="border-2 border-destructive/40">
           <p className="text-sm text-destructive">{error}</p>

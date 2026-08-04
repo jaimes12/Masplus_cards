@@ -1,188 +1,194 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, CreditCard, Gift, QrCode, Stamp, Users } from 'lucide-react'
+import { CreditCard, Gift, Plus, Stamp, Users } from 'lucide-react'
 import { api } from '../../lib/api.js'
-import { Panel, StatCard } from '../../components/empresa/EmpresaUI.jsx'
-import AreaTrend from '../../components/charts/AreaTrend.jsx'
-import DonutChart from '../../components/charts/DonutChart.jsx'
+import { Button } from '../../components/ui.jsx'
+import { Panel, PageHead, StatCard } from '../../components/empresa/EmpresaUI.jsx'
 
-const ACCENT = '#F97316'
-const DONUT_PALETTE = ['#F97316', '#2A78D6', '#1BAF7A']
-const DONUT_OTROS = '#D6D2CC'
-
-function buildTrend(tarjetas, days = 14) {
-  const buckets = []
-  const start = new Date()
-  start.setHours(0, 0, 0, 0)
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(start)
-    d.setDate(d.getDate() - i)
-    buckets.push({ date: d, value: 0 })
-  }
-  tarjetas.forEach((t) => {
-    const d = new Date(t.createdAt)
-    d.setHours(0, 0, 0, 0)
-    const bucket = buckets.find((b) => b.date.getTime() === d.getTime())
-    if (bucket) bucket.value += 1
-  })
-  return buckets.map((b) => ({
-    label: b.date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }),
-    value: b.value,
-  }))
+const MOVIMIENTOS = {
+  tarjeta_creada: { label: 'Registro', tone: 'bg-secondary text-ink-2' },
+  sello_agregado: { label: '+1 sello', tone: 'bg-accent/10 text-accent' },
+  sello_quitado: { label: '-1 sello', tone: 'bg-bad-soft text-bad' },
+  sellos_editados: { label: 'Ajuste', tone: 'bg-warn-soft text-warn' },
+  premio_canjeado: { label: 'Canje', tone: 'bg-ok-soft text-ok' },
+  cupon_canjeado: { label: 'Canje', tone: 'bg-ok-soft text-ok' },
 }
 
-function buildDisenoBreakdown(tarjetas) {
-  const counts = new Map()
-  tarjetas.forEach((t) => {
-    const key = t.disenoNombre || 'Sin nombre'
-    counts.set(key, (counts.get(key) || 0) + 1)
-  })
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1])
-  const top = sorted.slice(0, 3)
-  const otros = sorted.slice(3).reduce((sum, [, v]) => sum + v, 0)
-  const data = top.map(([label, value], i) => ({ label, value, color: DONUT_PALETTE[i] }))
-  if (otros > 0) data.push({ label: 'Otros', value: otros, color: DONUT_OTROS })
-  return data
+function formatRelativo(fechaStr) {
+  const fecha = new Date(fechaStr)
+  const diffMs = Date.now() - fecha.getTime()
+  const min = Math.floor(diffMs / 60000)
+  if (min < 1) return 'ahora'
+  if (min < 60) return `hace ${min} min`
+  const horas = Math.floor(min / 60)
+  if (horas < 24) return `hace ${horas} h`
+  const dias = Math.floor(horas / 24)
+  if (dias === 1) return 'ayer'
+  if (dias < 7) return `hace ${dias} días`
+  return fecha.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
 }
-
-const QUICK_LINKS = [
-  { to: '/empresa/escanear', label: 'Escanear', icon: QrCode },
-  { to: '/empresa/clientes', label: 'Clientes', icon: Users },
-  { to: '/empresa/disenos', label: 'Tarjetas', icon: CreditCard },
-]
 
 export default function Dashboard() {
   const [disenos, setDisenos] = useState([])
-  const [tarjetas, setTarjetas] = useState([])
   const [clientes, setClientes] = useState([])
+  const [tarjetas, setTarjetas] = useState([])
+  const [estadisticas, setEstadisticas] = useState(null)
+  const [actividad, setActividad] = useState([])
   const [loading, setLoading] = useState(true)
+  const nombre = (JSON.parse(localStorage.getItem('masplus_auth') || 'null')?.nombre || '').split(' ')[0]
 
   useEffect(() => {
-    Promise.all([api.get('/api/disenos'), api.get('/api/tarjetas'), api.get('/api/clientes')])
-      .then(([d, t, c]) => {
+    Promise.all([
+      api.get('/api/disenos'),
+      api.get('/api/clientes'),
+      api.get('/api/tarjetas'),
+      api.get('/api/estadisticas'),
+      api.get('/api/empresa/historial?pageSize=5'),
+    ])
+      .then(([d, c, t, e, h]) => {
         setDisenos(d)
-        setTarjetas(t)
         setClientes(c)
+        setTarjetas(t)
+        setEstadisticas(e)
+        setActividad(h.items)
       })
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <p className="text-muted-foreground">Cargando...</p>
+  if (loading || !estadisticas) return <p className="text-muted-foreground">Cargando...</p>
 
-  const activo = disenos.find((d) => d.esActivoDeEmpresa)
   const sellosOtorgados = tarjetas.reduce((sum, t) => sum + t.sellosActuales + t.premiosCanjeados * t.sellosRequeridos, 0)
-  const premiosCanjeados = tarjetas.reduce((sum, t) => sum + t.premiosCanjeados, 0)
-  const recientes = [...tarjetas].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
-  const trend = buildTrend(tarjetas)
-  const disenoBreakdown = buildDisenoBreakdown(tarjetas)
+  const canjesRealizados = tarjetas.reduce((sum, t) => sum + t.premiosCanjeados, 0)
+  const disenosActivos = disenos.filter((d) => d.activo).length
+  const sellosSemanales = estadisticas.actividadSemanal.reduce((s, w) => s + w.sellos, 0)
+  const maxTarjetasCount = Math.max(1, ...disenos.map((d) => d.tarjetasCount || 0))
+  const maxBarSemana = Math.max(1, ...estadisticas.actividadSemanal.map((w) => w.sellos))
 
   const cards = [
-    { label: 'Tarjetas emitidas', value: tarjetas.length, icon: CreditCard },
-    { label: 'Clientes', value: clientes.length, icon: Users },
-    { label: 'Sellos otorgados', value: sellosOtorgados, icon: Stamp },
-    { label: 'Premios canjeados', value: premiosCanjeados, icon: Gift },
+    { label: 'Tarjetas creadas', value: disenos.length, delta: `${disenosActivos} activas`, icon: CreditCard },
+    {
+      label: 'Clientes registrados',
+      value: clientes.length,
+      delta: `+${estadisticas.kpis.clientesNuevos30d} este mes`,
+      icon: Users,
+    },
+    {
+      label: 'Sellos otorgados',
+      value: sellosOtorgados,
+      delta: `+${estadisticas.kpis.sellos30d} este mes`,
+      icon: Stamp,
+    },
+    {
+      label: 'Canjes realizados',
+      value: canjesRealizados,
+      delta: `+${estadisticas.kpis.canjes30d} este mes`,
+      icon: Gift,
+    },
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Inicio</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Cómo va tu programa de fidelidad.</p>
-        </div>
-        <div className="ml-auto flex flex-wrap gap-2">
-          {QUICK_LINKS.map((q) => (
-            <Link
-              key={q.to}
-              to={q.to}
-              className="inline-flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3.5 text-sm font-semibold text-foreground transition-colors hover:border-ink-3"
-            >
-              <q.icon className="h-4 w-4 text-ink-3" />
-              {q.label}
-            </Link>
-          ))}
-        </div>
-      </div>
+    <div className="space-y-4">
+      <PageHead
+        title={`Hola, ${nombre || 'de nuevo'}`}
+        subtitle="Esto pasó en tu programa los últimos 30 días."
+        actions={
+          <Link to="/empresa/disenos">
+            <Button className="gap-2 !bg-gradient-to-br !from-orange-500 !to-orange-600 !text-white">
+              <Plus className="h-4 w-4" /> Crear nueva tarjeta
+            </Button>
+          </Link>
+        }
+      />
 
-      {!activo && (
-        <div className="flex items-center gap-3 rounded-2xl border border-warn/30 bg-warn-soft px-5 py-4 text-sm text-warn">
-          <AlertTriangle className="h-4 w-4 shrink-0" />
-          <p>
-            Todavía no tenés un diseño activo.{' '}
-            <Link to="/empresa/disenos" className="font-semibold underline underline-offset-2">
-              Elegí o creá uno
-            </Link>{' '}
-            antes de emitir tarjetas.
-          </p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {cards.map((c) => (
-          <StatCard key={c.label} icon={c.icon} label={c.label} value={c.value} />
+          <StatCard key={c.label} icon={c.icon} label={c.label} value={c.value} delta={c.delta} deltaTone="up" />
         ))}
       </div>
 
-      {tarjetas.length > 0 && (
-        <div className={`grid gap-4 ${disenoBreakdown.length > 1 ? 'lg:grid-cols-3' : ''}`}>
-          <Panel className={disenoBreakdown.length > 1 ? 'lg:col-span-2' : ''} bodyClassName="p-5">
-            <AreaTrend
-              data={trend}
-              color={ACCENT}
-              title="Tarjetas emitidas"
-              subtitle={`${trend.reduce((s, d) => s + d.value, 0)} en los últimos 14 días`}
-            />
-          </Panel>
-          {disenoBreakdown.length > 1 && (
-            <Panel bodyClassName="flex flex-col justify-center p-5">
-              <DonutChart data={disenoBreakdown} title="Tarjetas por diseño" />
-            </Panel>
-          )}
-        </div>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Panel title="Diseño activo">
-          {activo ? (
-            <div className="flex items-center gap-3.5">
-              <div
-                className="h-11 w-11 shrink-0 rounded-xl border border-border shadow-soft"
-                style={{ background: activo.colorPrimario || '#12100F' }}
-              />
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-foreground">{activo.nombre}</p>
-                <p className="text-sm text-ink-3">{activo.sellosRequeridos} sellos para el premio</p>
-              </div>
-            </div>
+      <div className="grid gap-4 lg:grid-cols-[1.45fr_1fr]">
+        <Panel title="Actividad reciente" action={<Link to="/empresa/historial" className="text-sm font-semibold text-accent">Ver historial</Link>} bodyClassName="overflow-x-auto">
+          {actividad.length === 0 ? (
+            <p className="p-5 text-sm text-ink-3">Todavía no hay movimientos.</p>
           ) : (
-            <p className="text-sm text-ink-3">Sin diseño activo.</p>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs font-semibold tracking-wide text-ink-3 uppercase">
+                  <th className="px-5 py-3">Cliente</th>
+                  <th className="px-5 py-3">Movimiento</th>
+                  <th className="px-5 py-3">Tarjeta</th>
+                  <th className="px-5 py-3 text-right">Cuándo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {actividad.map((item) => {
+                  const mv = MOVIMIENTOS[item.accion] ?? { label: item.accion, tone: 'bg-secondary text-ink-2' }
+                  return (
+                    <tr key={item.id} className="border-t border-border">
+                      <td className="px-5 py-3 font-semibold text-foreground">{item.clienteNombre ?? '—'}</td>
+                      <td className="px-5 py-3">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${mv.tone}`}>
+                          {mv.label}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-ink-2">{item.disenoNombre ?? '—'}</td>
+                      <td className="px-5 py-3 text-right text-xs text-ink-3 tabular-nums">{formatRelativo(item.createdAt)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           )}
         </Panel>
 
-        <Panel title="Tarjetas recientes">
-          {recientes.length === 0 && <p className="text-sm text-ink-3">Todavía no emitiste tarjetas.</p>}
-          <div className="space-y-3.5">
-            {recientes.map((t) => {
-              const esCupon = t.tipo === 'cupon'
-              const pct = esCupon ? 0 : Math.min(100, Math.round((t.sellosActuales / Math.max(t.sellosRequeridos, 1)) * 100))
-              return (
-                <div key={t.id} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="truncate font-medium text-foreground">{t.clienteNombre}</span>
-                    <span className="shrink-0 text-xs text-ink-3 tabular-nums">
-                      {esCupon ? (t.cuponRedimido ? 'Canjeado' : 'Vigente') : `${t.sellosActuales}/${t.sellosRequeridos} sellos`}
-                    </span>
+        <div className="flex flex-col gap-4">
+          <Panel title="Sellos por semana">
+            <div className="flex h-[120px] items-end gap-2">
+              {estadisticas.actividadSemanal.map((w, i) => (
+                <div
+                  key={i}
+                  className={`flex-1 rounded-t ${i === estadisticas.actividadSemanal.length - 1 ? 'bg-accent' : 'bg-secondary'}`}
+                  style={{ height: `${Math.max(4, (w.sellos / maxBarSemana) * 100)}%` }}
+                  title={`${w.etiqueta}: ${w.sellos} sellos`}
+                />
+              ))}
+            </div>
+            <div className="mt-2 flex gap-2 text-[11px] text-ink-3">
+              {estadisticas.actividadSemanal.map((w, i) => (
+                <span key={i} className="flex-1 text-center">
+                  {w.etiqueta.split(' ')[0]}
+                </span>
+              ))}
+            </div>
+            <p className="mt-3.5 text-sm text-ink-2">{sellosSemanales} sellos en las últimas 7 semanas.</p>
+          </Panel>
+
+          <Panel title="Tus tarjetas" action={<Link to="/empresa/disenos" className="text-sm font-semibold text-accent">Administrar</Link>} bodyClassName="p-2">
+            {disenos.length === 0 && <p className="p-3.5 text-sm text-ink-3">Todavía no creaste ninguna tarjeta.</p>}
+            {disenos.slice(0, 4).map((d) => (
+              <div key={d.id} className="flex items-center gap-3.5 p-2.5">
+                <span
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white"
+                  style={{ background: d.colorPrimario || '#12100F' }}
+                >
+                  {d.tipo === 'cupon' ? <Gift className="h-5 w-5" /> : <Stamp className="h-5 w-5" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{d.nombre}</p>
+                  <p className="truncate text-xs text-ink-3">
+                    {d.tipo === 'cupon' ? 'Cupón' : `${d.sellosRequeridos} sellos`} · {d.tarjetasCount} clientes
+                  </p>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
+                    <div
+                      className="h-full rounded-full bg-accent"
+                      style={{ width: `${Math.max(4, ((d.tarjetasCount || 0) / maxTarjetasCount) * 100)}%` }}
+                    />
                   </div>
-                  {!esCupon && (
-                    <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
-                      <div className="h-full rounded-full bg-accent transition-all duration-500" style={{ width: `${pct}%` }} />
-                    </div>
-                  )}
                 </div>
-              )
-            })}
-          </div>
-        </Panel>
+              </div>
+            ))}
+          </Panel>
+        </div>
       </div>
     </div>
   )
