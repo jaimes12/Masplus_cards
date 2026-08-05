@@ -136,13 +136,16 @@ async function connectToWhatsApp() {
         // reconecta desde cero para que /admin/mensajes muestre un QR nuevo.
         console.log('Sesión cerrada (logout). Borrando la sesión vieja y generando un QR nuevo...')
         try {
-          fs.rmSync(authDirAbsoluto, { recursive: true, force: true })
-          fs.mkdirSync(authDirAbsoluto, { recursive: true })
+          // Solo el contenido: la carpeta en sí es el punto de montaje del Volume de
+          // Railway y borrarla da EBUSY.
+          for (const entrada of fs.readdirSync(authDirAbsoluto)) {
+            fs.rmSync(path.join(authDirAbsoluto, entrada), { recursive: true, force: true })
+          }
           lidPorTelefono.clear()
         } catch (err) {
-          console.error('No se pudo borrar la carpeta de auth:', err.message)
+          console.error('No se pudo borrar el contenido de la carpeta de auth:', err.message)
         }
-        setTimeout(connectToWhatsApp, 1000)
+        setTimeout(connectToWhatsApp, 2000)
       }
     }
   })
