@@ -38,6 +38,31 @@ let connected = false
 let currentQr = null
 let reconnectAttempts = 0
 
+// Mapeo teléfono → JID LID. Cuando un contacto escribe vía LID (@lid), la sesión de
+// cifrado Signal queda establecida sobre ese JID — responderle al número plano
+// (@s.whatsapp.net) fuerza una sesión nueva en cada envío y el destinatario ve
+// "Esperando el mensaje" mientras re-negocia llaves. Hay que responder por el mismo
+// JID por el que llegó el mensaje. Se persiste en AUTH_DIR para sobrevivir reinicios.
+const LID_MAP_FILE = path.join(authDirAbsoluto, 'lid-map.json')
+const lidPorTelefono = new Map()
+try {
+  const guardado = JSON.parse(fs.readFileSync(LID_MAP_FILE, 'utf8'))
+  for (const [tel, jid] of Object.entries(guardado)) lidPorTelefono.set(tel, jid)
+  console.log(`Mapeo teléfono→LID cargado (${lidPorTelefono.size} contactos).`)
+} catch {
+  // primera corrida o archivo inexistente — se crea al primer contacto LID
+}
+
+function recordarLid(telefono, lidJid) {
+  if (lidPorTelefono.get(telefono) === lidJid) return
+  lidPorTelefono.set(telefono, lidJid)
+  try {
+    fs.writeFileSync(LID_MAP_FILE, JSON.stringify(Object.fromEntries(lidPorTelefono)))
+  } catch (err) {
+    console.error('No se pudo persistir el mapeo teléfono→LID:', err.message)
+  }
+}
+
 function extraerTexto(message) {
   if (!message) return null
   return (
@@ -136,6 +161,9 @@ async function connectToWhatsApp() {
             ? `Contacto con identificador LID (${msg.key.remoteJid}) — usando senderPn: ${telefono}`
             : `Contacto con identificador LID (${msg.key.remoteJid}) SIN senderPn — no se podrá responder hasta resolverlo.`,
         )
+        // Recordar por qué JID escribió este contacto, para responderle por el mismo
+        // canal (misma sesión de cifrado) en vez del número plano.
+        if (msg.key.senderPn) recordarLid(telefono, msg.key.remoteJid)
       }
 
       await reportarAlBackend({
@@ -163,7 +191,11 @@ app.post('/send', requireSecret, async (req, res) => {
   if (!sock || !connected) return res.status(503).json({ error: 'WhatsApp no está conectado' })
 
   try {
-    const jid = telefono.includes('@') ? telefono : `${telefono}@s.whatsapp.net`
+    // Si el contacto nos escribió vía LID, responder a ese mismo JID — usar el número
+    // plano rompería la sesión de cifrado y el cliente vería "Esperando el mensaje".
+    const jid = telefono.includes('@')
+      ? telefono
+      : (lidPorTelefono.get(telefono) ?? `${telefono}@s.whatsapp.net`)
     await sock.sendMessage(jid, { text: texto })
     res.json({ ok: true })
   } catch (err) {
