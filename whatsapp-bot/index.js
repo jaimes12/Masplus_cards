@@ -1,6 +1,8 @@
 // Bot de WhatsApp para Más+ — deliberadamente "tonto": solo mueve mensajes entre WhatsApp
 // (vinculado por QR, no la API oficial de Meta — decisión explícita del dueño del producto,
 // consciente del riesgo de baneo) y el backend .NET, que tiene toda la lógica de negocio.
+import fs from 'fs'
+import path from 'path'
 import express from 'express'
 import pino from 'pino'
 import QRCode from 'qrcode'
@@ -15,6 +17,21 @@ if (!BACKEND_URL || !BOT_SECRET) {
   console.error('Faltan variables de entorno: BACKEND_URL y BOT_SECRET son obligatorias.')
   process.exit(1)
 }
+
+// Visibilidad de arranque: confirma en los logs si la sesión de WhatsApp persistió
+// entre despliegues/reinicios (carpeta con creds.json ya existente) o si el contenedor
+// arrancó "en frío" y va a pedir escanear el QR de nuevo — esto es clave para diagnosticar
+// si el Volume de Railway está montado en la ruta correcta.
+const authDirAbsoluto = path.resolve(AUTH_DIR)
+const yaTeniaSesion = fs.existsSync(path.join(authDirAbsoluto, 'creds.json'))
+console.log(`AUTH_DIR resuelto a: ${authDirAbsoluto} — sesión previa encontrada: ${yaTeniaSesion}`)
+
+process.on('uncaughtException', (err) => {
+  console.error('uncaughtException (el proceso puede reiniciarse por esto):', err)
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('unhandledRejection (el proceso puede reiniciarse por esto):', reason)
+})
 
 let sock = null
 let connected = false
@@ -55,7 +72,10 @@ async function connectToWhatsApp() {
   sock = makeWASocket({
     version,
     auth: state,
-    logger: pino({ level: 'silent' }),
+    // 'silent' escondía errores de sesión/desencriptado de Baileys que explican mensajes
+    // perdidos sin ningún rastro en los logs — se puede subir a 'debug' temporalmente vía
+    // BAILEYS_LOG_LEVEL si hace falta más detalle.
+    logger: pino({ level: process.env.BAILEYS_LOG_LEVEL || 'warn' }),
   })
 
   sock.ev.on('creds.update', saveCreds)
@@ -80,7 +100,10 @@ async function connectToWhatsApp() {
       if (shouldReconnect) {
         reconnectAttempts += 1
         const delay = Math.min(30000, 2000 * reconnectAttempts)
-        console.log(`Conexión cerrada (código ${statusCode}). Reintentando en ${delay}ms...`)
+        console.log(
+          `Conexión cerrada (código ${statusCode}, motivo: ${lastDisconnect?.error?.message || 'desconocido'}). ` +
+            `Reintentando en ${delay}ms (intento ${reconnectAttempts})...`,
+        )
         setTimeout(connectToWhatsApp, delay)
       } else {
         console.log('Sesión cerrada (logout). Borrá la carpeta de auth y volvé a escanear el QR desde /admin/mensajes.')
