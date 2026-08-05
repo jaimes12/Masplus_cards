@@ -121,8 +121,22 @@ async function connectToWhatsApp() {
       const texto = extraerTexto(msg.message)
       if (!texto) continue
 
-      const telefono = msg.key.remoteJid?.split('@')[0]
+      // WhatsApp está migrando contactos a identificadores LID (@lid) por privacidad —
+      // en ese caso remoteJid ya NO es el número de teléfono real, sino un pseudo-ID que
+      // no sirve para enviar mensajes (${lid}@s.whatsapp.net no resuelve a nadie). Baileys
+      // reporta el número real por separado en key.senderPn cuando esto pasa.
+      const esLid = msg.key.remoteJid?.endsWith('@lid')
+      // Si es LID y por algún motivo no vino senderPn, seguimos con el LID como último
+      // recurso (no sirve para responder, pero al menos no se pierde el mensaje entrante).
+      const telefono = (esLid ? msg.key.senderPn : null)?.split('@')[0] || msg.key.remoteJid?.split('@')[0]
       if (!telefono) continue
+      if (esLid) {
+        console.log(
+          msg.key.senderPn
+            ? `Contacto con identificador LID (${msg.key.remoteJid}) — usando senderPn: ${telefono}`
+            : `Contacto con identificador LID (${msg.key.remoteJid}) SIN senderPn — no se podrá responder hasta resolverlo.`,
+        )
+      }
 
       await reportarAlBackend({
         telefono,

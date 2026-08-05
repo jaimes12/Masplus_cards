@@ -64,6 +64,20 @@ public class AdminMensajesController : ControllerBase
         return conversacion == null ? NotFound() : Ok(conversacion);
     }
 
+    [HttpPut("{id:int}/telefono")]
+    public async Task<ActionResult<WhatsAppConversacionDto>> ActualizarTelefono(int id, [FromBody] ActualizarTelefonoRequest request)
+    {
+        try
+        {
+            var conversacion = await _service.ActualizarTelefonoAsync(id, request.Telefono);
+            return conversacion == null ? NotFound() : Ok(conversacion);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpGet("whatsapp/status")]
     public async Task<ActionResult<WhatsAppBotStatusDto>> GetEstadoWhatsApp()
     {

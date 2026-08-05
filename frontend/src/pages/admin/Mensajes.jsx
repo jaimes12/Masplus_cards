@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bot, QrCode, RefreshCw, Send, User, UserCog, X } from 'lucide-react'
+import { Bot, Pencil, QrCode, RefreshCw, Send, User, UserCog, X } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { Button, EmptyState, Input, Select } from '../../components/ui.jsx'
 
@@ -99,16 +99,23 @@ function VincularWhatsAppModal({ onClose }) {
   )
 }
 
-function ConversacionModal({ conversacion, mensajes, onClose, onCambiarEtapa, onResponder, onReactivarIa, onGuardarNotas }) {
+function ConversacionModal({ conversacion, mensajes, onClose, onCambiarEtapa, onResponder, onReactivarIa, onGuardarNotas, onActualizarTelefono }) {
   const [texto, setTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [notas, setNotas] = useState(conversacion.notas || '')
   const [guardandoNotas, setGuardandoNotas] = useState(false)
+  const [editandoTelefono, setEditandoTelefono] = useState(false)
+  const [telefono, setTelefono] = useState(conversacion.telefono)
+  const [guardandoTelefono, setGuardandoTelefono] = useState(false)
+  const [errorTelefono, setErrorTelefono] = useState('')
   const bottomRef = useRef(null)
 
   useEffect(() => {
     setNotas(conversacion.notas || '')
-  }, [conversacion.id, conversacion.notas])
+    setTelefono(conversacion.telefono)
+    setEditandoTelefono(false)
+    setErrorTelefono('')
+  }, [conversacion.id, conversacion.notas, conversacion.telefono])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -132,6 +139,19 @@ function ConversacionModal({ conversacion, mensajes, onClose, onCambiarEtapa, on
       await onGuardarNotas(notas)
     } finally {
       setGuardandoNotas(false)
+    }
+  }
+
+  async function handleGuardarTelefono() {
+    setGuardandoTelefono(true)
+    setErrorTelefono('')
+    try {
+      await onActualizarTelefono(telefono.trim())
+      setEditandoTelefono(false)
+    } catch (err) {
+      setErrorTelefono(err.message || 'No se pudo actualizar el teléfono.')
+    } finally {
+      setGuardandoTelefono(false)
     }
   }
 
@@ -225,8 +245,52 @@ function ConversacionModal({ conversacion, mensajes, onClose, onCambiarEtapa, on
               <p className="mb-2.5 text-xs font-semibold tracking-wide text-ink-3 uppercase">Información</p>
               <dl className="space-y-2 text-sm">
                 <div className="flex justify-between gap-3">
-                  <dt className="text-ink-3">Teléfono</dt>
-                  <dd className="truncate font-medium text-foreground tabular-nums">{conversacion.telefono}</dd>
+                  <dt className="shrink-0 text-ink-3">Teléfono</dt>
+                  {editandoTelefono ? (
+                    <div className="flex-1 space-y-1.5">
+                      <Input
+                        value={telefono}
+                        onChange={(e) => setTelefono(e.target.value)}
+                        className="!h-8 text-xs tabular-nums"
+                        autoFocus
+                      />
+                      {errorTelefono && <p className="text-[11px] text-bad">{errorTelefono}</p>}
+                      <div className="flex gap-1.5">
+                        <Button
+                          type="button"
+                          onClick={handleGuardarTelefono}
+                          disabled={guardandoTelefono || !telefono.trim()}
+                          className="!h-7 flex-1 !px-2 text-[11px]"
+                        >
+                          {guardandoTelefono ? 'Guardando...' : 'Guardar'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setEditandoTelefono(false)
+                            setTelefono(conversacion.telefono)
+                            setErrorTelefono('')
+                          }}
+                          className="!h-7 !px-2 text-[11px]"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <dd className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate font-medium text-foreground tabular-nums">{conversacion.telefono}</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditandoTelefono(true)}
+                        className="shrink-0 text-ink-3 hover:text-foreground"
+                        aria-label="Editar teléfono"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                    </dd>
+                  )}
                 </div>
                 <div className="flex justify-between gap-3">
                   <dt className="text-ink-3">Primer contacto</dt>
@@ -324,6 +388,11 @@ export default function Mensajes() {
     actualizarSeleccionEnLista(actualizada)
   }
 
+  async function handleActualizarTelefono(telefono) {
+    const actualizada = await api.put(`/api/admin/mensajes/${seleccionadaId}/telefono`, { telefono })
+    actualizarSeleccionEnLista(actualizada)
+  }
+
   if (!conversaciones) return <p className="text-muted-foreground">Cargando...</p>
 
   const totalConversaciones = conversaciones.length
@@ -385,6 +454,7 @@ export default function Mensajes() {
             onResponder={handleResponder}
             onReactivarIa={handleReactivarIa}
             onGuardarNotas={handleGuardarNotas}
+            onActualizarTelefono={handleActualizarTelefono}
           />
         )}
       </AnimatePresence>

@@ -169,6 +169,24 @@ public class WhatsAppService : IWhatsAppService
         return ToDto(conversacion, null);
     }
 
+    public async Task<WhatsAppConversacionDto?> ActualizarTelefonoAsync(int conversacionId, string telefono)
+    {
+        var normalizado = telefono.Trim();
+        if (normalizado.Length == 0)
+            throw new InvalidOperationException("El teléfono no puede estar vacío.");
+
+        var conversacion = await _db.WhatsAppConversaciones.FirstOrDefaultAsync(c => c.Id == conversacionId);
+        if (conversacion == null) return null;
+
+        var enUsoPorOtra = await _db.WhatsAppConversaciones.AnyAsync(c => c.Id != conversacionId && c.Telefono == normalizado);
+        if (enUsoPorOtra)
+            throw new InvalidOperationException("Ya existe otra conversación con ese teléfono.");
+
+        conversacion.Telefono = normalizado;
+        await _db.SaveChangesAsync();
+        return ToDto(conversacion, null);
+    }
+
     public Task<WhatsAppBotStatusDto> GetEstadoBotAsync() => _bot.ObtenerEstadoAsync();
 
     private static WhatsAppConversacionDto ToDto(WhatsAppConversacion c, string? ultimoMensajeTexto) => new(

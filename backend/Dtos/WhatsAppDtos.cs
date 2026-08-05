@@ -13,6 +13,8 @@ public record ActualizarEtapaRequest(string Etapa);
 
 public record ActualizarNotasRequest(string? Notas);
 
+public record ActualizarTelefonoRequest(string Telefono);
+
 public record ResponderManualRequest(string Texto);
 
 public record WhatsAppBotStatusDto(bool Conectado, string? QrDataUrl);
