@@ -1,4 +1,5 @@
 using MasplusCards.Api.Dtos;
+using MasplusCards.Api.Services;
 using MasplusCards.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -89,6 +90,19 @@ public class AdminMensajesController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    [HttpGet("ia-contexto")]
+    public async Task<ActionResult<IaContextoDto>> GetIaContexto()
+    {
+        return Ok(new IaContextoDto(await _service.GetContextoIaAsync(), OpenRouterService.ContextoPersonaDefault));
+    }
+
+    [HttpPut("ia-contexto")]
+    public async Task<ActionResult<IaContextoDto>> ActualizarIaContexto([FromBody] ActualizarIaContextoRequest request)
+    {
+        var contexto = await _service.ActualizarContextoIaAsync(request.Contexto);
+        return Ok(new IaContextoDto(contexto, OpenRouterService.ContextoPersonaDefault));
     }
 
     [HttpGet("whatsapp/status")]

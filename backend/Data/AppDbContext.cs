@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
     public DbSet<WhatsAppConversacion> WhatsAppConversaciones => Set<WhatsAppConversacion>();
     public DbSet<WhatsAppMensaje> WhatsAppMensajes => Set<WhatsAppMensaje>();
+    public DbSet<Configuracion> Configuraciones => Set<Configuracion>();
 
     public override int SaveChanges()
     {
@@ -334,6 +335,19 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.EmpresaId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Configuracion>(e =>
+        {
+            e.ToTable("configuraciones");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Clave).HasColumnName("clave").HasMaxLength(100).IsRequired();
+            e.Property(x => x.Valor).HasColumnName("valor").HasMaxLength(8000).IsRequired();
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+
+            e.HasIndex(x => x.Clave).IsUnique();
         });
 
         modelBuilder.Entity<WhatsAppConversacion>(e =>

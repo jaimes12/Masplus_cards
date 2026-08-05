@@ -20,5 +20,9 @@ public interface IWhatsAppService
     /// <summary>Crea una conversación iniciada por el admin (o devuelve la existente si el
     /// teléfono ya tiene una). Normaliza el número al formato JID de WhatsApp.</summary>
     Task<WhatsAppConversacionDto> CrearConversacionAsync(string telefono, string? nombreContacto);
+    /// <summary>Contexto personalizado de la IA (null = se usa el default hardcodeado).</summary>
+    Task<string?> GetContextoIaAsync();
+    Task<string?> ActualizarContextoIaAsync(string? contexto);
+
     Task<WhatsAppBotStatusDto> GetEstadoBotAsync();
 }

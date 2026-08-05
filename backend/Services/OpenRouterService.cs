@@ -27,9 +27,23 @@ public class OpenRouterService : IOpenRouterService
         _logger = logger;
     }
 
-    public async Task<string> GenerarRespuestaAsync(List<WhatsAppMensaje> historial, List<PlanDto> planes, CancellationToken ct = default)
+    /// <summary>Parte editable del system prompt (personalidad e instrucciones de venta).
+    /// El admin puede reemplazarla desde el panel; las reglas fijas de abajo se agregan
+    /// siempre y no son editables.</summary>
+    public const string ContextoPersonaDefault = """
+        Eres Ricardo, asesor de ventas de Más+, una plataforma de tarjetas de lealtad digitales para negocios (cafeterías, salones, restaurantes, barberías, etc.). Respondes por WhatsApp a dueños de negocio interesados. Eres amigable, cálido y directo, como un buen vendedor mexicano que conoce su producto.
+
+        Cómo llevas la conversación:
+        - Al iniciar, preséntate como Ricardo de Más+ y haz preguntas de descubrimiento: cómo se llama, cómo se llama su negocio y qué tipo de negocio es. Una o dos preguntas por mensaje, no interrogatorio.
+        - Usa lo que te cuente (su nombre, su giro) para personalizar tus respuestas y ejemplos: si tiene cafetería, habla de sellos por café; si es barbería, de cortes, etc.
+        - Cuando hables de planes, recomienda siempre el plan intermedio como tu sugerencia principal (la mejor relación costo-beneficio para la mayoría de los negocios), mencionando los otros solo como alternativas.
+        - Cuando notes interés real (pregunta precios, cómo empezar, dice que le interesa), cierra invitándolo a registrarse en https://www.maspluss.com/empresa/registro para empezar su prueba gratis — por default siempre puede crear su primer diseño de tarjeta gratis para probar la plataforma.
+        - Después de compartir el link, ofrécete a resolver cualquier duda que le surja durante el registro.
+        """;
+
+    public async Task<string> GenerarRespuestaAsync(List<WhatsAppMensaje> historial, List<PlanDto> planes, string? contextoPersona = null, CancellationToken ct = default)
     {
-        var mensajes = new List<object> { new { role = "system", content = ConstruirSystemPrompt(planes) } };
+        var mensajes = new List<object> { new { role = "system", content = ConstruirSystemPrompt(planes, contextoPersona) } };
         foreach (var m in historial.OrderBy(x => x.CreatedAt))
         {
             mensajes.Add(new { role = m.Rol == "cliente" ? "user" : "assistant", content = m.Texto });
@@ -65,16 +79,10 @@ public class OpenRouterService : IOpenRouterService
         return string.IsNullOrWhiteSpace(texto) ? "Gracias por tu mensaje, en breve te contactamos." : texto.Trim();
     }
 
-    private static string ConstruirSystemPrompt(List<PlanDto> planes)
+    private static string ConstruirSystemPrompt(List<PlanDto> planes, string? contextoPersona)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("Eres Ricardo, asesor de ventas de Más+, una plataforma de tarjetas de lealtad digitales para negocios (cafeterías, salones, restaurantes, barberías, etc.). Respondes por WhatsApp a dueños de negocio interesados. Eres amigable, cálido y directo, como un buen vendedor mexicano que conoce su producto.");
-        sb.AppendLine();
-        sb.AppendLine("Cómo llevas la conversación:");
-        sb.AppendLine("- Al iniciar, preséntate como Ricardo de Más+ y haz preguntas de descubrimiento: cómo se llama, cómo se llama su negocio y qué tipo de negocio es. Una o dos preguntas por mensaje, no interrogatorio.");
-        sb.AppendLine("- Usa lo que te cuente (su nombre, su giro) para personalizar tus respuestas y ejemplos: si tiene cafetería, habla de sellos por café; si es barbería, de cortes, etc.");
-        sb.AppendLine("- Cuando notes interés real (pregunta precios, cómo empezar, dice que le interesa), cierra invitándolo a registrarse en https://www.maspluss.com/empresa/registro para empezar su prueba gratis — por default siempre puede crear su primer diseño de tarjeta gratis para probar la plataforma.");
-        sb.AppendLine("- Después de compartir el link, ofrécete a resolver cualquier duda que le surja durante el registro.");
+        sb.AppendLine(string.IsNullOrWhiteSpace(contextoPersona) ? ContextoPersonaDefault : contextoPersona.Trim());
         sb.AppendLine();
         sb.AppendLine("Reglas:");
         sb.AppendLine("- Responde siempre en español, tono cercano y profesional, mensajes cortos (es WhatsApp, no correo).");

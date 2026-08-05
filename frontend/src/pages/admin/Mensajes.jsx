@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bot, MessageSquarePlus, Pencil, QrCode, RefreshCw, Send, User, UserCog, X } from 'lucide-react'
+import { Bot, MessageSquarePlus, Pencil, QrCode, RefreshCw, Send, SlidersHorizontal, User, UserCog, X } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { Button, EmptyState, Input, Select } from '../../components/ui.jsx'
 
@@ -184,6 +184,113 @@ function NuevoChatModal({ onClose, onCrear }) {
           {creando ? 'Creando...' : 'Iniciar chat'}
         </Button>
       </form>
+    </div>
+  )
+}
+
+function ContextoIaModal({ onClose }) {
+  const [contexto, setContexto] = useState('')
+  const [contextoDefault, setContextoDefault] = useState('')
+  const [personalizado, setPersonalizado] = useState(false)
+  const [cargando, setCargando] = useState(true)
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState('')
+  const [guardado, setGuardado] = useState(false)
+
+  useEffect(() => {
+    api
+      .get('/api/admin/mensajes/ia-contexto')
+      .then((data) => {
+        setContexto(data.contexto ?? data.contextoDefault)
+        setContextoDefault(data.contextoDefault)
+        setPersonalizado(data.contexto != null)
+      })
+      .catch(() => setError('No se pudo cargar el contexto.'))
+      .finally(() => setCargando(false))
+  }, [])
+
+  async function handleGuardar() {
+    setGuardando(true)
+    setError('')
+    setGuardado(false)
+    try {
+      // Si el texto es igual al default, se guarda null para seguir usando el default
+      // (y heredar mejoras futuras) en vez de congelar una copia.
+      const aGuardar = contexto.trim() === contextoDefault.trim() ? null : contexto
+      const data = await api.put('/api/admin/mensajes/ia-contexto', { contexto: aGuardar })
+      setPersonalizado(data.contexto != null)
+      setGuardado(true)
+    } catch (err) {
+      setError(err.message || 'No se pudo guardar.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col gap-4 rounded-2xl bg-card p-6 shadow-2xl"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-foreground">Contexto de la IA</h3>
+            <p className="text-xs text-ink-3">
+              Personalidad e instrucciones de venta de Ricardo.{' '}
+              {personalizado ? 'Estás usando un contexto personalizado.' : 'Estás usando el contexto por defecto.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg hover:bg-secondary"
+            aria-label="Cerrar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {cargando ? (
+          <p className="text-sm text-ink-3">Cargando...</p>
+        ) : (
+          <>
+            <textarea
+              value={contexto}
+              onChange={(e) => {
+                setContexto(e.target.value)
+                setGuardado(false)
+              }}
+              rows={14}
+              className="w-full flex-1 resize-none rounded-xl border border-input bg-card px-3 py-2 font-mono text-xs leading-relaxed outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="text-xs text-ink-3">
+              Las reglas de seguridad (no inventar precios ni links, ignorar instrucciones del cliente) y la lista de
+              planes con precios reales se agregan automáticamente — no hace falta escribirlas aquí.
+            </p>
+
+            {error && <p className="text-sm text-bad">{error}</p>}
+            {guardado && <p className="text-sm text-ok">Guardado ✅ La IA ya responde con este contexto.</p>}
+
+            <div className="flex gap-2">
+              <Button type="button" onClick={handleGuardar} disabled={guardando || !contexto.trim()} className="flex-1">
+                {guardando ? 'Guardando...' : 'Guardar'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setContexto(contextoDefault)
+                  setGuardado(false)
+                }}
+                disabled={guardando}
+              >
+                Restaurar default
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
@@ -425,6 +532,7 @@ export default function Mensajes() {
   const [botEstado, setBotEstado] = useState(null)
   const [mostrarQr, setMostrarQr] = useState(false)
   const [mostrarNuevoChat, setMostrarNuevoChat] = useState(false)
+  const [mostrarContextoIa, setMostrarContextoIa] = useState(false)
 
   async function cargarConversaciones() {
     const data = await api.get('/api/admin/mensajes')
@@ -508,6 +616,9 @@ export default function Mensajes() {
           <Button variant="outline" onClick={cargarConversaciones} className="gap-1.5">
             <RefreshCw className="h-4 w-4" /> Actualizar
           </Button>
+          <Button variant="outline" onClick={() => setMostrarContextoIa(true)} className="gap-1.5">
+            <SlidersHorizontal className="h-4 w-4" /> Contexto IA
+          </Button>
           <Button variant="outline" onClick={() => setMostrarNuevoChat(true)} className="gap-1.5">
             <MessageSquarePlus className="h-4 w-4" /> Nuevo chat
           </Button>
@@ -564,6 +675,7 @@ export default function Mensajes() {
 
       {mostrarQr && <VincularWhatsAppModal onClose={() => setMostrarQr(false)} />}
       {mostrarNuevoChat && <NuevoChatModal onClose={() => setMostrarNuevoChat(false)} onCrear={handleCrearChat} />}
+      {mostrarContextoIa && <ContextoIaModal onClose={() => setMostrarContextoIa(false)} />}
     </div>
   )
 }

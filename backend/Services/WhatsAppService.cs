@@ -11,6 +11,7 @@ public class WhatsAppService : IWhatsAppService
 {
     private static readonly string[] EtapasValidas = ["nuevo", "en_platica", "calificado", "convertido", "perdido"];
     private const int MensajesDeContexto = 20;
+    private const string ClaveContextoIa = "whatsapp_ia_contexto";
 
     private readonly AppDbContext _db;
     private readonly IOpenRouterService _ia;
@@ -71,8 +72,9 @@ public class WhatsAppService : IWhatsAppService
                 .Take(MensajesDeContexto)
                 .ToListAsync(ct);
             var planes = await _planes.GetCatalogoAsync();
+            var contextoIa = await GetContextoIaAsync();
 
-            var respuesta = await _ia.GenerarRespuestaAsync(historial, planes, ct);
+            var respuesta = await _ia.GenerarRespuestaAsync(historial, planes, contextoIa, ct);
             var enviado = await _bot.EnviarAsync(conversacion.Telefono, respuesta, ct);
 
             conversacion.UltimoMensajeEn = MexicoCityTime.Now();
@@ -218,6 +220,32 @@ public class WhatsAppService : IWhatsAppService
         _db.WhatsAppConversaciones.Add(conversacion);
         await _db.SaveChangesAsync();
         return ToDto(conversacion, null);
+    }
+
+    public async Task<string?> GetContextoIaAsync() =>
+        (await _db.Configuraciones.AsNoTracking().FirstOrDefaultAsync(c => c.Clave == ClaveContextoIa))?.Valor;
+
+    public async Task<string?> ActualizarContextoIaAsync(string? contexto)
+    {
+        var limpio = string.IsNullOrWhiteSpace(contexto) ? null : contexto.Trim();
+        var fila = await _db.Configuraciones.FirstOrDefaultAsync(c => c.Clave == ClaveContextoIa);
+
+        if (limpio == null)
+        {
+            // Vacío = volver al contexto default (se borra la personalización).
+            if (fila != null) _db.Configuraciones.Remove(fila);
+        }
+        else if (fila == null)
+        {
+            _db.Configuraciones.Add(new Configuracion { Clave = ClaveContextoIa, Valor = limpio });
+        }
+        else
+        {
+            fila.Valor = limpio;
+        }
+
+        await _db.SaveChangesAsync();
+        return limpio;
     }
 
     public Task<WhatsAppBotStatusDto> GetEstadoBotAsync() => _bot.ObtenerEstadoAsync();

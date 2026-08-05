@@ -17,6 +17,12 @@ public record ActualizarTelefonoRequest(string Telefono);
 
 public record CrearConversacionRequest(string Telefono, string? NombreContacto);
 
+/// <summary>Contexto editable de la IA: Contexto es la personalización guardada (null si se usa
+/// el default) y ContextoDefault el texto hardcodeado, para mostrarlo y poder restaurarlo.</summary>
+public record IaContextoDto(string? Contexto, string ContextoDefault);
+
+public record ActualizarIaContextoRequest(string? Contexto);
+
 public record ResponderManualRequest(string Texto);
 
 public record WhatsAppBotStatusDto(bool Conectado, string? QrDataUrl);
