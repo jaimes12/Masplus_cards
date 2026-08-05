@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, CreditCard, Gift, PauseCircle, PlayCircle } from 'lucide-react'
 import { api } from '../../lib/api.js'
-import { EmptyState, PageHead, Panel } from '../../components/empresa/EmpresaUI.jsx'
+import { EmptyState, Panel } from '../../components/ui.jsx'
+import { PageHead } from '../../components/empresa/EmpresaUI.jsx'
 
 const TIPOS = {
   tarjeta_completada: { icon: Gift, tone: 'bg-ok-soft text-ok' },

@@ -23,6 +23,14 @@
     "Endpoint": "",
     "PublicUrl": ""
   },
+  "OpenRouter": {
+    "ApiKey": "",
+    "Model": "openai/gpt-4o-mini"
+  },
+  "WhatsAppBot": {
+    "BaseUrl": "http://localhost:3001",
+    "SharedSecret": ""
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Information",

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Gift, Minus, Search, Stamp, UserPlus } from 'lucide-react'
 import { api } from '../../lib/api.js'
-import { Button, Input } from '../../components/ui.jsx'
-import { EmptyState, FeedDay, FeedItem, FilterChip, PageHead } from '../../components/empresa/EmpresaUI.jsx'
+import { Button, EmptyState, FilterChip, Input } from '../../components/ui.jsx'
+import { FeedDay, FeedItem, PageHead } from '../../components/empresa/EmpresaUI.jsx'
 
 const TIPOS = [
   { value: null, label: 'Todos' },

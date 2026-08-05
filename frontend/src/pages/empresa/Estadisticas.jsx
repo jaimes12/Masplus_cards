@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Gift, Repeat2, Stamp, Star, TrendingUp, UserPlus, Users, UserX } from 'lucide-react'
 import { api } from '../../lib/api.js'
-import { Panel, PageHead, StatCard } from '../../components/empresa/EmpresaUI.jsx'
+import { Panel } from '../../components/ui.jsx'
+import { PageHead, StatCard } from '../../components/empresa/EmpresaUI.jsx'
 import AreaTrend from '../../components/charts/AreaTrend.jsx'
 import DonutChart from '../../components/charts/DonutChart.jsx'
 

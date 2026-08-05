@@ -5,6 +5,11 @@
 # Backend (.NET)
 backend/bin/
 backend/obj/
+backend/appsettings.Development.json
+
+# WhatsApp bot (Node)
+whatsapp-bot/node_modules/
+whatsapp-bot/auth/
 
 # Frontend (Node/Vite)
 frontend/node_modules/

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AlertTriangle, ChevronRight, Mail, MessageCircle, QrCode, Stamp, Users, Video } from 'lucide-react'
-import { Button, Label, Select } from '../../components/ui.jsx'
-import { PageHead, Panel } from '../../components/empresa/EmpresaUI.jsx'
+import { Button, Label, Panel, Select } from '../../components/ui.jsx'
+import { PageHead } from '../../components/empresa/EmpresaUI.jsx'
 
 const TUTORIALES = [
   { icon: Video, title: 'Crea tu primera tarjeta', meta: '3 min · video' },

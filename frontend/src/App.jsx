@@ -21,6 +21,7 @@ import Ayuda from './pages/empresa/Ayuda.jsx'
 import Configuracion from './pages/empresa/Configuracion.jsx'
 import PosterEditor from './pages/empresa/PosterEditor.jsx'
 import AdminDashboard from './pages/admin/Dashboard.jsx'
+import Mensajes from './pages/admin/Mensajes.jsx'
 import Templates from './pages/admin/Templates.jsx'
 import Empresas from './pages/admin/Empresas.jsx'
 import DiscountCodes from './pages/admin/DiscountCodes.jsx'
@@ -76,6 +77,7 @@ function App() {
         }
       >
         <Route index element={<AdminDashboard />} />
+        <Route path="mensajes" element={<Mensajes />} />
         <Route path="templates" element={<Templates />} />
         <Route path="empresas" element={<Empresas />} />
         <Route path="planes" element={<Planes />} />

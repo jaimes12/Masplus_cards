@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
-import { Button, Input, Label } from '../../components/ui.jsx'
-import { PageHead, Panel, Tabs } from '../../components/empresa/EmpresaUI.jsx'
+import { Button, Input, Label, Panel, Tabs } from '../../components/ui.jsx'
+import { PageHead } from '../../components/empresa/EmpresaUI.jsx'
 import ImageUploadInput from '../../components/ImageUploadInput.jsx'
 
 const TABS = [

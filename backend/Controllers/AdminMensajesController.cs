@@ -1,0 +1,65 @@
+using MasplusCards.Api.Dtos;
+using MasplusCards.Api.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MasplusCards.Api.Controllers;
+
+[ApiController]
+[Route("api/admin/mensajes")]
+[Authorize(Roles = "Admin")]
+public class AdminMensajesController : ControllerBase
+{
+    private readonly IWhatsAppService _service;
+
+    public AdminMensajesController(IWhatsAppService service)
+    {
+        _service = service;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<List<WhatsAppConversacionDto>>> GetConversaciones()
+    {
+        return Ok(await _service.GetConversacionesAsync());
+    }
+
+    [HttpGet("{id:int}/mensajes")]
+    public async Task<ActionResult<List<WhatsAppMensajeDto>>> GetMensajes(int id)
+    {
+        return Ok(await _service.GetMensajesAsync(id));
+    }
+
+    [HttpPut("{id:int}/etapa")]
+    public async Task<ActionResult<WhatsAppConversacionDto>> ActualizarEtapa(int id, [FromBody] ActualizarEtapaRequest request)
+    {
+        try
+        {
+            var conversacion = await _service.ActualizarEtapaAsync(id, request.Etapa);
+            return conversacion == null ? NotFound() : Ok(conversacion);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("{id:int}/responder")]
+    public async Task<ActionResult<WhatsAppConversacionDto>> Responder(int id, [FromBody] ResponderManualRequest request)
+    {
+        var conversacion = await _service.ResponderManualAsync(id, request.Texto);
+        return conversacion == null ? NotFound() : Ok(conversacion);
+    }
+
+    [HttpPost("{id:int}/reactivar-ia")]
+    public async Task<ActionResult<WhatsAppConversacionDto>> ReactivarIa(int id)
+    {
+        var conversacion = await _service.ReactivarIaAsync(id);
+        return conversacion == null ? NotFound() : Ok(conversacion);
+    }
+
+    [HttpGet("whatsapp/status")]
+    public async Task<ActionResult<WhatsAppBotStatusDto>> GetEstadoWhatsApp()
+    {
+        return Ok(await _service.GetEstadoBotAsync());
+    }
+}

@@ -33,6 +33,17 @@ builder.Services.Configure<R2Configuration>(options =>
 // Railway ya usa la convención Stripe__PublishableKey / Stripe__SecretKey / Stripe__WebhookSecret,
 // así que el binder de configuración de .NET las toma solo (no necesita el override manual del R2).
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.Configure<OpenRouterSettings>(options =>
+{
+    builder.Configuration.GetSection("OpenRouter").Bind(options);
+    options.ApiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") ?? options.ApiKey;
+});
+builder.Services.Configure<WhatsAppBotSettings>(options =>
+{
+    builder.Configuration.GetSection("WhatsAppBot").Bind(options);
+    options.BaseUrl = Environment.GetEnvironmentVariable("WHATSAPP_BOT_URL") ?? options.BaseUrl;
+    options.SharedSecret = Environment.GetEnvironmentVariable("WHATSAPP_BOT_SECRET") ?? options.SharedSecret;
+});
 // Stripe.net usa una API key global (no por request); se setea una sola vez al arrancar.
 var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
 if (!string.IsNullOrWhiteSpace(stripeSecretKey))
@@ -73,6 +84,9 @@ builder.Services.AddScoped<IStripeService, StripeService>();
 builder.Services.AddScoped<IHistorialService, HistorialService>();
 builder.Services.AddScoped<INotificacionesService, NotificacionesService>();
 builder.Services.AddScoped<IEstadisticasService, EstadisticasService>();
+builder.Services.AddHttpClient<IOpenRouterService, OpenRouterService>();
+builder.Services.AddHttpClient<IWhatsAppBotClient, WhatsAppBotClient>();
+builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 builder.Services.AddHostedService<RecordatoriosBackgroundService>();
 
 var port = Environment.GetEnvironmentVariable("PORT");

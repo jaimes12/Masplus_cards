@@ -22,6 +22,8 @@ public class AppDbContext : DbContext
     public DbSet<DiscountCode> DiscountCodes => Set<DiscountCode>();
     public DbSet<DiscountCodeRedemption> DiscountCodeRedemptions => Set<DiscountCodeRedemption>();
     public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
+    public DbSet<WhatsAppConversacion> WhatsAppConversaciones => Set<WhatsAppConversacion>();
+    public DbSet<WhatsAppMensaje> WhatsAppMensajes => Set<WhatsAppMensaje>();
 
     public override int SaveChanges()
     {
@@ -331,6 +333,43 @@ public class AppDbContext : DbContext
             e.HasOne(x => x.Empresa)
                 .WithMany()
                 .HasForeignKey(x => x.EmpresaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<WhatsAppConversacion>(e =>
+        {
+            e.ToTable("whatsapp_conversaciones");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Telefono).HasColumnName("telefono").HasMaxLength(30).IsRequired();
+            e.Property(x => x.NombreContacto).HasColumnName("nombre_contacto").HasMaxLength(150);
+            e.Property(x => x.Etapa).HasColumnName("etapa").HasMaxLength(20).IsRequired();
+            e.Property(x => x.IaActiva).HasColumnName("ia_activa");
+            e.Property(x => x.UltimoMensajeEn).HasColumnName("ultimo_mensaje_en");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+
+            e.HasIndex(x => x.Telefono).IsUnique();
+            e.HasIndex(x => x.Etapa);
+        });
+
+        modelBuilder.Entity<WhatsAppMensaje>(e =>
+        {
+            e.ToTable("whatsapp_mensajes");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.ConversacionId).HasColumnName("conversacion_id");
+            e.Property(x => x.Rol).HasColumnName("rol").HasMaxLength(20).IsRequired();
+            e.Property(x => x.Texto).HasColumnName("texto").HasMaxLength(2000).IsRequired();
+            e.Property(x => x.WhatsAppMessageId).HasColumnName("whatsapp_message_id").HasMaxLength(100);
+            e.Property(x => x.EstadoEnvio).HasColumnName("estado_envio").HasMaxLength(20).IsRequired();
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+
+            e.HasIndex(x => new { x.ConversacionId, x.CreatedAt });
+            e.HasIndex(x => x.WhatsAppMessageId).IsUnique();
+
+            e.HasOne(x => x.Conversacion)
+                .WithMany(x => x.Mensajes)
+                .HasForeignKey(x => x.ConversacionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

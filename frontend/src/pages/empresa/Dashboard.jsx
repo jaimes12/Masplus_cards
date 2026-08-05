@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CreditCard, Gift, Plus, Stamp, Users } from 'lucide-react'
 import { api } from '../../lib/api.js'
-import { Button } from '../../components/ui.jsx'
-import { Panel, PageHead, StatCard } from '../../components/empresa/EmpresaUI.jsx'
+import { Button, Panel } from '../../components/ui.jsx'
+import { PageHead, StatCard } from '../../components/empresa/EmpresaUI.jsx'
 
 const MOVIMIENTOS = {
   tarjeta_creada: { label: 'Registro', tone: 'bg-secondary text-ink-2' },
