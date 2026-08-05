@@ -16,5 +16,9 @@ public interface IWhatsAppService
     Task<WhatsAppConversacionDto?> ReactivarIaAsync(int conversacionId);
     Task<WhatsAppConversacionDto?> ActualizarNotasAsync(int conversacionId, string? notas);
     Task<WhatsAppConversacionDto?> ActualizarTelefonoAsync(int conversacionId, string telefono);
+
+    /// <summary>Crea una conversación iniciada por el admin (o devuelve la existente si el
+    /// teléfono ya tiene una). Normaliza el número al formato JID de WhatsApp.</summary>
+    Task<WhatsAppConversacionDto> CrearConversacionAsync(string telefono, string? nombreContacto);
     Task<WhatsAppBotStatusDto> GetEstadoBotAsync();
 }

@@ -15,6 +15,8 @@ public record ActualizarNotasRequest(string? Notas);
 
 public record ActualizarTelefonoRequest(string Telefono);
 
+public record CrearConversacionRequest(string Telefono, string? NombreContacto);
+
 public record ResponderManualRequest(string Texto);
 
 public record WhatsAppBotStatusDto(bool Conectado, string? QrDataUrl);

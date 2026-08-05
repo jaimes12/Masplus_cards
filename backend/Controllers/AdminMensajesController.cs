@@ -23,6 +23,19 @@ public class AdminMensajesController : ControllerBase
         return Ok(await _service.GetConversacionesAsync());
     }
 
+    [HttpPost]
+    public async Task<ActionResult<WhatsAppConversacionDto>> CrearConversacion([FromBody] CrearConversacionRequest request)
+    {
+        try
+        {
+            return Ok(await _service.CrearConversacionAsync(request.Telefono, request.NombreContacto));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpGet("{id:int}/mensajes")]
     public async Task<ActionResult<List<WhatsAppMensajeDto>>> GetMensajes(int id)
     {

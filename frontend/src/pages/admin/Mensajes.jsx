@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bot, Pencil, QrCode, RefreshCw, Send, User, UserCog, X } from 'lucide-react'
+import { Bot, MessageSquarePlus, Pencil, QrCode, RefreshCw, Send, User, UserCog, X } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { Button, EmptyState, Input, Select } from '../../components/ui.jsx'
 
@@ -95,6 +95,95 @@ function VincularWhatsAppModal({ onClose }) {
           <p className="mt-4 text-sm text-ink-3">Esperando al bot de WhatsApp...</p>
         )}
       </div>
+    </div>
+  )
+}
+
+// Espeja la normalización del backend: México usa 521 + 10 dígitos en WhatsApp;
+// otros países van en formato internacional completo (E.164 sin '+').
+function normalizarTelefono(entrada) {
+  const digitos = entrada.replace(/\D/g, '')
+  if (digitos.length === 10) return { ok: true, normalizado: `521${digitos}` }
+  if (digitos.length === 12 && digitos.startsWith('52')) return { ok: true, normalizado: `521${digitos.slice(2)}` }
+  if (digitos.length >= 11 && digitos.length <= 15) return { ok: true, normalizado: digitos }
+  return {
+    ok: false,
+    error: digitos.length === 0
+      ? null
+      : 'Usa 10 dígitos para México (ej. 449 425 0350) o el formato internacional con código de país.',
+  }
+}
+
+function NuevoChatModal({ onClose, onCrear }) {
+  const [telefono, setTelefono] = useState('')
+  const [nombre, setNombre] = useState('')
+  const [creando, setCreando] = useState(false)
+  const [error, setError] = useState('')
+
+  const validacion = normalizarTelefono(telefono)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!validacion.ok) return
+    setCreando(true)
+    setError('')
+    try {
+      await onCrear(validacion.normalizado, nombre.trim() || null)
+    } catch (err) {
+      setError(err.message || 'No se pudo crear el chat.')
+      setCreando(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <form
+        onSubmit={handleSubmit}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm space-y-4 rounded-2xl bg-card p-6 shadow-2xl"
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-foreground">Nuevo chat</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-lg hover:bg-secondary"
+            aria-label="Cerrar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-foreground">Teléfono</label>
+          <Input
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            placeholder="449 425 0350"
+            inputMode="tel"
+            autoFocus
+          />
+          {validacion.ok ? (
+            <p className="text-xs text-ok">Se enviará a: {validacion.normalizado}</p>
+          ) : validacion.error ? (
+            <p className="text-xs text-bad">{validacion.error}</p>
+          ) : (
+            <p className="text-xs text-ink-3">10 dígitos (México) o internacional con código de país.</p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-foreground">Nombre (opcional)</label>
+          <Input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre del contacto" />
+        </div>
+
+        {error && <p className="text-sm text-bad">{error}</p>}
+
+        <Button type="submit" disabled={creando || !validacion.ok} className="w-full gap-1.5">
+          <MessageSquarePlus className="h-4 w-4" />
+          {creando ? 'Creando...' : 'Iniciar chat'}
+        </Button>
+      </form>
     </div>
   )
 }
@@ -335,6 +424,7 @@ export default function Mensajes() {
   const [mensajes, setMensajes] = useState([])
   const [botEstado, setBotEstado] = useState(null)
   const [mostrarQr, setMostrarQr] = useState(false)
+  const [mostrarNuevoChat, setMostrarNuevoChat] = useState(false)
 
   async function cargarConversaciones() {
     const data = await api.get('/api/admin/mensajes')
@@ -393,6 +483,16 @@ export default function Mensajes() {
     actualizarSeleccionEnLista(actualizada)
   }
 
+  async function handleCrearChat(telefono, nombreContacto) {
+    const conversacion = await api.post('/api/admin/mensajes', { telefono, nombreContacto })
+    setConversaciones((prev) => {
+      const yaExiste = prev.some((c) => c.id === conversacion.id)
+      return yaExiste ? prev.map((c) => (c.id === conversacion.id ? conversacion : c)) : [conversacion, ...prev]
+    })
+    setMostrarNuevoChat(false)
+    setSeleccionadaId(conversacion.id)
+  }
+
   if (!conversaciones) return <p className="text-muted-foreground">Cargando...</p>
 
   const totalConversaciones = conversaciones.length
@@ -407,6 +507,9 @@ export default function Mensajes() {
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" onClick={cargarConversaciones} className="gap-1.5">
             <RefreshCw className="h-4 w-4" /> Actualizar
+          </Button>
+          <Button variant="outline" onClick={() => setMostrarNuevoChat(true)} className="gap-1.5">
+            <MessageSquarePlus className="h-4 w-4" /> Nuevo chat
           </Button>
           <Button onClick={() => setMostrarQr(true)} className="gap-1.5">
             <QrCode className="h-4 w-4" /> {botEstado?.conectado ? 'WhatsApp vinculado' : 'Vincular WhatsApp'}
@@ -460,6 +563,7 @@ export default function Mensajes() {
       </AnimatePresence>
 
       {mostrarQr && <VincularWhatsAppModal onClose={() => setMostrarQr(false)} />}
+      {mostrarNuevoChat && <NuevoChatModal onClose={() => setMostrarNuevoChat(false)} onCrear={handleCrearChat} />}
     </div>
   )
 }

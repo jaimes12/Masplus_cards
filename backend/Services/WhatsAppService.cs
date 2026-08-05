@@ -187,6 +187,39 @@ public class WhatsAppService : IWhatsAppService
         return ToDto(conversacion, null);
     }
 
+    public async Task<WhatsAppConversacionDto> CrearConversacionAsync(string telefono, string? nombreContacto)
+    {
+        var digitos = new string(telefono.Where(char.IsDigit).ToArray());
+
+        // Normalización al formato JID de WhatsApp, pensada para México (el mercado del
+        // producto): los celulares mexicanos usan 521 + 10 dígitos. Otros países se aceptan
+        // en formato internacional completo (E.164 sin el '+').
+        var normalizado = digitos switch
+        {
+            { Length: 10 } => "521" + digitos,
+            { Length: 12 } when digitos.StartsWith("52") => "521" + digitos[2..],
+            { Length: >= 11 and <= 15 } => digitos,
+            _ => throw new InvalidOperationException(
+                "Número inválido. Usa 10 dígitos para México (ej. 4494250350) o el formato internacional completo con código de país."),
+        };
+
+        var existente = await _db.WhatsAppConversaciones.FirstOrDefaultAsync(c => c.Telefono == normalizado);
+        if (existente != null) return ToDto(existente, null);
+
+        var conversacion = new WhatsAppConversacion
+        {
+            Telefono = normalizado,
+            NombreContacto = string.IsNullOrWhiteSpace(nombreContacto) ? null : nombreContacto.Trim(),
+            // Chat iniciado por el admin: arranca en manual para que la IA no salude sola
+            // a alguien que nunca escribió. Se puede reactivar desde el modal.
+            IaActiva = false,
+            UltimoMensajeEn = MexicoCityTime.Now(),
+        };
+        _db.WhatsAppConversaciones.Add(conversacion);
+        await _db.SaveChangesAsync();
+        return ToDto(conversacion, null);
+    }
+
     public Task<WhatsAppBotStatusDto> GetEstadoBotAsync() => _bot.ObtenerEstadoAsync();
 
     private static WhatsAppConversacionDto ToDto(WhatsAppConversacion c, string? ultimoMensajeTexto) => new(
