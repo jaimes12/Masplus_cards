@@ -20,13 +20,13 @@ public class WhatsAppBotClient : IWhatsAppBotClient
         _logger = logger;
     }
 
-    public async Task<bool> EnviarAsync(string telefono, string texto, CancellationToken ct = default)
+    public async Task<bool> EnviarAsync(string telefono, string texto, bool humanizar = true, CancellationToken ct = default)
     {
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, $"{_settings.BaseUrl.TrimEnd('/')}/send")
             {
-                Content = JsonContent.Create(new { telefono, texto }),
+                Content = JsonContent.Create(new { telefono, texto, humanizar }),
             };
             request.Headers.Add("X-Bot-Secret", _settings.SharedSecret);
 

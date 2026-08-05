@@ -7,8 +7,10 @@ namespace MasplusCards.Api.Services.Interfaces;
 public interface IWhatsAppBotClient
 {
     /// <summary>Devuelve false (nunca lanza) si el bot no responde o falla el envío —
-    /// el llamador decide qué hacer con eso (marcar el mensaje como fallido).</summary>
-    Task<bool> EnviarAsync(string telefono, string texto, CancellationToken ct = default);
+    /// el llamador decide qué hacer con eso (marcar el mensaje como fallido).
+    /// humanizar=true (mensajes de la IA) hace que el bot simule lectura + tecleo antes
+    /// de enviar (hasta ~30s); false (respuestas manuales del admin) envía casi al instante.</summary>
+    Task<bool> EnviarAsync(string telefono, string texto, bool humanizar = true, CancellationToken ct = default);
 
     Task<WhatsAppBotStatusDto> ObtenerEstadoAsync(CancellationToken ct = default);
 }

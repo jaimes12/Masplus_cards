@@ -75,7 +75,7 @@ public class WhatsAppService : IWhatsAppService
             var contextoIa = await GetContextoIaAsync();
 
             var respuesta = await _ia.GenerarRespuestaAsync(historial, planes, contextoIa, ct);
-            var enviado = await _bot.EnviarAsync(conversacion.Telefono, respuesta, ct);
+            var enviado = await _bot.EnviarAsync(conversacion.Telefono, respuesta, humanizar: true, ct);
 
             conversacion.UltimoMensajeEn = MexicoCityTime.Now();
             _db.WhatsAppMensajes.Add(new WhatsAppMensaje
@@ -136,7 +136,9 @@ public class WhatsAppService : IWhatsAppService
         var conversacion = await _db.WhatsAppConversaciones.FirstOrDefaultAsync(c => c.Id == conversacionId);
         if (conversacion == null) return null;
 
-        var enviado = await _bot.EnviarAsync(conversacion.Telefono, texto);
+        // El admin ya escribió el texto a mano — sin retraso de humanización, para que
+        // el panel no se sienta trabado.
+        var enviado = await _bot.EnviarAsync(conversacion.Telefono, texto, humanizar: false);
 
         conversacion.IaActiva = false;
         conversacion.UltimoMensajeEn = MexicoCityTime.Now();

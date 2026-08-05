@@ -200,7 +200,7 @@ function requireSecret(req, res, next) {
 }
 
 app.post('/send', requireSecret, async (req, res) => {
-  const { telefono, texto } = req.body || {}
+  const { telefono, texto, humanizar } = req.body || {}
   if (!telefono || !texto) return res.status(400).json({ error: 'telefono y texto son requeridos' })
   if (!sock || !connected) return res.status(503).json({ error: 'WhatsApp no está conectado' })
 
@@ -212,16 +212,25 @@ app.post('/send', requireSecret, async (req, res) => {
       : (lidPorTelefono.get(telefono) ?? `${telefono}@s.whatsapp.net`)
 
     // Humanización anti-detección: WhatsApp marca como automatización las respuestas
-    // instantáneas 24/7. Se simula que alguien escribe: presencia "composing" + una
-    // espera proporcional al largo del texto (con jitter), antes de enviar.
-    const delayMs = Math.min(12000, 1500 + texto.length * 45 + Math.random() * 2500)
+    // instantáneas 24/7. Para la IA (humanizar=true, el default) se simula el ciclo
+    // completo de una persona: pausa de "lectura" del mensaje, presencia "escribiendo",
+    // espera proporcional al largo del texto con jitter, y recién entonces el envío.
+    // Las respuestas manuales del admin (humanizar=false) ya las escribió un humano —
+    // solo llevan un toque breve de "escribiendo" para no trabar el panel.
+    const esIa = humanizar !== false
+    const lecturaMs = esIa ? 2000 + Math.random() * 4000 : 0
+    const escrituraMs = esIa
+      ? Math.min(25000, 3000 + texto.length * 70 + Math.random() * 4000)
+      : 800 + Math.random() * 700
+
+    if (lecturaMs > 0) await new Promise((r) => setTimeout(r, lecturaMs))
     try {
       await sock.presenceSubscribe(jid)
       await sock.sendPresenceUpdate('composing', jid)
     } catch {
       // la presencia es cosmética — si falla, se envía igual
     }
-    await new Promise((r) => setTimeout(r, delayMs))
+    await new Promise((r) => setTimeout(r, escrituraMs))
     try {
       await sock.sendPresenceUpdate('paused', jid)
     } catch {
