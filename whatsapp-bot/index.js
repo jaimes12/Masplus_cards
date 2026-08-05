@@ -131,7 +131,18 @@ async function connectToWhatsApp() {
         )
         setTimeout(connectToWhatsApp, delay)
       } else {
-        console.log('Sesión cerrada (logout). Borrá la carpeta de auth y volvé a escanear el QR desde /admin/mensajes.')
+        // Logout real (ej. el usuario desvinculó el dispositivo desde su teléfono): las
+        // credenciales guardadas ya no sirven. Se borra la sesión automáticamente y se
+        // reconecta desde cero para que /admin/mensajes muestre un QR nuevo.
+        console.log('Sesión cerrada (logout). Borrando la sesión vieja y generando un QR nuevo...')
+        try {
+          fs.rmSync(authDirAbsoluto, { recursive: true, force: true })
+          fs.mkdirSync(authDirAbsoluto, { recursive: true })
+          lidPorTelefono.clear()
+        } catch (err) {
+          console.error('No se pudo borrar la carpeta de auth:', err.message)
+        }
+        setTimeout(connectToWhatsApp, 1000)
       }
     }
   })
