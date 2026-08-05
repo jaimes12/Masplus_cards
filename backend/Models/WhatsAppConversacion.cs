@@ -18,6 +18,9 @@ public class WhatsAppConversacion
     /// <summary>Si es false, la IA no responde en este hilo — un admin tomó control manual.</summary>
     public bool IaActiva { get; set; } = true;
 
+    /// <summary>Notas libres del admin sobre este lead (no se comparten con el cliente).</summary>
+    public string? Notas { get; set; }
+
     public DateTime UltimoMensajeEn { get; set; }
     public DateTime CreatedAt { get; set; }
 

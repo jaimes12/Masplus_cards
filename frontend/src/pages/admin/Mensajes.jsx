@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Bot, QrCode, RefreshCw, Send, User, UserCog, X } from 'lucide-react'
 import { api } from '../../lib/api.js'
-import { Button, Drawer, EmptyState, Input } from '../../components/ui.jsx'
+import { Button, EmptyState, Input, Select } from '../../components/ui.jsx'
 
 const ETAPAS = [
   { value: 'nuevo', label: 'Nuevo' },
@@ -18,6 +19,14 @@ function formatFecha(fechaStr) {
   if (diffMin < 60) return `hace ${diffMin} min`
   if (diffMin < 1440) return `hace ${Math.floor(diffMin / 60)} h`
   return fecha.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
+}
+
+function formatFechaLarga(fechaStr) {
+  return new Date(fechaStr).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function iniciales(nombre) {
+  return (nombre || '?').trim().slice(0, 2).toUpperCase()
 }
 
 function ConversacionCard({ conversacion, onClick }) {
@@ -90,15 +99,178 @@ function VincularWhatsAppModal({ onClose }) {
   )
 }
 
-export default function Mensajes() {
-  const [conversaciones, setConversaciones] = useState(null)
-  const [seleccionada, setSeleccionada] = useState(null)
-  const [mensajes, setMensajes] = useState([])
+function ConversacionModal({ conversacion, mensajes, onClose, onCambiarEtapa, onResponder, onReactivarIa, onGuardarNotas }) {
   const [texto, setTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [notas, setNotas] = useState(conversacion.notas || '')
+  const [guardandoNotas, setGuardandoNotas] = useState(false)
+  const bottomRef = useRef(null)
+
+  useEffect(() => {
+    setNotas(conversacion.notas || '')
+  }, [conversacion.id, conversacion.notas])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [mensajes])
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!texto.trim()) return
+    setEnviando(true)
+    try {
+      await onResponder(texto.trim())
+      setTexto('')
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  async function handleGuardarNotas() {
+    setGuardandoNotas(true)
+    try {
+      await onGuardarNotas(notas)
+    } finally {
+      setGuardandoNotas(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.97, y: 8 }}
+        transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+        onClick={(e) => e.stopPropagation()}
+        className="flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-card shadow-2xl"
+      >
+        <div className="flex shrink-0 items-center gap-3 border-b border-border px-5 py-4">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
+            {iniciales(conversacion.nombreContacto)}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-foreground">{conversacion.nombreContacto || conversacion.telefono}</p>
+            <p className="truncate text-xs text-ink-3 tabular-nums">{conversacion.telefono}</p>
+          </div>
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <Select
+              value={conversacion.etapa}
+              onChange={(e) => onCambiarEtapa(e.target.value)}
+              className="!w-auto"
+            >
+              {ETAPAS.map((etapa) => (
+                <option key={etapa.value} value={etapa.value}>
+                  {etapa.label}
+                </option>
+              ))}
+            </Select>
+            <span
+              className={`hidden rounded-full px-2.5 py-1 text-xs font-semibold sm:inline ${
+                conversacion.iaActiva ? 'bg-ok-soft text-ok' : 'bg-warn-soft text-warn'
+              }`}
+            >
+              {conversacion.iaActiva ? 'IA activa' : 'IA pausada'}
+            </span>
+            <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg border border-border hover:bg-secondary" aria-label="Cerrar">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-1">
+          <div className="flex min-w-0 flex-1 flex-col">
+            {!conversacion.iaActiva && (
+              <div className="flex shrink-0 items-center gap-3 bg-warn-soft px-5 py-2.5 text-sm text-warn">
+                <UserCog className="h-4 w-4 shrink-0" />
+                <span className="flex-1">Tomaste control manual — la IA no responde en este chat.</span>
+                <button type="button" onClick={onReactivarIa} className="shrink-0 font-semibold underline underline-offset-2">
+                  Reactivar IA
+                </button>
+              </div>
+            )}
+
+            <div className="flex-1 space-y-3 overflow-y-auto bg-secondary/30 p-5">
+              {mensajes.map((m) => {
+                const esCliente = m.rol === 'cliente'
+                return (
+                  <div key={m.id} className={`flex ${esCliente ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm shadow-soft ${esCliente ? 'bg-card text-foreground' : 'bg-accent/15 text-foreground'}`}>
+                      <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-ink-3">
+                        {esCliente ? <User className="h-3 w-3" /> : <Bot className="h-3 w-3" />}
+                        {esCliente ? 'Cliente' : m.rol === 'admin' ? 'Tú' : 'IA'}
+                        {m.estadoEnvio === 'fallido' && <span className="text-bad">· no se pudo enviar</span>}
+                      </p>
+                      <p className="whitespace-pre-wrap">{m.texto}</p>
+                      <p className="mt-1 text-[11px] text-ink-3 tabular-nums">
+                        {new Date(m.createdAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+              <div ref={bottomRef} />
+            </div>
+
+            <form onSubmit={handleSubmit} className="flex shrink-0 gap-2 border-t border-border p-4">
+              <Input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Escribí un mensaje..." />
+              <Button type="submit" disabled={enviando || !texto.trim()} className="shrink-0 gap-1.5">
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
+
+          <div className="hidden w-72 shrink-0 space-y-6 overflow-y-auto border-l border-border p-5 lg:block">
+            <div>
+              <p className="mb-2.5 text-xs font-semibold tracking-wide text-ink-3 uppercase">Información</p>
+              <dl className="space-y-2 text-sm">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-ink-3">Teléfono</dt>
+                  <dd className="truncate font-medium text-foreground tabular-nums">{conversacion.telefono}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-ink-3">Primer contacto</dt>
+                  <dd className="font-medium text-foreground">{formatFechaLarga(conversacion.createdAt)}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-ink-3">Última actividad</dt>
+                  <dd className="font-medium text-foreground">{formatFecha(conversacion.ultimoMensajeEn)}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div>
+              <p className="mb-2.5 text-xs font-semibold tracking-wide text-ink-3 uppercase">Notas</p>
+              <textarea
+                value={notas}
+                onChange={(e) => setNotas(e.target.value)}
+                placeholder="Notas internas sobre este lead..."
+                rows={5}
+                className="w-full rounded-xl border border-input bg-card px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGuardarNotas}
+                disabled={guardandoNotas || notas === (conversacion.notas || '')}
+                className="mt-2 w-full"
+              >
+                {guardandoNotas ? 'Guardando...' : 'Guardar notas'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+export default function Mensajes() {
+  const [conversaciones, setConversaciones] = useState(null)
+  const [seleccionadaId, setSeleccionadaId] = useState(null)
+  const [mensajes, setMensajes] = useState([])
   const [botEstado, setBotEstado] = useState(null)
   const [mostrarQr, setMostrarQr] = useState(false)
-  const bottomRef = useRef(null)
 
   async function cargarConversaciones() {
     const data = await api.get('/api/admin/mensajes')
@@ -118,42 +290,38 @@ export default function Mensajes() {
   }, [])
 
   useEffect(() => {
-    if (!seleccionada) return
-    cargarMensajes(seleccionada.id)
-    const interval = setInterval(() => cargarMensajes(seleccionada.id), 5000)
+    if (!seleccionadaId) return
+    cargarMensajes(seleccionadaId)
+    const interval = setInterval(() => cargarMensajes(seleccionadaId), 5000)
     return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seleccionada?.id])
+  }, [seleccionadaId])
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [mensajes])
+  const seleccionada = conversaciones?.find((c) => c.id === seleccionadaId) ?? null
 
-  async function handleCambiarEtapa(etapa) {
-    const actualizada = await api.put(`/api/admin/mensajes/${seleccionada.id}/etapa`, { etapa })
-    setSeleccionada(actualizada)
-    cargarConversaciones()
+  function actualizarSeleccionEnLista(actualizada) {
+    setConversaciones((prev) => prev.map((c) => (c.id === actualizada.id ? actualizada : c)))
   }
 
-  async function handleResponder(e) {
-    e.preventDefault()
-    if (!texto.trim()) return
-    setEnviando(true)
-    try {
-      const actualizada = await api.post(`/api/admin/mensajes/${seleccionada.id}/responder`, { texto: texto.trim() })
-      setSeleccionada(actualizada)
-      setTexto('')
-      cargarMensajes(seleccionada.id)
-      cargarConversaciones()
-    } finally {
-      setEnviando(false)
-    }
+  async function handleCambiarEtapa(etapa) {
+    const actualizada = await api.put(`/api/admin/mensajes/${seleccionadaId}/etapa`, { etapa })
+    actualizarSeleccionEnLista(actualizada)
+  }
+
+  async function handleResponder(texto) {
+    const actualizada = await api.post(`/api/admin/mensajes/${seleccionadaId}/responder`, { texto })
+    actualizarSeleccionEnLista(actualizada)
+    cargarMensajes(seleccionadaId)
   }
 
   async function handleReactivarIa() {
-    const actualizada = await api.post(`/api/admin/mensajes/${seleccionada.id}/reactivar-ia`)
-    setSeleccionada(actualizada)
-    cargarConversaciones()
+    const actualizada = await api.post(`/api/admin/mensajes/${seleccionadaId}/reactivar-ia`)
+    actualizarSeleccionEnLista(actualizada)
+  }
+
+  async function handleGuardarNotas(notas) {
+    const actualizada = await api.put(`/api/admin/mensajes/${seleccionadaId}/notas`, { notas })
+    actualizarSeleccionEnLista(actualizada)
   }
 
   if (!conversaciones) return <p className="text-muted-foreground">Cargando...</p>
@@ -197,7 +365,7 @@ export default function Mensajes() {
                 </p>
                 <div className="space-y-2.5">
                   {items.map((c) => (
-                    <ConversacionCard key={c.id} conversacion={c} onClick={() => setSeleccionada(c)} />
+                    <ConversacionCard key={c.id} conversacion={c} onClick={() => setSeleccionadaId(c.id)} />
                   ))}
                   {items.length === 0 && <p className="text-xs text-ink-3">Sin conversaciones.</p>}
                 </div>
@@ -207,75 +375,19 @@ export default function Mensajes() {
         </div>
       )}
 
-      <Drawer
-        open={!!seleccionada}
-        onClose={() => setSeleccionada(null)}
-        title={seleccionada?.nombreContacto || seleccionada?.telefono}
-        subtitle={seleccionada?.telefono}
-        footer={
-          seleccionada && (
-            <form onSubmit={handleResponder} className="flex w-full gap-2">
-              <Input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Escribí un mensaje..." />
-              <Button type="submit" disabled={enviando || !texto.trim()} className="shrink-0 gap-1.5">
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          )
-        }
-      >
+      <AnimatePresence>
         {seleccionada && (
-          <div className="flex h-full flex-col">
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              {ETAPAS.map((etapa) => (
-                <button
-                  key={etapa.value}
-                  type="button"
-                  onClick={() => handleCambiarEtapa(etapa.value)}
-                  className={`h-7 shrink-0 rounded-full border px-2.5 text-xs font-semibold transition-colors ${
-                    seleccionada.etapa === etapa.value
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border bg-card text-ink-2 hover:border-ink-3'
-                  }`}
-                >
-                  {etapa.label}
-                </button>
-              ))}
-            </div>
-
-            {!seleccionada.iaActiva && (
-              <div className="mb-4 flex items-center gap-3 rounded-xl bg-warn-soft px-3.5 py-2.5 text-sm text-warn">
-                <UserCog className="h-4 w-4 shrink-0" />
-                <span className="flex-1">Tomaste control manual — la IA no responde en este chat.</span>
-                <button type="button" onClick={handleReactivarIa} className="shrink-0 font-semibold underline underline-offset-2">
-                  Reactivar IA
-                </button>
-              </div>
-            )}
-
-            <div className="flex-1 space-y-3">
-              {mensajes.map((m) => {
-                const esCliente = m.rol === 'cliente'
-                return (
-                  <div key={m.id} className={`flex ${esCliente ? 'justify-start' : 'justify-end'}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm ${esCliente ? 'bg-secondary text-foreground' : 'bg-accent/15 text-foreground'}`}>
-                      <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-ink-3">
-                        {esCliente ? <User className="h-3 w-3" /> : <Bot className="h-3 w-3" />}
-                        {esCliente ? 'Cliente' : m.rol === 'admin' ? 'Tú' : 'IA'}
-                        {m.estadoEnvio === 'fallido' && <span className="text-bad">· no se pudo enviar</span>}
-                      </p>
-                      <p className="whitespace-pre-wrap">{m.texto}</p>
-                      <p className="mt-1 text-[11px] text-ink-3 tabular-nums">
-                        {new Date(m.createdAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-              <div ref={bottomRef} />
-            </div>
-          </div>
+          <ConversacionModal
+            conversacion={seleccionada}
+            mensajes={mensajes}
+            onClose={() => setSeleccionadaId(null)}
+            onCambiarEtapa={handleCambiarEtapa}
+            onResponder={handleResponder}
+            onReactivarIa={handleReactivarIa}
+            onGuardarNotas={handleGuardarNotas}
+          />
         )}
-      </Drawer>
+      </AnimatePresence>
 
       {mostrarQr && <VincularWhatsAppModal onClose={() => setMostrarQr(false)} />}
     </div>

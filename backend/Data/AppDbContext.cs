@@ -345,6 +345,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.NombreContacto).HasColumnName("nombre_contacto").HasMaxLength(150);
             e.Property(x => x.Etapa).HasColumnName("etapa").HasMaxLength(20).IsRequired();
             e.Property(x => x.IaActiva).HasColumnName("ia_activa");
+            e.Property(x => x.Notas).HasColumnName("notas").HasMaxLength(2000);
             e.Property(x => x.UltimoMensajeEn).HasColumnName("ultimo_mensaje_en");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
 

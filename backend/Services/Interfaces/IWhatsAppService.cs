@@ -14,5 +14,6 @@ public interface IWhatsAppService
     Task<WhatsAppConversacionDto?> ActualizarEtapaAsync(int conversacionId, string etapa);
     Task<WhatsAppConversacionDto?> ResponderManualAsync(int conversacionId, string texto);
     Task<WhatsAppConversacionDto?> ReactivarIaAsync(int conversacionId);
+    Task<WhatsAppConversacionDto?> ActualizarNotasAsync(int conversacionId, string? notas);
     Task<WhatsAppBotStatusDto> GetEstadoBotAsync();
 }

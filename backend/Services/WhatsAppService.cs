@@ -159,8 +159,18 @@ public class WhatsAppService : IWhatsAppService
         return ToDto(conversacion, null);
     }
 
+    public async Task<WhatsAppConversacionDto?> ActualizarNotasAsync(int conversacionId, string? notas)
+    {
+        var conversacion = await _db.WhatsAppConversaciones.FirstOrDefaultAsync(c => c.Id == conversacionId);
+        if (conversacion == null) return null;
+
+        conversacion.Notas = string.IsNullOrWhiteSpace(notas) ? null : notas.Trim();
+        await _db.SaveChangesAsync();
+        return ToDto(conversacion, null);
+    }
+
     public Task<WhatsAppBotStatusDto> GetEstadoBotAsync() => _bot.ObtenerEstadoAsync();
 
     private static WhatsAppConversacionDto ToDto(WhatsAppConversacion c, string? ultimoMensajeTexto) => new(
-        c.Id, c.Telefono, c.NombreContacto, c.Etapa, c.IaActiva, c.UltimoMensajeEn, c.CreatedAt, ultimoMensajeTexto);
+        c.Id, c.Telefono, c.NombreContacto, c.Etapa, c.IaActiva, c.Notas, c.UltimoMensajeEn, c.CreatedAt, ultimoMensajeTexto);
 }

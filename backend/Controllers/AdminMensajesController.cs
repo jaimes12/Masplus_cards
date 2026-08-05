@@ -57,6 +57,13 @@ public class AdminMensajesController : ControllerBase
         return conversacion == null ? NotFound() : Ok(conversacion);
     }
 
+    [HttpPut("{id:int}/notas")]
+    public async Task<ActionResult<WhatsAppConversacionDto>> ActualizarNotas(int id, [FromBody] ActualizarNotasRequest request)
+    {
+        var conversacion = await _service.ActualizarNotasAsync(id, request.Notas);
+        return conversacion == null ? NotFound() : Ok(conversacion);
+    }
+
     [HttpGet("whatsapp/status")]
     public async Task<ActionResult<WhatsAppBotStatusDto>> GetEstadoWhatsApp()
     {

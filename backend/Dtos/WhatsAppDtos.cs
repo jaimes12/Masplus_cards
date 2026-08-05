@@ -6,10 +6,12 @@ public record WhatsAppInboundRequest(string Telefono, string Texto, string? Nomb
 public record WhatsAppMensajeDto(int Id, string Rol, string Texto, string EstadoEnvio, DateTime CreatedAt);
 
 public record WhatsAppConversacionDto(
-    int Id, string Telefono, string? NombreContacto, string Etapa, bool IaActiva,
+    int Id, string Telefono, string? NombreContacto, string Etapa, bool IaActiva, string? Notas,
     DateTime UltimoMensajeEn, DateTime CreatedAt, string? UltimoMensajeTexto);
 
 public record ActualizarEtapaRequest(string Etapa);
+
+public record ActualizarNotasRequest(string? Notas);
 
 public record ResponderManualRequest(string Texto);
 
