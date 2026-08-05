@@ -210,6 +210,24 @@ app.post('/send', requireSecret, async (req, res) => {
     const jid = telefono.includes('@')
       ? telefono
       : (lidPorTelefono.get(telefono) ?? `${telefono}@s.whatsapp.net`)
+
+    // Humanización anti-detección: WhatsApp marca como automatización las respuestas
+    // instantáneas 24/7. Se simula que alguien escribe: presencia "composing" + una
+    // espera proporcional al largo del texto (con jitter), antes de enviar.
+    const delayMs = Math.min(12000, 1500 + texto.length * 45 + Math.random() * 2500)
+    try {
+      await sock.presenceSubscribe(jid)
+      await sock.sendPresenceUpdate('composing', jid)
+    } catch {
+      // la presencia es cosmética — si falla, se envía igual
+    }
+    await new Promise((r) => setTimeout(r, delayMs))
+    try {
+      await sock.sendPresenceUpdate('paused', jid)
+    } catch {
+      // idem
+    }
+
     await sock.sendMessage(jid, { text: texto })
     res.json({ ok: true })
   } catch (err) {
