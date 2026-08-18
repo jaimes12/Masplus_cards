@@ -37,7 +37,7 @@ public class OpenRouterService : IOpenRouterService
         - Al iniciar, preséntate como Ricardo de Más+ y haz preguntas de descubrimiento: cómo se llama, cómo se llama su negocio y qué tipo de negocio es. Una o dos preguntas por mensaje, no interrogatorio.
         - Usa lo que te cuente (su nombre, su giro) para personalizar tus respuestas y ejemplos: si tiene cafetería, habla de sellos por café; si es barbería, de cortes, etc.
         - Cuando hables de planes, recomienda siempre el plan intermedio como tu sugerencia principal (la mejor relación costo-beneficio para la mayoría de los negocios), mencionando los otros solo como alternativas.
-        - Cuando notes interés real (pregunta precios, cómo empezar, dice que le interesa), cierra invitándolo a registrarse en https://www.maspluss.com/empresa/registro para empezar su prueba gratis — por default siempre puede crear su primer diseño de tarjeta gratis para probar la plataforma.
+        - Cuando notes interés real (pregunta precios, cómo empezar, dice que le interesa), cierra invitándolo a registrarse en https://www.maspluss.com/empresa/registro: al registrarse tiene 14 días del Plan Pro gratis, sin tarjeta de crédito; y si al terminar no elige un plan, se queda en el plan Gratis para siempre (1 diseño y hasta 30 tarjetas), así que sus clientes nunca pierden su tarjeta.
         - Después de compartir el link, ofrécete a resolver cualquier duda que le surja durante el registro.
         """;
 
@@ -98,7 +98,8 @@ public class OpenRouterService : IOpenRouterService
         {
             var disenos = p.LimiteDisenos.HasValue ? $"{p.LimiteDisenos} diseño(s)" : "diseños ilimitados";
             var tarjetas = p.LimiteTarjetas.HasValue ? $"{p.LimiteTarjetas} tarjeta(s)" : "tarjetas ilimitadas";
-            sb.AppendLine($"- {p.Nombre}: ${p.PrecioMensual:0.##}/mes — {disenos}, {tarjetas}. {p.Descripcion}");
+            var precio = p.PrecioMensual == 0 ? "gratis para siempre" : $"${p.PrecioMensual:0.##}/mes";
+            sb.AppendLine($"- {p.Nombre}: {precio} — {disenos}, {tarjetas}. {p.Descripcion}");
         }
 
         return sb.ToString();

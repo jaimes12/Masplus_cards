@@ -102,6 +102,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.DisenoActivoId).HasColumnName("diseno_activo_id");
             e.Property(x => x.PlanId).HasColumnName("plan_id");
             e.Property(x => x.PlanRenuevaEl).HasColumnName("plan_renueva_el");
+            e.Property(x => x.PruebaTerminaEl).HasColumnName("prueba_termina_el");
             e.Property(x => x.StripeCustomerId).HasColumnName("stripe_customer_id").HasMaxLength(60);
             e.Property(x => x.StripeSubscriptionId).HasColumnName("stripe_subscription_id").HasMaxLength(60);
             e.Property(x => x.Estado).HasColumnName("estado").HasMaxLength(20);

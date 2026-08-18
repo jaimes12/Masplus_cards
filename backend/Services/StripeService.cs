@@ -109,6 +109,7 @@ public class StripeService : IStripeService
 
         empresa.StripeSubscriptionId = subscription.Id;
         empresa.PlanId = plan.Id;
+        empresa.PruebaTerminaEl = null;
         var periodEnd = subscription.Items?.Data?.FirstOrDefault()?.CurrentPeriodEnd;
         empresa.PlanRenuevaEl = periodEnd.HasValue
             ? TimeZoneInfo.ConvertTimeFromUtc(periodEnd.Value, MexicoCityTime.GetTimeZone())
@@ -153,6 +154,7 @@ public class StripeService : IStripeService
 
         empresa.PlanId = plan.Id;
         empresa.PlanRenuevaEl = MexicoCityTime.Now().AddDays(30);
+        empresa.PruebaTerminaEl = null;
         await _db.SaveChangesAsync(ct);
 
         return new CrearSuscripcionResultDto(false, null, await _planes.GetActualAsync(empresaId));
@@ -212,8 +214,10 @@ public class StripeService : IStripeService
                 break;
 
             case "customer.subscription.deleted":
-                empresa.PlanId = null;
+                // Al cancelar baja al plan Gratis (no a "sin plan"): sus tarjetas ya emitidas siguen vivas.
+                empresa.PlanId = (await PlanLimitesHelper.ObtenerPlanGratisAsync(_db))?.Id;
                 empresa.PlanRenuevaEl = null;
+                empresa.PruebaTerminaEl = null;
                 empresa.StripeSubscriptionId = null;
                 await _db.SaveChangesAsync(ct);
                 break;

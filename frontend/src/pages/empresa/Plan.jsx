@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { Check, Crown, Tag } from 'lucide-react'
+import { Check, Crown, Sparkles, Tag } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { Button, Card, Input, Label } from '../../components/ui.jsx'
 import { PageHead } from '../../components/empresa/EmpresaUI.jsx'
@@ -98,7 +98,13 @@ export default function Plan() {
 
   if (!data) return <p className="text-muted-foreground">Cargando...</p>
 
-  const { planActual, renuevaEl, disenosUsados, tarjetasUsadas, planes } = data
+  const { planActual, renuevaEl, enPrueba, pruebaTerminaEl, diasPrueba, disenosUsados, tarjetasUsadas, planes } = data
+  const esGratis = planActual && Number(planActual.precioMensual) === 0
+  const diasRestantes = pruebaTerminaEl
+    ? Math.max(0, Math.ceil((new Date(pruebaTerminaEl) - Date.now()) / 86400000))
+    : 0
+  const planesPago = planes.filter((p) => Number(p.precioMensual) > 0)
+  const planGratis = planes.find((p) => Number(p.precioMensual) === 0)
 
   return (
     <div className="space-y-8">
@@ -113,10 +119,23 @@ export default function Plan() {
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
             <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-orange-400">
-              <Crown className="h-3.5 w-3.5" /> Plan actual
+              {enPrueba ? <Sparkles className="h-3.5 w-3.5" /> : <Crown className="h-3.5 w-3.5" />}
+              {enPrueba ? 'Prueba gratis' : 'Plan actual'}
             </p>
             <h2 className="mt-1 text-2xl font-semibold">{planActual?.nombre || 'Sin plan activo'}</h2>
-            {renuevaEl ? (
+            {enPrueba ? (
+              <p className="mt-1 text-sm text-white/60">
+                Estás usando el {planActual.nombre} completo, gratis y sin tarjeta.{' '}
+                {diasRestantes > 0
+                  ? `Te quedan ${diasRestantes} día${diasRestantes === 1 ? '' : 's'}.`
+                  : 'Termina hoy.'}{' '}
+                Al terminar pasas al plan Gratis{planGratis?.limiteTarjetas ? ` (1 diseño, ${planGratis.limiteTarjetas} tarjetas)` : ''}, salvo que elijas uno abajo.
+              </p>
+            ) : esGratis ? (
+              <p className="mt-1 text-sm text-white/60">
+                Gratis para siempre. Cuando necesites más tarjetas o diseños, elige un plan abajo — tus clientes conservan sus tarjetas.
+              </p>
+            ) : renuevaEl ? (
               <p className="mt-1 text-sm text-white/60">
                 Se renueva el{' '}
                 {new Date(renuevaEl).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -127,8 +146,16 @@ export default function Plan() {
           </div>
           {planActual && (
             <p className="text-3xl font-semibold">
-              ${Math.round(Number(planActual.precioMensual))}
-              <span className="text-sm font-normal text-white/60"> MXN/mes</span>
+              {enPrueba || esGratis ? (
+                <>
+                  $0<span className="text-sm font-normal text-white/60"> {enPrueba ? `por ${diasPrueba} días` : 'MXN/mes'}</span>
+                </>
+              ) : (
+                <>
+                  ${Math.round(Number(planActual.precioMensual))}
+                  <span className="text-sm font-normal text-white/60"> MXN/mes</span>
+                </>
+              )}
             </p>
           )}
         </div>
@@ -165,9 +192,24 @@ export default function Plan() {
 
       <div>
         <h3 className="mb-4 text-lg font-semibold">Todos los planes</h3>
+        {planGratis && (
+          <Card className="mb-5 flex flex-wrap items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">
+                {planGratis.nombre} <span className="text-sm font-normal text-muted-foreground">· $0 para siempre</span>
+              </p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {planGratis.descripcion} {planGratis.limiteDisenos} diseño · hasta {planGratis.limiteTarjetas} tarjetas.
+              </p>
+            </div>
+            <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-ink-2">
+              {esGratis ? 'Plan actual' : enPrueba ? 'Se activa al terminar tu prueba' : 'Se activa si cancelas tu suscripción'}
+            </span>
+          </Card>
+        )}
         <div className="grid gap-5 sm:grid-cols-3">
-          {planes.map((plan, i) => {
-            const esActual = planActual?.id === plan.id
+          {planesPago.map((plan, i) => {
+            const esActual = planActual?.id === plan.id && !enPrueba
             const resultado = resultadosCodigo?.[plan.id]
             const conDescuento = resultado?.valido ? resultado : null
             return (
@@ -218,7 +260,13 @@ export default function Plan() {
                     disabled={esActual || canjeando === plan.id}
                     onClick={() => elegirPlan(plan)}
                   >
-                    {esActual ? 'Plan actual' : canjeando === plan.id ? 'Activando...' : 'Elegir este plan'}
+                    {esActual
+                      ? 'Plan actual'
+                      : canjeando === plan.id
+                        ? 'Activando...'
+                        : enPrueba && planActual?.id === plan.id
+                          ? 'Continuar con este plan'
+                          : 'Elegir este plan'}
                   </Button>
                 </Card>
               </motion.div>

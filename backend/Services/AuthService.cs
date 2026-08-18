@@ -43,12 +43,18 @@ public class AuthService : IAuthService
         var exists = await _db.Empresas.AnyAsync(e => e.Email == request.Email);
         if (exists) return null;
 
+        // Toda cuenta nueva arranca con una prueba gratis del plan destacado (sin tarjeta); al vencer,
+        // PlanLimitesHelper la baja sola al plan Gratis. Ver PlanLimitesHelper para el razonamiento.
+        var planPrueba = await PlanLimitesHelper.ObtenerPlanDePruebaAsync(_db);
+
         var empresa = new Empresa
         {
             Nombre = request.Nombre,
             Email = request.Email,
             PasswordHash = PasswordHasher.Hash(request.Password),
             Telefono = request.Telefono,
+            PlanId = planPrueba?.Id,
+            PruebaTerminaEl = planPrueba == null ? null : MexicoCityTime.Now().AddDays(PlanLimitesHelper.DiasPrueba),
         };
 
         _db.Empresas.Add(empresa);

@@ -64,7 +64,11 @@ export default function RegisterEmpresa() {
       <AuthBackground />
       <div className="theme-mas w-full max-w-sm rounded-3xl border border-border bg-card p-8 text-card-foreground shadow-2xl">
         <img src={masplusLogo} alt="MasPlus" className="mb-6 h-7 w-auto" />
-        <h1 className="mb-6 text-2xl font-semibold">Registrar empresa</h1>
+        <h1 className="mb-1 text-2xl font-semibold">Crea tu cuenta</h1>
+        <p className="mb-6 text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">14 días del Plan Pro gratis</span>, sin tarjeta de crédito. Después,
+          plan Gratis para siempre (1 diseño y hasta 30 tarjetas) si no eliges otro.
+        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="nombre" className="mb-1 block text-sm font-medium text-muted-foreground">

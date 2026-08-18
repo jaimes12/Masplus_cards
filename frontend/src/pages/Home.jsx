@@ -196,7 +196,7 @@ const FAQS = [
   },
   {
     q: '¿Necesito tarjeta de crédito para probar?',
-    a: 'No. Creas tu cuenta de empresa gratis y puedes empezar a emitir tarjetas de inmediato.',
+    a: 'No. Al crear tu cuenta tienes 14 días del Plan Pro completo sin tarjeta. Si al terminar no eliges un plan, pasas al plan Gratis para siempre (1 diseño y hasta 30 tarjetas): tus clientes conservan su tarjeta.',
   },
   {
     q: '¿Qué pasa cuando un cliente completa sus sellos?',
@@ -571,6 +571,9 @@ function Pricing() {
       <Reveal className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Elige tu plan ideal</h2>
         <p className="mt-3 text-muted-foreground">Sin cargos ocultos. Cancela cuando quieras.</p>
+        <p className="mx-auto mt-3 inline-flex flex-wrap items-center justify-center gap-x-1.5 rounded-full border border-orange-200 bg-orange-50 px-4 py-1.5 text-sm text-orange-800">
+          <span className="font-semibold">Empieza gratis:</span> 14 días de Plan Pro sin tarjeta, y después un plan Gratis para siempre (1 diseño, 30 tarjetas).
+        </p>
 
         <div className="mt-6 inline-flex items-center gap-1 rounded-full border border-border bg-secondary p-1 text-sm font-medium">
           <button

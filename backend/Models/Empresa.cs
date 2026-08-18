@@ -17,6 +17,11 @@ public class Empresa
     /// <summary>Próxima fecha de renovación del plan actual. Null si nunca eligió uno.</summary>
     public DateTime? PlanRenuevaEl { get; set; }
 
+    /// <summary>Fin del periodo de prueba gratis (Plan Pro sin tarjeta al registrarse). Mientras esté
+    /// en el futuro y no haya suscripción de Stripe, la empresa usa PlanId "en prueba"; al vencer,
+    /// PlanResolver la baja al plan Gratis. Null si ya no aplica (pagó, o ya venció y se procesó).</summary>
+    public DateTime? PruebaTerminaEl { get; set; }
+
     /// <summary>Id del Customer en Stripe, para cobrar sin volver a pedir los datos de tarjeta cada vez.</summary>
     public string? StripeCustomerId { get; set; }
 

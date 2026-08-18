@@ -40,7 +40,8 @@ public class PlanesService : IPlanesService
             ?? throw new InvalidOperationException("Plan no encontrado.");
 
         empresa.PlanId = plan.Id;
-        empresa.PlanRenuevaEl = MexicoCityTime.Now().AddDays(30);
+        empresa.PlanRenuevaEl = plan.PrecioMensual > 0 ? MexicoCityTime.Now().AddDays(30) : null;
+        empresa.PruebaTerminaEl = null;
         await _db.SaveChangesAsync();
 
         empresa.Plan = plan;
@@ -49,13 +50,17 @@ public class PlanesService : IPlanesService
 
     private async Task<EmpresaPlanDto> BuildEmpresaPlanDtoAsync(Empresa empresa)
     {
+        var vigente = await PlanLimitesHelper.ResolverAsync(_db, empresa);
         var disenosUsados = await _db.Disenos.CountAsync(d => d.EmpresaId == empresa.Id && d.Activo);
         var tarjetasUsadas = await _db.Tarjetas.CountAsync(t => t.EmpresaId == empresa.Id);
         var catalogo = await GetCatalogoAsync();
 
         return new EmpresaPlanDto(
-            empresa.Plan == null ? null : ToDto(empresa.Plan),
-            empresa.PlanRenuevaEl,
+            ToDto(vigente.Plan),
+            vigente.EnPrueba ? null : empresa.PlanRenuevaEl,
+            vigente.EnPrueba,
+            vigente.PruebaTerminaEl,
+            PlanLimitesHelper.DiasPrueba,
             disenosUsados,
             tarjetasUsadas,
             catalogo);

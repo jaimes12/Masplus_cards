@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   BarChart3,
   Bell,
@@ -11,6 +11,7 @@ import {
   Menu,
   Palette,
   PlayCircle,
+  Sparkles,
   ScanLine,
   Settings,
   Users,
@@ -44,11 +45,39 @@ export default function EmpresaLayout() {
   const [noLeidas, setNoLeidas] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [tourKey, setTourKey] = useState(0)
+  const [plan, setPlan] = useState(null)
 
   useEffect(() => {
     api.get('/api/empresa/perfil').then((data) => setLogo(data.logo || null)).catch(() => {})
     api.get('/api/empresa/notificaciones/no-leidas').then(setNoLeidas).catch(() => {})
+    api.get('/api/empresa/plan').then(setPlan).catch(() => {})
   }, [location.pathname])
+
+  // Aviso arriba del contenido: días restantes de la prueba gratis, o cercanía al tope del plan
+  // Gratis. No se muestra en Mi plan (ahí ya está todo el detalle).
+  const avisoPlan = (() => {
+    if (!plan?.planActual || location.pathname === '/empresa/plan') return null
+    if (plan.enPrueba && plan.pruebaTerminaEl) {
+      const dias = Math.max(0, Math.ceil((new Date(plan.pruebaTerminaEl) - Date.now()) / 86400000))
+      return {
+        texto:
+          dias > 0
+            ? `Prueba gratis del ${plan.planActual.nombre}: te quedan ${dias} día${dias === 1 ? '' : 's'}.`
+            : `Tu prueba gratis del ${plan.planActual.nombre} termina hoy.`,
+        cta: 'Elegir plan',
+        urgente: dias <= 3,
+      }
+    }
+    const limite = plan.planActual.limiteTarjetas
+    if (Number(plan.planActual.precioMensual) === 0 && limite && plan.tarjetasUsadas >= Math.floor(limite * 0.8)) {
+      return {
+        texto: `Plan Gratis: llevas ${plan.tarjetasUsadas} de ${limite} tarjetas. Mejora tu plan para seguir sumando clientes.`,
+        cta: 'Ver planes',
+        urgente: plan.tarjetasUsadas >= limite,
+      }
+    }
+    return null
+  })()
 
   function handleLogout() {
     logout()
@@ -117,6 +146,19 @@ export default function EmpresaLayout() {
           <Menu className="h-4 w-4" /> Menú
         </button>
         <div className="mx-auto max-w-6xl">
+          {avisoPlan && (
+            <div
+              className={`mb-5 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-2.5 text-sm ${
+                avisoPlan.urgente ? 'border-warn/40 bg-warn-soft text-warn' : 'border-accent/30 bg-accent/5 text-foreground'
+              }`}
+            >
+              <Sparkles className="h-4 w-4 shrink-0" />
+              <span className="flex-1">{avisoPlan.texto}</span>
+              <Link to="/empresa/plan" className="font-semibold underline underline-offset-2">
+                {avisoPlan.cta}
+              </Link>
+            </div>
+          )}
           <Outlet />
         </div>
       </main>

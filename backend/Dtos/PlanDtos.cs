@@ -10,9 +10,14 @@ public record PlanDto(
     List<string> Caracteristicas,
     bool Destacado);
 
+/// <summary>EnPrueba/PruebaTerminaEl: la empresa está usando PlanActual en su periodo de prueba
+/// gratis (sin suscripción). DiasPrueba: duración configurada, para mostrarla en el registro.</summary>
 public record EmpresaPlanDto(
     PlanDto? PlanActual,
     DateTime? RenuevaEl,
+    bool EnPrueba,
+    DateTime? PruebaTerminaEl,
+    int DiasPrueba,
     int DisenosUsados,
     int TarjetasUsadas,
     List<PlanDto> Planes);
