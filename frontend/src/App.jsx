@@ -18,6 +18,7 @@ import Historial from './pages/empresa/Historial.jsx'
 import Estadisticas from './pages/empresa/Estadisticas.jsx'
 import Notificaciones from './pages/empresa/Notificaciones.jsx'
 import Ayuda from './pages/empresa/Ayuda.jsx'
+import ComoUsar from './pages/empresa/ComoUsar.jsx'
 import Configuracion from './pages/empresa/Configuracion.jsx'
 import PosterEditor from './pages/empresa/PosterEditor.jsx'
 import AdminDashboard from './pages/admin/Dashboard.jsx'
@@ -61,6 +62,7 @@ function App() {
         <Route path="historial" element={<Historial />} />
         <Route path="estadisticas" element={<Estadisticas />} />
         <Route path="notificaciones" element={<Notificaciones />} />
+        <Route path="como-usar" element={<ComoUsar />} />
         <Route path="ayuda" element={<Ayuda />} />
         <Route path="configuracion" element={<Configuracion />} />
         <Route path="plan" element={<Plan />} />

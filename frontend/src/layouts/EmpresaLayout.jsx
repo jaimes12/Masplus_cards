@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   Palette,
+  PlayCircle,
   ScanLine,
   Settings,
   Users,
@@ -31,6 +32,7 @@ const items = [
   { to: '/empresa/configuracion', label: 'Configuración', icon: Settings },
   { divider: true },
   { to: '/empresa/notificaciones', label: 'Notificaciones', icon: Bell, badgeKey: 'notificaciones' },
+  { to: '/empresa/como-usar', label: 'Cómo usar', icon: PlayCircle },
   { to: '/empresa/ayuda', label: 'Ayuda', icon: HelpCircle },
 ]
 
