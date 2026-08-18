@@ -1,0 +1,23 @@
+{
+  "name": "masplus-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Video demo del flujo de tarjeta de lealtad (Remotion). Se renderiza a MP4 y se copia a frontend/public/.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Demo out/demo.mp4 --codec h264 --crf 20",
+    "render:poster": "remotion still Demo out/demo-poster.jpg --frame 420 --image-format jpeg --jpeg-quality 85",
+    "qr": "node scripts/generate-qr.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.513",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "remotion": "^4.0.513"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "typescript": "^5.9.3"
+  }
+}

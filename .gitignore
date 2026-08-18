@@ -20,3 +20,6 @@ frontend/*.local
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Archivos de metadatos de macOS en volúmenes externos
+._*

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import {
@@ -461,12 +461,63 @@ function ProductShowcase() {
   )
 }
 
+/**
+ * Video demo del flujo completo (escanear QR → agregar a Wallet → comprar → sumar sello).
+ * Se reproduce solo, en silencio y en loop, únicamente mientras está en pantalla — así no
+ * consume datos si el usuario nunca llega a esta sección. Con prefers-reduced-motion se
+ * muestra con controles y sin autoplay. El .mp4 se genera con Remotion desde /video.
+ */
+function DemoVideo() {
+  const ref = useRef(null)
+  const reduce = useReducedMotion()
+  // Si el navegador bloquea el autoplay (p. ej. iOS en modo de ahorro de energía), se
+  // muestran los controles para que el visitante pueda darle play a mano.
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false)
+
+  useEffect(() => {
+    const video = ref.current
+    if (!video || reduce) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) video.play().catch(() => setAutoplayBlocked(true))
+        else video.pause()
+      },
+      { threshold: 0.4 },
+    )
+    observer.observe(video)
+    return () => observer.disconnect()
+  }, [reduce])
+
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-2xl shadow-orange-500/10">
+      <video
+        ref={ref}
+        className="aspect-video w-full"
+        src="/demo/masplus-demo.mp4"
+        poster="/demo/masplus-demo-poster.jpg"
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        controls={reduce || autoplayBlocked}
+        aria-label="Demo: un cliente escanea el QR, agrega su tarjeta a Apple Wallet, compra y recibe su sello al instante."
+      />
+    </div>
+  )
+}
+
 function HowItWorks() {
   return (
     <section id="como-funciona" className="mx-auto max-w-6xl px-6 py-24">
       <Reveal className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">¿Cómo funciona?</h2>
         <p className="mt-3 text-muted-foreground">Tres pasos, sin fricciones, para dejar atrás el papel.</p>
+      </Reveal>
+      <Reveal className="mt-12" delay={0.05}>
+        <DemoVideo />
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Así se ve del lado del cliente y del tuyo: escanea, agrega a Wallet, compra y el sello aparece al instante.
+        </p>
       </Reveal>
       <RevealGroup className="mt-14 grid gap-8 md:grid-cols-3">
         {STEPS.map((step) => (
