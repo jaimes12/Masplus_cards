@@ -10,7 +10,11 @@ import { CAFE, CUSTOMER, FONT, INK, INK_2, ORANGE } from '../theme'
  * escáner de Más+ desde su propio celular. Al reconocer el QR, el sello aparece al instante en
  * el iPhone del cliente junto con la notificación push del pase.
  */
-export const StampScene: React.FC = () => {
+export const StampScene: React.FC<{ step?: string; title?: string; subtitle?: string }> = ({
+  step = '04',
+  title = 'El sello aparece al instante',
+  subtitle = 'Escaneas su Wallet desde tu celular. Su tarjeta se actualiza sola y le llega la notificación.',
+}) => {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
 
@@ -176,12 +180,7 @@ export const StampScene: React.FC = () => {
         />
       )}
 
-      <Caption
-        step="04"
-        title="El sello aparece al instante"
-        subtitle="Escaneas su Wallet desde tu celular. Su tarjeta se actualiza sola y le llega la notificación."
-        maxWidth={470}
-      />
+      <Caption step={step} title={title} subtitle={subtitle} maxWidth={470} />
     </AbsoluteFill>
   )
 }

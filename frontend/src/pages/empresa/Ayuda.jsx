@@ -1,14 +1,10 @@
 import { useState } from 'react'
-import { AlertTriangle, ChevronRight, Mail, MessageCircle, QrCode, Stamp, Users, Video } from 'lucide-react'
+import { AlertTriangle, ChevronRight, Mail, MessageCircle } from 'lucide-react'
 import { Button, Label, Panel, Select } from '../../components/ui.jsx'
 import { PageHead } from '../../components/empresa/EmpresaUI.jsx'
+import { TutorialCard } from '../../components/empresa/TutorialVideo.jsx'
 
-const TUTORIALES = [
-  { icon: Video, title: 'Crea tu primera tarjeta', meta: '3 min · video' },
-  { icon: QrCode, title: 'Imprime y coloca tu QR', meta: '2 min · guía' },
-  { icon: Stamp, title: 'Sellar y canjear en el mostrador', meta: '4 min · video' },
-  { icon: Users, title: 'Conocé a tus clientes', meta: '2 min · guía' },
-]
+const TUTORIALES = ['crear-tarjeta', 'imprimir-qr', 'sumar-sellos', 'notificaciones']
 
 const FAQS = [
   {
@@ -49,13 +45,9 @@ export default function Ayuda() {
 
       <div>
         <p className="mb-3 text-xs font-semibold tracking-wide text-ink-3 uppercase">Tutoriales</p>
-        <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
-          {TUTORIALES.map((t) => (
-            <div key={t.title} className="rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-accent/40">
-              <t.icon className="mb-8 h-[18px] w-[18px] text-accent" />
-              <p className="text-sm font-semibold text-foreground">{t.title}</p>
-              <span className="text-xs text-ink-3">{t.meta}</span>
-            </div>
+        <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+          {TUTORIALES.map((id) => (
+            <TutorialCard key={id} id={id} />
           ))}
         </div>
       </div>

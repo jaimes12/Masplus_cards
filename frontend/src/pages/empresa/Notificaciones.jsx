@@ -4,6 +4,7 @@ import { Bell, CreditCard, Gift, PauseCircle, PlayCircle } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { EmptyState, Panel } from '../../components/ui.jsx'
 import { PageHead } from '../../components/empresa/EmpresaUI.jsx'
+import { TutorialStrip } from '../../components/empresa/TutorialVideo.jsx'
 
 const TIPOS = {
   tarjeta_completada: { icon: Gift, tone: 'bg-ok-soft text-ok' },
@@ -34,6 +35,8 @@ export default function Notificaciones() {
   return (
     <div className="space-y-6">
       <PageHead title="Notificaciones" subtitle="Avisos de tu programa de fidelidad." />
+
+      <TutorialStrip ids={['notificaciones']} seccion="notificaciones" />
 
       {items.length === 0 ? (
         <EmptyState

@@ -4,6 +4,7 @@ import { api } from '../../lib/api.js'
 import { Card, Button } from '../../components/ui.jsx'
 import QrScanner from '../../components/QrScanner.jsx'
 import ErrorBoundary from '../../components/ErrorBoundary.jsx'
+import { TutorialStrip } from '../../components/empresa/TutorialVideo.jsx'
 
 export default function Escanear() {
   const [scanning, setScanning] = useState(true)
@@ -27,6 +28,8 @@ export default function Escanear() {
           Apuntá la cámara al código QR de la tarjeta de tu cliente para sumarle un sello al instante.
         </p>
       </div>
+
+      <TutorialStrip ids={['sumar-sellos']} seccion="escanear" />
 
       {scanning && (
         <Card>

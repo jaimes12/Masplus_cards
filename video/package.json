@@ -5,7 +5,8 @@
   "description": "Video demo del flujo de tarjeta de lealtad (Remotion). Se renderiza a MP4 y se copia a frontend/public/.",
   "scripts": {
     "studio": "remotion studio",
-    "render": "remotion render Demo out/demo.mp4 --codec h264 --crf 20",
+    "render": "remotion render Demo out/demo.mp4 --codec h264 --crf 22",
+    "render:tutoriales": "for c in CrearTarjeta ImprimirQr SumarSellos Notificaciones; do remotion render Tutorial$c out/tutorial-$c.mp4 --codec h264 --crf 24 --log error && remotion still Tutorial$c out/tutorial-$c-poster.jpg --frame 90 --image-format jpeg --jpeg-quality 82 --log error; done",
     "render:poster": "remotion still Demo out/demo-poster.jpg --frame 420 --image-format jpeg --jpeg-quality 85",
     "qr": "node scripts/generate-qr.mjs"
   },

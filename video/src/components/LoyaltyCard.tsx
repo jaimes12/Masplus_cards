@@ -12,24 +12,31 @@ export const CupIcon: React.FC<{ size: number; color: string; opacity?: number }
   </svg>
 )
 
-const CafeLogo: React.FC<{ size: number }> = ({ size }) => (
+const CafeLogo: React.FC<{ size: number; accent?: string; ink?: string }> = ({ size, accent = CAFE.accent, ink = CAFE.bg1 }) => (
   <div
     style={{
       width: size,
       height: size,
       borderRadius: '50%',
-      background: CAFE.accent,
+      background: accent,
       display: 'grid',
       placeItems: 'center',
       boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
     }}
   >
-    <CupIcon size={size * 0.62} color={CAFE.bg1} />
+    <CupIcon size={size * 0.62} color={ink} />
   </div>
 )
 
 type Props = {
   width: number
+  /** Overrides de marca (para el tutorial de "crear tu tarjeta", donde cambian en vivo). */
+  nombreNegocio?: string
+  nombreCliente?: string
+  bg1?: string
+  bg2?: string
+  accent?: string
+  total?: number
   /** Sellos completos (0..totalStamps). */
   stamps: number
   /** Escala 0..1 del sello que está entrando (índice = stamps). Para animar la caída del sello. */
@@ -44,9 +51,20 @@ type Props = {
  * negocio y del cliente, contador "FALTAN N SELLOS", grid de sellos, panel de QR y pie
  * "Powered by Masplus" — igual que las tarjetas reales que genera la plataforma.
  */
-export const LoyaltyCard: React.FC<Props> = ({ width, stamps, incomingScale = 0, showQr = true, style }) => {
+export const LoyaltyCard: React.FC<Props> = ({
+  width,
+  stamps,
+  incomingScale = 0,
+  showQr = true,
+  style,
+  nombreNegocio = CAFE.name,
+  nombreCliente = CUSTOMER.name,
+  bg1 = CAFE.bg1,
+  bg2 = CAFE.bg2,
+  accent = CAFE.accent,
+  total = CAFE.totalStamps,
+}) => {
   const s = width / 360 // escala base: la tarjeta se diseñó a 360px de ancho
-  const total = CAFE.totalStamps
   const restantes = Math.max(0, total - stamps)
   const cols = 4
   const cell = 64 * s
@@ -59,7 +77,7 @@ export const LoyaltyCard: React.FC<Props> = ({ width, stamps, incomingScale = 0,
         width,
         borderRadius: 22 * s,
         overflow: 'hidden',
-        background: `linear-gradient(160deg, ${CAFE.bg1} 0%, ${CAFE.bg2} 100%)`,
+        background: `linear-gradient(160deg, ${bg1} 0%, ${bg2} 100%)`,
         color: '#fff',
         fontFamily: FONT,
         boxShadow: '0 30px 60px rgba(0,0,0,0.35)',
@@ -82,7 +100,7 @@ export const LoyaltyCard: React.FC<Props> = ({ width, stamps, incomingScale = 0,
           return (
             <g key={i} transform={`translate(${x} ${y}) rotate(${r})`}>
               <ellipse cx="0" cy="0" rx="14" ry="20" fill="#fff" />
-              <path d="M0 -18 Q 6 0 0 18" stroke={CAFE.bg1} strokeWidth="3" fill="none" />
+              <path d="M0 -18 Q 6 0 0 18" stroke={bg1} strokeWidth="3" fill="none" />
             </g>
           )
         })}
@@ -91,10 +109,10 @@ export const LoyaltyCard: React.FC<Props> = ({ width, stamps, incomingScale = 0,
       <div style={{ position: 'relative', padding: 22 * s }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 * s }}>
-          <CafeLogo size={46 * s} />
+          <CafeLogo size={46 * s} accent={accent} ink={bg1} />
           <div>
-            <div style={{ fontSize: 22 * s, fontWeight: 700, letterSpacing: -0.3 }}>{CAFE.name}</div>
-            <div style={{ fontSize: 15 * s, opacity: 0.85 }}>{CUSTOMER.name}</div>
+            <div style={{ fontSize: 22 * s, fontWeight: 700, letterSpacing: -0.3, whiteSpace: 'nowrap' }}>{nombreNegocio || ' '}</div>
+            <div style={{ fontSize: 15 * s, opacity: 0.85 }}>{nombreCliente}</div>
           </div>
         </div>
 
@@ -131,7 +149,7 @@ export const LoyaltyCard: React.FC<Props> = ({ width, stamps, incomingScale = 0,
                 }}
               >
                 {filled ? (
-                  <CupIcon size={cell * 0.6} color={CAFE.bg1} />
+                  <CupIcon size={cell * 0.6} color={bg1} />
                 ) : (
                   <CupIcon size={cell * 0.6} color="#fff" opacity={0.35} />
                 )}
@@ -149,7 +167,7 @@ export const LoyaltyCard: React.FC<Props> = ({ width, stamps, incomingScale = 0,
                       boxShadow: `0 0 0 ${(1 - Math.min(1, incomingScale)) * 18 * s}px rgba(255,243,224,0.35)`,
                     }}
                   >
-                    <CupIcon size={cell * 0.6} color={CAFE.bg1} />
+                    <CupIcon size={cell * 0.6} color={bg1} />
                   </div>
                 )}
               </div>

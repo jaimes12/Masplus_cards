@@ -9,6 +9,7 @@ import CardPreview from '../../components/CardPreview.jsx'
 import MiniCardPreview from '../../components/MiniCardPreview.jsx'
 import PhoneFrame from '../../components/PhoneFrame.jsx'
 import ImageUploadInput from '../../components/ImageUploadInput.jsx'
+import { TutorialStrip } from '../../components/empresa/TutorialVideo.jsx'
 import masplusLogo from '../../assets/masplus_logo.png'
 
 const TIPO_LABEL = { sellos: 'Sellos', cupon: 'Promoción' }
@@ -246,6 +247,8 @@ export default function Disenos() {
           </Button>
         )}
       </div>
+
+      <TutorialStrip ids={['crear-tarjeta', 'imprimir-qr']} seccion="disenos" />
 
       <div>
         <h2 className="mb-3 text-lg font-medium">Tus diseños</h2>

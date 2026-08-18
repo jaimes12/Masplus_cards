@@ -4,6 +4,7 @@ import { useReducedMotion } from 'motion/react'
 import { ArrowRight, Bell, Palette, QrCode, ScanLine, Smartphone, Wallet } from 'lucide-react'
 import { Panel } from '../../components/ui.jsx'
 import { PageHead } from '../../components/empresa/EmpresaUI.jsx'
+import { TutorialCard } from '../../components/empresa/TutorialVideo.jsx'
 
 /**
  * Guía "Cómo usar": el mismo video demo de la landing (generado con Remotion en /video), más
@@ -137,6 +138,15 @@ export default function ComoUsar() {
             cuando sumas sellos.
           </p>
         </Panel>
+      </div>
+
+      <div>
+        <p className="mb-3 text-xs font-semibold tracking-wide text-ink-3 uppercase">Tutoriales por sección</p>
+        <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+          {['crear-tarjeta', 'imprimir-qr', 'sumar-sellos', 'notificaciones'].map((id) => (
+            <TutorialCard key={id} id={id} />
+          ))}
+        </div>
       </div>
     </div>
   )
