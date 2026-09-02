@@ -28,7 +28,7 @@
     #oferta4-scene {
       position: absolute;
       inset: 0;
-      background: #18181b; /* ink-black */
+      background: #f54a00; /* fire-orange full-bleed */
       container-type: size;
       overflow: hidden;
     }
@@ -51,7 +51,7 @@
       font-size: 46cqw; /* final size is static; GSAP animates scale only */
       line-height: 1;
       letter-spacing: -0.04em;
-      color: #f54a00; /* fire-orange */
+      color: #18181b; /* tinta sobre naranja */
       transform-origin: center center;
       will-change: transform;
     }
@@ -68,7 +68,7 @@
       line-height: 0.95;
       letter-spacing: -0.04em;
       text-transform: lowercase; /* Broadside: display is never uppercase */
-      color: #ffffff; /* cream */
+      color: #ffffff; /* blanco sobre naranja */
       will-change: transform, filter;
     }
 
@@ -87,13 +87,13 @@
       align-items: center;
       gap: 2cqw;
       padding: 2.4cqw 3.8cqw;
-      background: #1a1918; /* ink-black-alt */
-      border: 1px solid #282726; /* border-dark hairline */
+      background: #ffffff;
+      border: 1px solid rgba(24, 24, 27, 0.25);
       font-weight: 600;
       font-size: 3.5cqw;
       line-height: 1.2;
       letter-spacing: -0.01em;
-      color: #ffffff;
+      color: #18181b;
       will-change: transform;
     }
     .oferta4-check {
@@ -141,7 +141,7 @@
     </div>
   </div>
 
-  <script src="../../assets/gsap.min.js"></script>
+  <script src="assets/gsap.min.js"></script>
   <script>
     (function () {
       window.__timelines = window.__timelines || {};
