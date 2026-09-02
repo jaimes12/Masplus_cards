@@ -1,0 +1,7 @@
+node_modules/
+renders/work-*
+snapshots/
+capture/
+.hyperframes/
+._*
+**/._*

@@ -1,0 +1,198 @@
+<template>
+  <div id="root" data-composition-id="01-dolor" data-duration="3.9" data-width="1080" data-height="1920">
+    <style>
+      /* ===== 01-dolor — kinetic-type-beats hook (Broadside frame system) ===== */
+      #root {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        container-type: size;
+      }
+
+      /* Full-bleed ground: the pack's canvas (cream), on its own lowest-track clip */
+      .dolor01-bg {
+        background: #ffffff;
+      }
+
+      /* Type stage — centered column, biased slightly above true center so the
+         block sits in the 12%–80% safe band of the 9:16 canvas */
+      .dolor01-stage {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 12cqh 6cqw 22cqh;
+        font-family: system-ui, sans-serif;
+        color: #18181b;
+      }
+
+      /* Beat blocks share one axis (stacked at the same center) */
+      .dolor01-block {
+        position: absolute;
+        left: 6cqw;
+        right: 6cqw;
+        top: 50%;
+        margin-top: -24cqw; /* block is ~34cqw tall -> optical center ~45% height */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2.4cqw;
+      }
+
+      /* Scene 1 — hierarchy by size, 3:1 */
+      .dolor01-l-sm {
+        font-size: 5.2cqw;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+      .dolor01-l-xl {
+        font-size: 15cqw;
+        font-weight: 900;
+        line-height: 0.9;
+        letter-spacing: -0.04em;
+      }
+
+      /* Scene 2 — the remate, same axis */
+      .dolor01-l-punch {
+        font-size: 14cqw;
+        font-weight: 900;
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+      }
+
+      /* css-marker-patterns · Highlight Mode — fire-orange sweep behind "nunca" */
+      .dolor01-hl-wrap {
+        position: relative;
+        display: inline-block;
+      }
+      .dolor01-hl-bar {
+        position: absolute;
+        inset: 0.02em -0.08em -0.04em;
+        background: #f54a00;
+        transform-origin: left center;
+        z-index: 0;
+      }
+      .dolor01-hl-text {
+        position: relative;
+        z-index: 1;
+      }
+    </style>
+
+    <!-- Track 0: full-bleed cream ground (never on #root) -->
+    <div
+      class="clip dolor01-bg"
+      data-start="0"
+      data-duration="3.9"
+      data-track-index="0"
+    ></div>
+
+    <!-- Track 1: the kinetic type stage -->
+    <div
+      class="clip dolor01-stage"
+      data-start="0"
+      data-duration="3.9"
+      data-track-index="1"
+    >
+      <!-- Beat block A — Scene 1 (0.0–1.0s) -->
+      <div class="dolor01-block" id="dolor01-b1">
+        <div class="dolor01-l-sm" id="dolor01-p1">&iquest;te compran</div>
+        <div class="dolor01-l-xl" id="dolor01-p2">una vez&hellip;</div>
+      </div>
+
+      <!-- Beat block B — Scenes 2–3 (1.0–3.5s), hard-cut word-swap of the whole block -->
+      <div class="dolor01-block" id="dolor01-b2">
+        <div class="dolor01-l-punch">
+          &hellip;y
+          <span class="dolor01-hl-wrap" id="dolor01-nunca">
+            <span class="dolor01-hl-bar" id="dolor01-hl"></span>
+            <span class="dolor01-hl-text">nunca</span>
+          </span>
+        </div>
+        <div class="dolor01-l-punch" id="dolor01-p4">vuelven?</div>
+      </div>
+    </div>
+
+    <script src="../../assets/gsap.min.js"></script>
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+        window.__timelines["01-dolor"] = tl;
+
+        /* One tempo grid (kinetic-beat-slam): PULSE 0.44s */
+        var PULSE = 0.44;
+        var BEATS = [0.12, 0.12 + PULSE, 0.12 + PULSE * 2]; /* 0.12, 0.56, 1.00 */
+
+        /* --- Scene 1 (0.0–1.0s): two beat-slams, distinct entrances --- */
+        /* Beat 1 — "¿te compran": scale+blur slam, hard attack */
+        tl.fromTo(
+          "#dolor01-p1",
+          { scale: 1.6, filter: "blur(14px)", autoAlpha: 0 },
+          {
+            scale: 1,
+            filter: "blur(0px)",
+            autoAlpha: 1,
+            duration: 0.42,
+            ease: "power4.out",
+          },
+          BEATS[0]
+        );
+        /* Beat 2 — "una vez…": overshoot pop (the accent word) */
+        tl.fromTo(
+          "#dolor01-p2",
+          { scale: 0.45, autoAlpha: 0 },
+          { scale: 1, autoAlpha: 1, duration: 0.5, ease: "back.out(1.7)" },
+          BEATS[1]
+        );
+
+        /* --- Scene 2 (1.0–2.2s): hard-cut word-swap of the whole block --- */
+        tl.set("#dolor01-b1", { autoAlpha: 0 }, BEATS[2]);
+        tl.fromTo(
+          "#dolor01-b2",
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 0.02, ease: "none" },
+          BEATS[2]
+        );
+        /* Highlight sweep on "nunca" (css-marker-patterns, fire-orange), on landing */
+        tl.fromTo(
+          "#dolor01-hl",
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.42, ease: "power2.out" },
+          BEATS[2] + 0.05
+        );
+
+        /* --- Scene 3 (2.2–3.5s): held read; subtle jitter on "nunca" only --- */
+        var J = [
+          [2.24, 1.6, -1.1, 0.35],
+          [2.4, -1.4, 0.9, -0.3],
+          [2.56, 1.2, 1.3, 0.25],
+          [2.72, -1.6, -0.8, -0.35],
+          [2.88, 1.3, 1.0, 0.3],
+          [3.04, -1.1, -1.2, -0.25],
+          [3.2, 0.9, 0.7, 0.2],
+        ];
+        J.forEach(function (s) {
+          tl.to(
+            "#dolor01-nunca",
+            {
+              x: s[1],
+              y: s[2],
+              rotation: s[3],
+              duration: 0.16,
+              ease: "sine.inOut",
+            },
+            s[0]
+          );
+        });
+        /* settle to rest — a quiet hold, not an exit */
+        tl.to(
+          "#dolor01-nunca",
+          { x: 0, y: 0, rotation: 0, duration: 0.12, ease: "sine.out" },
+          3.36
+        );
+      })();
+    </script>
+  </div>
+</template>

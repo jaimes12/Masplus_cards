@@ -1,0 +1,387 @@
+<template>
+  <div id="root" data-composition-id="03-como-funciona" data-duration="5.4" data-width="1080" data-height="1920">
+    <style>
+      #root {
+        width: 1080px;
+        height: 1920px;
+        position: relative;
+        overflow: hidden;
+        font-family: system-ui, sans-serif;
+      }
+
+      .f03cf-bg {
+        background: #18181b;
+      }
+
+      .clip.f03cf-layer {
+        position: absolute;
+        inset: 0;
+      }
+
+      .f03cf-cam {
+        position: absolute;
+        inset: 0;
+        transform-origin: 50% 44%;
+      }
+
+      /* ---- chrome + title ---- */
+      .f03cf-kicker {
+        position: absolute;
+        left: 60px;
+        top: 296px;
+        font-family: ui-monospace, monospace;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #f54a00;
+        opacity: 0;
+      }
+
+      .f03cf-num-chrome {
+        position: absolute;
+        right: 60px;
+        top: 296px;
+        font-family: ui-monospace, monospace;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        color: #8a8482;
+        opacity: 0;
+      }
+
+      .f03cf-title {
+        position: absolute;
+        margin: 0;
+        left: 60px;
+        top: 342px;
+        font-size: 116px;
+        font-weight: 900;
+        line-height: 0.9;
+        letter-spacing: -0.04em;
+        color: #ffffff;
+        opacity: 0;
+      }
+
+      /* ---- step cards ---- */
+      .f03cf-card {
+        position: absolute;
+        left: 60px;
+        width: 960px;
+        background: #1a1918;
+        border: 1px solid #282726;
+        opacity: 0;
+      }
+
+      #f03cf-card1 {
+        top: 540px;
+        height: 280px;
+      }
+      #f03cf-card2 {
+        top: 844px;
+        height: 360px;
+      }
+      #f03cf-card3 {
+        top: 1228px;
+        height: 280px;
+      }
+
+      .f03cf-card-row {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 280px;
+        display: flex;
+        align-items: center;
+        padding: 0 44px;
+      }
+      #f03cf-card2 .f03cf-card-row {
+        height: 200px;
+        align-items: flex-end;
+        padding-bottom: 8px;
+      }
+
+      .f03cf-step-num {
+        width: 140px;
+        flex: 0 0 140px;
+        font-size: 120px;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: #f54a00;
+      }
+
+      .f03cf-step-label {
+        flex: 1 1 auto;
+        font-size: 52px;
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+      }
+
+      .f03cf-icon {
+        flex: 0 0 auto;
+        margin-left: 24px;
+      }
+      .f03cf-icon svg {
+        display: block;
+      }
+      .f03cf-icon path {
+        fill: none;
+        stroke: #ffffff;
+        stroke-width: 5;
+        stroke-linecap: square;
+        stroke-linejoin: miter;
+      }
+
+      /* ---- stamp row (micro-demo, card 2) ---- */
+      .f03cf-stamps {
+        position: absolute;
+        left: 184px;
+        top: 214px;
+        display: flex;
+        gap: 34px;
+      }
+
+      .f03cf-stamp {
+        position: relative;
+        width: 92px;
+        height: 92px;
+        border: 2px solid #504a48;
+        border-radius: 50%;
+      }
+
+      .f03cf-stamp-fill {
+        position: absolute;
+        inset: 8px;
+        border-radius: 50%;
+        background: #f54a00;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        font-weight: 900;
+        color: #18181b;
+      }
+
+      .f03cf-burst {
+        position: absolute;
+        inset: -2px;
+        border: 4px solid #f54a00;
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ---- gratis highlight sweep ---- */
+      .f03cf-gratis {
+        position: relative;
+        display: inline-block;
+        padding: 0 10px;
+        margin-left: 2px;
+        font-weight: 900;
+        color: #ffffff;
+        z-index: 0;
+      }
+      .f03cf-gratis-word {
+        position: relative;
+        z-index: 1;
+      }
+      .f03cf-sweep {
+        position: absolute;
+        inset: -4px 0;
+        background: #f54a00;
+        transform: scaleX(0);
+        transform-origin: left center;
+        z-index: 0;
+      }
+    </style>
+
+    <div class="clip f03cf-layer f03cf-bg" data-start="0" data-duration="5.4" data-track-index="0"></div>
+
+    <div class="clip f03cf-layer" data-start="0" data-duration="5.4" data-track-index="1">
+      <div class="f03cf-cam" id="f03cf-cam">
+        <div class="f03cf-kicker" id="f03cf-kicker">/ c&oacute;mo funciona</div>
+        <div class="f03cf-num-chrome" id="f03cf-chrome">NO. 03</div>
+        <h1 class="f03cf-title" id="f03cf-title">as&iacute; de f&aacute;cil</h1>
+
+        <!-- Paso 1 -->
+        <div class="f03cf-card" id="f03cf-card1">
+          <div class="f03cf-card-row">
+            <div class="f03cf-step-num">1</div>
+            <div class="f03cf-step-label">escanea el&nbsp;qr</div>
+            <div class="f03cf-icon">
+              <svg width="130" height="130" viewBox="0 0 96 96">
+                <path class="f03cf-qr" d="M10 10 H34 V34 H10 Z" />
+                <path class="f03cf-qr" d="M18 18 H26 V26 H18 Z" />
+                <path class="f03cf-qr" d="M62 10 H86 V34 H62 Z" />
+                <path class="f03cf-qr" d="M70 18 H78 V26 H70 Z" />
+                <path class="f03cf-qr" d="M10 62 H34 V86 H10 Z" />
+                <path class="f03cf-qr" d="M18 70 H26 V78 H18 Z" />
+                <path class="f03cf-qr" d="M48 10 V22 H58" />
+                <path class="f03cf-qr" d="M10 48 H26" />
+                <path class="f03cf-qr" d="M48 34 V48 H62 H86" />
+                <path class="f03cf-qr" d="M48 62 V78 H56" />
+                <path class="f03cf-qr" d="M62 62 H74 V74 H62 Z" />
+                <path class="f03cf-qr" d="M86 62 V86 H70" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 2 : micro-demo -->
+        <div class="f03cf-card" id="f03cf-card2">
+          <div class="f03cf-card-row">
+            <div class="f03cf-step-num">2</div>
+            <div class="f03cf-step-label">junta sellos</div>
+          </div>
+          <div class="f03cf-stamps">
+            <div class="f03cf-stamp"><div class="f03cf-stamp-fill">&#10003;</div></div>
+            <div class="f03cf-stamp"><div class="f03cf-stamp-fill">&#10003;</div></div>
+            <div class="f03cf-stamp"><div class="f03cf-stamp-fill">&#10003;</div></div>
+            <div class="f03cf-stamp"><div class="f03cf-stamp-fill">&#10003;</div></div>
+            <div class="f03cf-stamp" id="f03cf-stamp5">
+              <div class="f03cf-stamp-fill">&#10003;</div>
+              <div class="f03cf-burst" id="f03cf-burst"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 3 -->
+        <div class="f03cf-card" id="f03cf-card3">
+          <div class="f03cf-card-row">
+            <div class="f03cf-step-num">3</div>
+            <div class="f03cf-step-label">
+              premio
+              <span class="f03cf-gratis">
+                <span class="f03cf-sweep" id="f03cf-sweep"></span>
+                <span class="f03cf-gratis-word" id="f03cf-gratis-word">gratis</span>
+              </span>
+            </div>
+            <div class="f03cf-icon" id="f03cf-gift">
+              <svg width="120" height="120" viewBox="0 0 96 96">
+                <path d="M14 44 H82 V86 H14 Z" />
+                <path d="M10 28 H86 V44 H10 Z" />
+                <path d="M48 28 V86" />
+                <path d="M48 28 C34 28 28 14 38 10 C46 7 48 20 48 28 Z" />
+                <path d="M48 28 C62 28 68 14 58 10 C50 7 48 20 48 28 Z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../../assets/gsap.min.js"></script>
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+
+        /* QR self-draw prep: measure, don't hard-code */
+        var qrPaths = Array.prototype.slice.call(
+          document.querySelectorAll("#f03cf-card1 .f03cf-qr")
+        );
+        qrPaths.forEach(function (p) {
+          var len = p.getTotalLength();
+          p.style.strokeDasharray = len;
+          p.style.strokeDashoffset = len;
+        });
+
+        /* macro camera: slow push-in under the whole shot */
+        tl.fromTo(
+          "#f03cf-cam",
+          { scale: 1 },
+          { scale: 1.035, duration: 5, ease: "none" },
+          0
+        );
+
+        /* Scene 1 (0.0-0.8s): title spring-pop, upper third */
+        tl.fromTo(
+          "#f03cf-kicker",
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+          0.05
+        );
+        tl.fromTo(
+          "#f03cf-chrome",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.4, ease: "power2.out" },
+          0.15
+        );
+        tl.fromTo(
+          "#f03cf-title",
+          { opacity: 0, scale: 0.7, y: 30 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: "back.out(1.6)" },
+          0.12
+        );
+
+        /* Scene 2 (0.8-2.0s): card 1 cascades from below, power3 settle */
+        tl.fromTo(
+          "#f03cf-card1",
+          { opacity: 0, y: 150 },
+          { opacity: 1, y: 0, duration: 0.75, ease: "power3.out" },
+          0.8
+        );
+        /* QR icon self-draw */
+        tl.to(
+          qrPaths,
+          { strokeDashoffset: 0, duration: 0.6, ease: "power2.inOut", stagger: 0.06 },
+          1.15
+        );
+
+        /* Scene 3 (2.0-3.4s): card 2 stacks below; stamps fill one by one */
+        tl.fromTo(
+          "#f03cf-card2",
+          { opacity: 0, y: 150 },
+          { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+          2.0
+        );
+        tl.fromTo(
+          ".f03cf-stamp-fill",
+          { scale: 0 },
+          { scale: 1, duration: 0.4, ease: "back.out(2.2)", stagger: 0.16 },
+          2.35
+        );
+        /* highlight burst on stamp #5 (lands ~2.99s) */
+        tl.fromTo(
+          "#f03cf-burst",
+          { scale: 0.4, opacity: 0.9 },
+          { scale: 1.9, opacity: 0, duration: 0.55, ease: "power2.out", immediateRender: false },
+          3.02
+        );
+
+        /* Scene 4 (3.4-4.3s): card 3; "gratis" highlight sweep */
+        tl.fromTo(
+          "#f03cf-card3",
+          { opacity: 0, y: 150 },
+          { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+          3.4
+        );
+        tl.fromTo(
+          "#f03cf-gift svg",
+          { opacity: 0, scale: 0.5 },
+          { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.8)" },
+          3.55
+        );
+        tl.fromTo(
+          "#f03cf-sweep",
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.35, ease: "power3.out" },
+          3.85
+        );
+        tl.set("#f03cf-gratis-word", { color: "#18181b" }, 3.97);
+
+        /* Scene 5 (4.3-5.0s): held read; subtle jitter only on stamp #5 */
+        tl.to("#f03cf-stamp5", { scale: 1.07, rotation: 3, duration: 0.15, ease: "power1.inOut" }, 4.35);
+        tl.to("#f03cf-stamp5", { scale: 1.0, rotation: -2, duration: 0.15, ease: "power1.inOut" }, 4.5);
+        tl.to("#f03cf-stamp5", { scale: 1.05, rotation: 1.5, duration: 0.15, ease: "power1.inOut" }, 4.65);
+        tl.to("#f03cf-stamp5", { scale: 1.0, rotation: 0, duration: 0.2, ease: "power2.out" }, 4.8);
+
+        window.__timelines["03-como-funciona"] = tl;
+      })();
+    </script>
+  </div>
+</template>
