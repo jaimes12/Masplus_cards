@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Award, Check, Copy, CreditCard, Download, Palette, Plus, QrCode, Ticket, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Award, Check, Copy, CreditCard, Download, Plus, QrCode, Ticket, Trash2 } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { Button, Card, ColorInput, Input, Label } from '../../components/ui.jsx'
@@ -88,6 +88,112 @@ function PosterThumb({ template, color }) {
       <span className="h-1 w-6 rounded bg-zinc-300" />
       {qrBox}
     </span>
+  )
+}
+
+/**
+ * El cartel completo de una plantilla, diseñado a tamaño "hoja" (640×905, proporción A4).
+ * Lo usan tal cual la impresión (a página completa) y la vista previa (escalado con transform),
+ * así lo que ves en el preview es exactamente lo que sale en el PDF.
+ */
+function CartelPoster({ template, color, nombre, tipo, logo, qrSrc, url }) {
+  const accion = tipo === 'cupon' ? 'Escanea y llévate tu cupón' : 'Escanea y junta tus sellos'
+  const beneficio = tipo === 'cupon' ? 'Tu cupón, directo en tu celular' : 'Cada compra te acerca a tu premio'
+  const footer = (claro) => (
+    <div className={`mt-4 flex items-center gap-2 ${claro ? 'opacity-90' : 'opacity-70'}`}>
+      <img src={masplusLogo} alt="" className="h-6 w-6" />
+      <span className={`text-sm ${claro ? 'text-white' : ''}`}>Powered by Masplus</span>
+    </div>
+  )
+  const qrGrande = <img src={qrSrc} alt="Código QR de registro" width={340} height={340} />
+  const logoImg = logo && <img src={logo} alt="" className="h-20 w-20 rounded-full object-cover" />
+
+  if (template === 'bloque')
+    return (
+      <div className="flex h-full w-full flex-col items-stretch bg-white text-center text-zinc-900">
+        <div
+          className="flex flex-col items-center justify-center gap-4 px-12 py-14 text-white"
+          style={{ background: color }}
+        >
+          {logoImg}
+          <p className="text-3xl font-bold">{nombre}</p>
+          <p className="text-xl opacity-90">{accion}</p>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 p-12">
+          {qrGrande}
+          <p className="text-lg font-medium">{beneficio}</p>
+          <p className="max-w-sm break-all text-sm text-zinc-500">{url}</p>
+          {footer(false)}
+        </div>
+      </div>
+    )
+
+  if (template === 'oscuro')
+    return (
+      <div
+        className="flex h-full w-full flex-col items-center justify-center gap-6 p-16 text-center text-white"
+        style={{ background: '#111113' }}
+      >
+        {logoImg}
+        <p className="text-3xl font-bold">{nombre}</p>
+        <p className="text-xl" style={{ color: esColorOscuro(color) ? '#FFFFFF' : color }}>
+          {accion}
+        </p>
+        <div className="rounded-2xl bg-white p-5">{qrGrande}</div>
+        <p className="text-lg opacity-90">{beneficio}</p>
+        <p className="max-w-sm break-all text-sm opacity-60">{url}</p>
+        {footer(true)}
+      </div>
+    )
+
+  if (template === 'marco')
+    return (
+      <div className="h-full w-full bg-white p-8 text-zinc-900">
+        <div
+          className="flex h-full w-full flex-col items-center justify-center gap-6 rounded-3xl p-12 text-center"
+          style={{ border: `10px solid ${color}` }}
+        >
+          {logoImg}
+          <p className="text-3xl font-bold">{nombre}</p>
+          <span className="rounded-full px-5 py-2 text-lg font-semibold text-white" style={{ background: color }}>
+            {tipo === 'cupon' ? 'Cupón GRATIS' : 'Tarjeta de premios GRATIS'}
+          </span>
+          <p className="text-xl text-zinc-500">{accion}</p>
+          {qrGrande}
+          <p className="max-w-sm break-all text-sm text-zinc-500">{url}</p>
+          {footer(false)}
+        </div>
+      </div>
+    )
+
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-6 bg-white p-16 text-center text-zinc-900">
+      {logoImg}
+      <div>
+        <p className="text-2xl font-semibold">{nombre}</p>
+        <p className="mt-1 text-lg" style={{ color: esColorOscuro(color) ? color : undefined }}>
+          {accion}
+        </p>
+      </div>
+      {qrGrande}
+      <p className="text-lg font-medium">{beneficio}</p>
+      <p className="max-w-sm break-all text-sm text-zinc-500">{url}</p>
+      {footer(false)}
+    </div>
+  )
+}
+
+/** Vista previa chica del cartel: el mismo CartelPoster de la impresión, escalado con transform. */
+function CartelPreview({ children }) {
+  return (
+    <div className="relative h-[297px] w-[210px] shrink-0 self-center overflow-hidden rounded-lg border border-border bg-white shadow-sm sm:self-start">
+      <div
+        className="absolute left-0 top-0 h-[905px] w-[640px] origin-top-left"
+        style={{ transform: 'scale(0.3281)' }}
+      >
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -385,16 +491,19 @@ export default function Disenos() {
 
               {qrOpenId === d.id && (
                 <div className="mt-4 flex flex-col gap-4 border-t border-border pt-4 sm:flex-row">
-                  {/* Precarga el QR grande que usa el PDF, para que ya esté en caché cuando tocan
-                      "Descargar PDF" y no haga falta esperar a la red antes de imprimir. */}
-                  <img src={qrImageUrl(d, 500)} alt="" width={1} height={1} className="hidden" />
-                  <img
-                    src={qrImageUrl(d, 180)}
-                    alt={`Código QR de registro para ${d.nombre}`}
-                    width={140}
-                    height={140}
-                    className="shrink-0 self-center rounded-lg border border-border sm:self-start"
-                  />
+                  {/* Vista previa real del cartel: el mismo componente que se imprime, escalado.
+                      De paso deja el QR grande en caché para que "Descargar PDF" salga al instante. */}
+                  <CartelPreview>
+                    <CartelPoster
+                      template={posterTemplate}
+                      color={posterColor}
+                      nombre={auth?.nombre}
+                      tipo={d.tipo}
+                      logo={d.logo}
+                      qrSrc={qrImageUrl(d, 500)}
+                      url={registroUrl(d)}
+                    />
+                  </CartelPreview>
                   <div className="w-full min-w-0 space-y-3">
                     <p className="text-sm text-muted-foreground">
                       Tus clientes escanean este código, ponen su nombre y teléfono, y reciben su tarjeta al instante.
@@ -437,18 +546,10 @@ export default function Disenos() {
                       <Button type="button" variant="outline" className="gap-1.5" onClick={() => downloadPdf(d)}>
                         <Download className="h-4 w-4" /> Descargar PDF
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="gap-1.5"
-                        onClick={() => window.open(`/empresa/disenos/${d.id}/poster`, '_blank')}
-                      >
-                        <Palette className="h-4 w-4" /> Editar diseño
-                      </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Elige una plantilla, ajusta el color y descarga el PDF listo para imprimir. Si quieres mover cada
-                      cosa a tu gusto, "Editar diseño" abre el editor libre en otra pestaña.
+                      Elige una plantilla y ajusta el color: la vista previa muestra exactamente lo que sale en el PDF,
+                      listo para imprimir y poner en tu mostrador.
                     </p>
                   </div>
                 </div>
@@ -719,100 +820,19 @@ export default function Disenos() {
       </div>
       )}
 
-      {printDiseno && (() => {
-        const accion = printDiseno.tipo === 'cupon' ? 'Escanea y llévate tu cupón' : 'Escanea y junta tus sellos'
-        const beneficio =
-          printDiseno.tipo === 'cupon' ? 'Tu cupón, directo en tu celular' : 'Cada compra te acerca a tu premio'
-        const footer = (claro) => (
-          <div className={`mt-4 flex items-center gap-2 ${claro ? 'opacity-90' : 'opacity-70'}`}>
-            <img src={masplusLogo} alt="" className="h-6 w-6" />
-            <span className={`text-sm ${claro ? 'text-white' : ''}`}>Powered by Masplus</span>
-          </div>
-        )
-        const qrGrande = (
-          <img src={qrImageUrl(printDiseno, 500)} alt="Código QR de registro" width={340} height={340} />
-        )
-        const logo = printDiseno.logo && (
-          <img src={printDiseno.logo} alt="" className="h-20 w-20 rounded-full object-cover" />
-        )
-
-        if (posterTemplate === 'bloque')
-          return (
-            <div className="print-qr-poster flex-col items-stretch text-center">
-              <div
-                className="flex flex-col items-center justify-center gap-4 px-12 py-14 text-white"
-                style={{ background: posterColor }}
-              >
-                {logo}
-                <p className="text-3xl font-bold">{auth?.nombre}</p>
-                <p className="text-xl opacity-90">{accion}</p>
-              </div>
-              <div className="flex flex-1 flex-col items-center justify-center gap-5 p-12">
-                {qrGrande}
-                <p className="text-lg font-medium">{beneficio}</p>
-                <p className="max-w-sm break-all text-sm text-muted-foreground">{registroUrl(printDiseno)}</p>
-                {footer(false)}
-              </div>
-            </div>
-          )
-
-        if (posterTemplate === 'oscuro')
-          return (
-            <div
-              className="print-qr-poster flex-col items-center justify-center gap-6 p-16 text-center text-white"
-              style={{ background: '#111113' }}
-            >
-              {logo}
-              <p className="text-3xl font-bold">{auth?.nombre}</p>
-              <p className="text-xl" style={{ color: esColorOscuro(posterColor) ? '#FFFFFF' : posterColor }}>
-                {accion}
-              </p>
-              <div className="rounded-2xl bg-white p-5">{qrGrande}</div>
-              <p className="text-lg opacity-90">{beneficio}</p>
-              <p className="max-w-sm break-all text-sm opacity-60">{registroUrl(printDiseno)}</p>
-              {footer(true)}
-            </div>
-          )
-
-        if (posterTemplate === 'marco')
-          return (
-            <div className="print-qr-poster p-8">
-              <div
-                className="flex h-full w-full flex-col items-center justify-center gap-6 rounded-3xl p-12 text-center"
-                style={{ border: `10px solid ${posterColor}` }}
-              >
-                {logo}
-                <p className="text-3xl font-bold">{auth?.nombre}</p>
-                <span
-                  className="rounded-full px-5 py-2 text-lg font-semibold text-white"
-                  style={{ background: posterColor }}
-                >
-                  {printDiseno.tipo === 'cupon' ? 'Cupón GRATIS' : 'Tarjeta de premios GRATIS'}
-                </span>
-                <p className="text-xl text-muted-foreground">{accion}</p>
-                {qrGrande}
-                <p className="max-w-sm break-all text-sm text-muted-foreground">{registroUrl(printDiseno)}</p>
-                {footer(false)}
-              </div>
-            </div>
-          )
-
-        return (
-          <div className="print-qr-poster flex-col items-center justify-center gap-6 p-16 text-center">
-            {logo}
-            <div>
-              <p className="text-2xl font-semibold">{auth?.nombre}</p>
-              <p className="mt-1 text-lg" style={{ color: esColorOscuro(posterColor) ? posterColor : undefined }}>
-                {accion}
-              </p>
-            </div>
-            {qrGrande}
-            <p className="text-lg font-medium">{beneficio}</p>
-            <p className="max-w-sm break-all text-sm text-muted-foreground">{registroUrl(printDiseno)}</p>
-            {footer(false)}
-          </div>
-        )
-      })()}
+      {printDiseno && (
+        <div className="print-qr-poster">
+          <CartelPoster
+            template={posterTemplate}
+            color={posterColor}
+            nombre={auth?.nombre}
+            tipo={printDiseno.tipo}
+            logo={printDiseno.logo}
+            qrSrc={qrImageUrl(printDiseno, 500)}
+            url={registroUrl(printDiseno)}
+          />
+        </div>
+      )}
     </div>
   )
 }
