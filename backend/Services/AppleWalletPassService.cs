@@ -41,10 +41,10 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             throw new InvalidOperationException("PassTypeIdentifier no está configurado en AppleWalletConfiguration.");
 
         _logger.LogInformation(
-            "Descarga Apple Wallet: codigoQr={CodigoQr} input.Tipo={Tipo} estiloCuponPoster={Poster}",
-            input.CodigoQr, input.Tipo, input.EstiloCuponPoster);
+            "Descarga Apple Wallet: codigoQr={CodigoQr} input.Tipo={Tipo} estiloPoster={Poster}",
+            input.CodigoQr, input.Tipo, input.EstiloPoster);
 
-        if (input.Tipo == "cupon" && input.EstiloCuponPoster)
+        if (input.EstiloPoster)
             return await GeneratePosterGenericAsync(input, cancellationToken);
 
         var wwdrCert = _cfg.AppleWWDRCACertificate();
@@ -99,6 +99,7 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
         var icon = await GetBytesCachedAsync($"{CachePrefix}icon:{iconUrl.GetHashCode():X}", iconUrl, cancellationToken);
 
         var backgroundColor = NonEmpty(input.ColorPrimario) ?? DefaultBackgroundColor;
+        var foregroundColor = NonEmpty(input.ColorTexto) ?? DefaultForegroundColor;
 
         byte[]? fondo = null;
         if (NonEmpty(input.FondoUrl) is { } fondoUrl)
@@ -107,7 +108,26 @@ public sealed class AppleWalletPassService : IAppleWalletPassService
             catch { fondo = null; }
         }
 
-        var fondoPase = fondo != null ? StampStripRenderer.RenderCuponBackground(backgroundColor, fondo) : null;
+        byte[]? fondoPase;
+        if (input.Tipo == "sellos")
+        {
+            byte[]? stampIcon = null;
+            if (NonEmpty(input.IconoSello) is { } stampIconUrl)
+            {
+                try { stampIcon = await GetBytesCachedAsync($"{CachePrefix}stamp:{stampIconUrl.GetHashCode():X}", stampIconUrl, cancellationToken); }
+                catch { stampIcon = null; }
+            }
+
+            // El grid de sellos va dibujado dentro de la propia imagen de fondo, igual que en el
+            // estilo clásico: así el póster muestra la foto del negocio CON los sellos encima.
+            fondoPase = StampStripRenderer.RenderSellosBackground(
+                backgroundColor, foregroundColor, input.SellosRequeridos, input.SellosActuales, stampIcon, fondo);
+        }
+        else
+        {
+            fondoPase = fondo != null ? StampStripRenderer.RenderCuponBackground(backgroundColor, fondo) : null;
+        }
+
         var thumbnail = fondo != null ? StampStripRenderer.RenderThumbnail(fondo) : null;
 
         return PosterGenericPassBuilder.Generate(_cfg, input, icon, logo, fondoPase, thumbnail);

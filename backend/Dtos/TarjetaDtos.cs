@@ -28,7 +28,7 @@ public record TarjetaDto(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     string? RecordatorioMensaje = null,
-    bool EstiloCuponPoster = false);
+    bool EstiloPoster = false);
 
 /// <summary>La empresa emite una tarjeta a un cliente (se crea el cliente si no existe, por telefono).
 /// Si DisenoId es null, se usa el diseño activo de la empresa.</summary>

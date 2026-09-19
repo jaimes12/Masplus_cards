@@ -1,9 +1,117 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CreditCard, Gift, Plus, Stamp, Users } from 'lucide-react'
+import { Check, CreditCard, Gift, Plus, Sparkles, Stamp, Users, X } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { Button, Panel } from '../../components/ui.jsx'
 import { PageHead, StatCard } from '../../components/empresa/EmpresaUI.jsx'
+
+/**
+ * Guía de primeros pasos: se arma sola a partir de los datos reales (diseños, clientes, sellos)
+ * y desaparece cuando ya completaste todo o la cierras a mano (queda en localStorage).
+ */
+function PrimerosPasos({ disenos, clientes, sellosOtorgados }) {
+  const [oculto, setOculto] = useState(() => {
+    try {
+      return localStorage.getItem('masplus_onboarding_oculto') === '1'
+    } catch {
+      return false
+    }
+  })
+
+  const pasos = [
+    {
+      titulo: 'Crea tu primera tarjeta',
+      detalle: 'Logo, colores y cuántos sellos pide tu premio.',
+      hecho: disenos.length > 0,
+      to: '/empresa/disenos',
+    },
+    {
+      titulo: 'Comparte tu QR de registro',
+      detalle: 'Imprímelo o pégalo en tu mostrador: con él tus clientes agregan su tarjeta.',
+      hecho: clientes.length > 0,
+      to: '/empresa/disenos',
+    },
+    {
+      titulo: 'Suma tu primer sello',
+      detalle: 'Escanea la tarjeta de un cliente cuando te compre.',
+      hecho: sellosOtorgados > 0,
+      to: '/empresa/escanear',
+    },
+    {
+      titulo: 'Activa el estilo póster (iOS 27)',
+      detalle: 'La foto de tu negocio a toda la tarjeta — nuevo diseño de Apple Wallet.',
+      hecho: disenos.some((d) => d.estiloPoster),
+      to: '/empresa/disenos',
+      opcional: true,
+    },
+  ]
+
+  const completados = pasos.filter((p) => p.hecho).length
+  const todoListo = pasos.filter((p) => !p.opcional).every((p) => p.hecho)
+  if (oculto || (todoListo && pasos.every((p) => p.hecho))) return null
+
+  function cerrar() {
+    setOculto(true)
+    try {
+      localStorage.setItem('masplus_onboarding_oculto', '1')
+    } catch {
+      /* sin localStorage igual se oculta en esta sesión */
+    }
+  }
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-white p-5 dark:border-orange-500/30 dark:from-orange-500/10 dark:to-transparent">
+      <button
+        type="button"
+        onClick={cerrar}
+        className="absolute right-3 top-3 rounded-full p-1 text-ink-3 hover:bg-secondary"
+        aria-label="Ocultar guía de primeros pasos"
+      >
+        <X className="h-4 w-4" />
+      </button>
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-orange-500" />
+        <p className="font-semibold text-foreground">Primeros pasos</p>
+        <span className="text-xs text-ink-3">
+          {completados} de {pasos.length}
+        </span>
+      </div>
+      <div className="mt-1.5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
+        <div
+          className="h-full rounded-full bg-orange-500 transition-all"
+          style={{ width: `${(completados / pasos.length) * 100}%` }}
+        />
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {pasos.map((p) => (
+          <Link
+            key={p.titulo}
+            to={p.to}
+            className={`group rounded-xl border p-3 transition-colors ${
+              p.hecho
+                ? 'border-ok/30 bg-ok-soft/40'
+                : 'border-border bg-card hover:border-orange-300 hover:bg-orange-50/50 dark:hover:bg-orange-500/5'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-bold ${
+                  p.hecho ? 'bg-ok text-white' : 'border border-ink-3 text-ink-3'
+                }`}
+              >
+                {p.hecho ? <Check className="h-3 w-3" /> : pasos.indexOf(p) + 1}
+              </span>
+              <p className={`text-sm font-semibold ${p.hecho ? 'text-ink-2 line-through' : 'text-foreground'}`}>
+                {p.titulo}
+              </p>
+            </div>
+            <p className="mt-1 pl-7 text-xs text-ink-3">{p.detalle}</p>
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 const MOVIMIENTOS = {
   tarjeta_creada: { label: 'Registro', tone: 'bg-secondary text-ink-2' },
@@ -99,6 +207,8 @@ export default function Dashboard() {
           </Link>
         }
       />
+
+      <PrimerosPasos disenos={disenos} clientes={clientes} sellosOtorgados={sellosOtorgados} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {cards.map((c) => (

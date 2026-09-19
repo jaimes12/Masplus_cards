@@ -462,6 +462,116 @@ function ProductShowcase() {
 }
 
 /**
+ * Sección "tarjetas estilo póster" (iOS 27): mockup CSS de un pase posterGeneric — foto a toda
+ * la tarjeta, sellos encima y Acciones destacadas debajo — con los ganchos de registro al lado.
+ * El mockup es puro CSS/JSX (sin captura) para que siempre refleje la marca del visitante mental:
+ * naranja Masplus + una foto genérica de negocio en degradado.
+ */
+function PosterWalletShowcase() {
+  return (
+    <section className="relative overflow-hidden bg-zinc-950 py-24 text-white">
+      <Blob className="-right-32 top-8 h-80 w-80 bg-gradient-to-br from-orange-500/30 to-orange-700/5" />
+      <Blob className="-left-24 bottom-0 h-72 w-72 bg-gradient-to-tr from-orange-400/20 to-transparent" />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-16 px-6 lg:grid-cols-2">
+        <Reveal>
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-500/40 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-orange-400">
+            Nuevo · iOS 27
+          </span>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+            Las nuevas tarjetas póster de Apple Wallet, ya en Masplus.
+          </h2>
+          <p className="mt-4 max-w-lg text-zinc-400">
+            Apple estrenó en septiembre el diseño póster: la foto de tu negocio cubre toda la
+            tarjeta y aparece un botón interactivo debajo del pase. Tus tarjetas de sellos y
+            cupones ya lo pueden usar — lo activas con un clic al crear tu diseño.
+          </p>
+          <ul className="mt-6 space-y-3 text-sm">
+            <li className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
+              <span>Tu foto a pantalla completa, con los sellos siempre visibles encima.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
+              <span>Botón "Ver mi tarjeta" bajo el pase: tus clientes ven sus sellos y premios al instante.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
+              <span>En iPhones sin actualizar se muestra la versión clásica, automático.</span>
+            </li>
+          </ul>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link
+              to="/empresa/registro"
+              className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-6 py-3 font-semibold text-white shadow-lg shadow-orange-500/30 transition-colors hover:bg-orange-400"
+            >
+              Crea la tuya gratis <ArrowRight className="h-4 w-4" />
+            </Link>
+            <p className="text-sm text-zinc-400">
+              14 días de Plan Pro gratis · sin tarjeta de crédito
+            </p>
+          </div>
+          <p className="mt-3 text-xs text-zinc-500">
+            Sé de los primeros negocios en México con el nuevo diseño — tus clientes lo van a notar.
+          </p>
+        </Reveal>
+
+        <Reveal delay={0.1} className="mx-auto w-full max-w-xs">
+          {/* Mockup del pase póster: foto full-bleed + sellos + acción destacada debajo */}
+          <div className="rounded-[2rem] border border-zinc-800 bg-zinc-900 p-3 shadow-2xl shadow-orange-500/10">
+            <div className="relative overflow-hidden rounded-[1.4rem]" style={{ aspectRatio: '10 / 14' }}>
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'radial-gradient(120% 90% at 20% 0%, #f97316 0%, #c2410c 45%, #7c2d12 80%, #431407 100%)',
+                }}
+              />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_30%,rgba(255,255,255,0.18),transparent_45%)]" />
+              <div className="relative flex h-full flex-col p-4">
+                <div className="flex items-center justify-between">
+                  <img src={masplusLogo} alt="" className="h-5 w-auto brightness-0 invert" />
+                  <div className="text-right">
+                    <p className="text-[0.55rem] uppercase tracking-wide text-white/70">Premios</p>
+                    <p className="text-sm font-semibold">2</p>
+                  </div>
+                </div>
+                <p className="mt-5 text-lg font-semibold leading-tight">Faltan 3 sellos</p>
+                <div className="mt-3 grid grid-cols-5 gap-1.5">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className={`flex aspect-square items-center justify-center rounded-full border text-[0.6rem] ${
+                        i < 7 ? 'border-white bg-white/90 text-orange-600' : 'border-white/40 text-white/40'
+                      }`}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-auto">
+                  <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-xl bg-white p-2">
+                    <QrCode className="h-full w-full text-zinc-900" />
+                  </div>
+                  <p className="mt-2 text-center text-[0.6rem] text-white/70">María · Cliente frecuente</p>
+                </div>
+              </div>
+            </div>
+            {/* Acción destacada (Featured Action) bajo el pase, como la muestra iOS 27 */}
+            <div className="mt-3 flex items-center gap-3 rounded-2xl bg-zinc-800/90 p-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm">★</span>
+              <div>
+                <p className="text-sm font-medium">Ver mi tarjeta</p>
+                <p className="text-xs text-zinc-400">Abrir enlace</p>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+/**
  * Video demo del flujo completo (escanear QR → agregar a Wallet → comprar → sumar sello).
  * Se reproduce solo, en silencio y en loop, únicamente mientras está en pantalla — así no
  * consume datos si el usuario nunca llega a esta sección. Con prefers-reduced-motion se
@@ -784,6 +894,7 @@ export default function Home() {
       <BusinessTypes />
       <HowItWorks />
       <ProductShowcase />
+      <PosterWalletShowcase />
       <Features />
       <Pricing />
       <Testimonials />

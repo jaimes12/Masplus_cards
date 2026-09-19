@@ -23,5 +23,5 @@ public static class AppleWalletPassInputFactory
         CodigoQr: tarjeta.CodigoQr,
         WebServiceUrl: webServiceUrl,
         RecordatorioMensaje: tarjeta.RecordatorioMensaje,
-        EstiloCuponPoster: tarjeta.EstiloCuponPoster);
+        EstiloPoster: tarjeta.EstiloPoster);
 }

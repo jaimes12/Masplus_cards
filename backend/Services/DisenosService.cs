@@ -78,7 +78,7 @@ public class DisenosService : IDisenosService
             Descripcion = request.Descripcion,
             Configuracion = request.Configuracion,
             RecordatoriosActivos = request.RecordatoriosActivos,
-            EstiloCuponPoster = request.EstiloCuponPoster,
+            EstiloPoster = request.EstiloPoster,
         };
 
         _db.Disenos.Add(diseno);
@@ -105,7 +105,7 @@ public class DisenosService : IDisenosService
         diseno.Descripcion = request.Descripcion;
         diseno.Configuracion = request.Configuracion;
         diseno.RecordatoriosActivos = request.RecordatoriosActivos;
-        diseno.EstiloCuponPoster = request.EstiloCuponPoster;
+        diseno.EstiloPoster = request.EstiloPoster;
 
         await _db.SaveChangesAsync();
 
@@ -193,7 +193,7 @@ public class DisenosService : IDisenosService
             Descripcion = original.Descripcion,
             Configuracion = original.Configuracion,
             RecordatoriosActivos = original.RecordatoriosActivos,
-            EstiloCuponPoster = original.EstiloCuponPoster,
+            EstiloPoster = original.EstiloPoster,
         };
 
         _db.Disenos.Add(copia);
@@ -228,5 +228,5 @@ public class DisenosService : IDisenosService
         d.CodigoRegistro,
         d.CreatedAt, d.UpdatedAt,
         d.RecordatoriosActivos,
-        d.EstiloCuponPoster);
+        d.EstiloPoster);
 }

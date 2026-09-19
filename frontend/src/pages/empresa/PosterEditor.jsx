@@ -236,7 +236,7 @@ export default function PosterEditor() {
         descripcion: diseno.descripcion || null,
         configuracion: JSON.stringify({ poster }),
         recordatoriosActivos: diseno.recordatoriosActivos,
-        estiloCuponPoster: diseno.estiloCuponPoster,
+        estiloPoster: diseno.estiloPoster,
       })
       setSavedAt(Date.now())
     } finally {

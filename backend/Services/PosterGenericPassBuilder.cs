@@ -54,6 +54,13 @@ public static class PosterGenericPassBuilder
             files["background.png"] = backgroundPng;
             files["background@2x.png"] = backgroundPng;
             files["background@3x.png"] = backgroundPng;
+            // Los pases póster de event ticket (iOS 18+) usan "artwork.png" en vez de "background.png",
+            // y Apple aún no documenta cuál usa posterGeneric. Incluimos ambos nombres apuntando a la
+            // misma imagen: los archivos extra en un .pkpass son válidos (van al manifest y ya) y así
+            // cubre las dos convenciones posibles.
+            files["artwork.png"] = backgroundPng;
+            files["artwork@2x.png"] = backgroundPng;
+            files["artwork@3x.png"] = backgroundPng;
         }
 
         if (thumbnailPng is { Length: > 0 })
@@ -70,22 +77,54 @@ public static class PosterGenericPassBuilder
         return ZipFiles(files);
     }
 
+    /// <summary>Base pública del frontend, usada por las Acciones destacadas (Featured Actions, iOS 27+):
+    /// mosaicos bajo el pase que abren un enlace universal. Apuntan a la wallet web de la propia
+    /// tarjeta, que ya existe para todos los códigos QR.</summary>
+    private const string FrontendBaseUrl = "https://www.maspluss.com";
+
     private static byte[] BuildPassJson(AppleWalletConfiguration cfg, AppleWalletPassInput input)
     {
-        var vencido = input.Vencimiento.HasValue && input.Vencimiento.Value < MexicoCityTime.Now();
-        var estado = input.CuponRedimido ? "CANJEADO" : vencido ? "VENCIDO" : "VIGENTE";
-        var oferta = string.IsNullOrWhiteSpace(input.Descripcion) ? "Cupón especial" : input.Descripcion;
+        var esSellos = input.Tipo == "sellos";
 
-        JsonObject FieldGroup() => new()
+        string descripcion;
+        JsonObject FieldGroup()
         {
-            ["headerFields"] = new JsonArray(
-                new JsonObject { ["key"] = "estado", ["label"] = "ESTADO", ["value"] = estado }),
-            ["primaryFields"] = new JsonArray(
-                new JsonObject { ["key"] = "oferta", ["value"] = oferta }),
-            // Apple solo muestra el primer footerField aunque mandes más de uno, así que va uno solo.
-            ["footerFields"] = new JsonArray(
-                new JsonObject { ["key"] = "cliente", ["value"] = input.ClienteNombre }),
-        };
+            if (esSellos)
+            {
+                var faltan = Math.Max(input.SellosRequeridos - input.SellosActuales, 0);
+                return new JsonObject
+                {
+                    ["headerFields"] = new JsonArray(
+                        new JsonObject { ["key"] = "premios", ["label"] = "PREMIOS", ["value"] = input.PremiosCanjeados.ToString() }),
+                    ["primaryFields"] = new JsonArray(
+                        new JsonObject
+                        {
+                            ["key"] = "restantes",
+                            ["value"] = faltan > 0 ? $"Faltan {faltan} sello{(faltan == 1 ? "" : "s")}" : "¡Premio disponible!",
+                        }),
+                    // Apple solo muestra el primer footerField aunque mandes más de uno, así que va uno solo.
+                    ["footerFields"] = new JsonArray(
+                        new JsonObject { ["key"] = "cliente", ["value"] = input.ClienteNombre }),
+                };
+            }
+
+            var vencido = input.Vencimiento.HasValue && input.Vencimiento.Value < MexicoCityTime.Now();
+            var estado = input.CuponRedimido ? "CANJEADO" : vencido ? "VENCIDO" : "VIGENTE";
+            var oferta = string.IsNullOrWhiteSpace(input.Descripcion) ? "Cupón especial" : input.Descripcion;
+            return new JsonObject
+            {
+                ["headerFields"] = new JsonArray(
+                    new JsonObject { ["key"] = "estado", ["label"] = "ESTADO", ["value"] = estado }),
+                ["primaryFields"] = new JsonArray(
+                    new JsonObject { ["key"] = "oferta", ["value"] = oferta }),
+                ["footerFields"] = new JsonArray(
+                    new JsonObject { ["key"] = "cliente", ["value"] = input.ClienteNombre }),
+            };
+        }
+
+        descripcion = esSellos
+            ? $"Tarjeta de fidelidad {input.OrganizationName}"
+            : (string.IsNullOrWhiteSpace(input.Descripcion) ? $"Cupón {input.OrganizationName}" : input.Descripcion);
 
         var root = new JsonObject
         {
@@ -94,7 +133,7 @@ public static class PosterGenericPassBuilder
             ["serialNumber"] = input.SerialNumber,
             ["teamIdentifier"] = ExtractTeamIdentifier(cfg),
             ["organizationName"] = input.OrganizationName,
-            ["description"] = oferta,
+            ["description"] = descripcion,
             ["logoText"] = input.OrganizationName,
             ["foregroundColor"] = HexToRgb(input.ColorTexto ?? "#FFFFFF"),
             ["backgroundColor"] = HexToRgb(input.ColorPrimario ?? "#18181B"),
@@ -108,6 +147,15 @@ public static class PosterGenericPassBuilder
             }),
             ["posterGeneric"] = FieldGroup(),
             ["generic"] = FieldGroup(),
+            // Acciones destacadas (iOS 27+): un mosaico bajo el pase que abre la wallet web de esta
+            // tarjeta (sellos, premio y estado siempre al día). En iOS 26 o anterior simplemente se
+            // ignora. Apple permite máximo 2; con una alcanza — más es ruido.
+            ["featuredActions"] = new JsonArray(new JsonObject
+            {
+                ["identifier"] = "ver-tarjeta",
+                ["type"] = "viewMembership",
+                ["url"] = $"{FrontendBaseUrl}/wallet/{input.CodigoQr}",
+            }),
         };
 
         if (input.Vencimiento.HasValue)

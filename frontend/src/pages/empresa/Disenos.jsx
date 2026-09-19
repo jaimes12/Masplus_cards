@@ -28,7 +28,7 @@ const emptyForm = {
   vencimiento: '',
   descripcion: '',
   recordatoriosActivos: false,
-  estiloCuponPoster: false,
+  estiloPoster: false,
 }
 
 export default function Disenos() {
@@ -142,7 +142,7 @@ export default function Disenos() {
       vencimiento: diseno.vencimiento ? diseno.vencimiento.slice(0, 10) : '',
       descripcion: diseno.descripcion || '',
       recordatoriosActivos: diseno.recordatoriosActivos || false,
-      estiloCuponPoster: diseno.estiloCuponPoster || false,
+      estiloPoster: diseno.estiloPoster || false,
     })
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
   }
@@ -188,7 +188,7 @@ export default function Disenos() {
         descripcion: form.descripcion || null,
         configuracion: null,
         recordatoriosActivos: form.tipo === 'sellos' ? !!form.recordatoriosActivos : false,
-        estiloCuponPoster: form.tipo === 'cupon' ? !!form.estiloCuponPoster : false,
+        estiloPoster: !!form.estiloPoster,
       }
 
       if (editingId) {
@@ -486,38 +486,66 @@ export default function Disenos() {
                         <Label>Vencimiento (opcional)</Label>
                         <Input type="date" value={form.vencimiento} onChange={(e) => update('vencimiento', e.target.value)} />
                       </div>
-                      <div className="sm:col-span-2">
-                        <Label>Estilo del cupón en Apple Wallet</Label>
-                        <div className="mt-1 grid gap-2 sm:grid-cols-2">
-                          <button
-                            type="button"
-                            onClick={() => update('estiloCuponPoster', false)}
-                            className={`relative rounded-xl border-2 p-3 text-left transition-colors ${
-                              !form.estiloCuponPoster ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
-                            }`}
-                          >
-                            {!form.estiloCuponPoster && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
-                            <p className="font-medium">Cupón normal</p>
-                            <p className="text-sm text-muted-foreground">Funciona en cualquier iPhone.</p>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => update('estiloCuponPoster', true)}
-                            className={`relative rounded-xl border-2 p-3 text-left transition-colors ${
-                              form.estiloCuponPoster ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
-                            }`}
-                          >
-                            {form.estiloCuponPoster && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
-                            <p className="font-medium">Cupón nuevo (iOS 27)</p>
-                            <p className="text-sm text-muted-foreground">
-                              Foto a toda la tarjeta. Solo se ve así en iPhones actualizados a iOS 27; en los demás se
-                              ve una versión simple sin foto.
-                            </p>
-                          </button>
-                        </div>
-                      </div>
                     </>
                   )}
+                  <div className="sm:col-span-2">
+                    <Label>Estilo en Apple Wallet</Label>
+                    <div className="mt-1 grid gap-2 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => update('estiloPoster', false)}
+                        className={`relative flex items-start gap-3 rounded-xl border-2 p-3 text-left transition-colors ${
+                          !form.estiloPoster ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
+                        }`}
+                      >
+                        {!form.estiloPoster && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
+                        <span
+                          className="mt-0.5 flex h-14 w-9 shrink-0 flex-col overflow-hidden rounded-md border border-border"
+                          aria-hidden
+                        >
+                          <span className="h-4" style={{ background: form.colorPrimario }} />
+                          <span className="flex-1 bg-muted" />
+                          <span className="mx-auto mb-1 h-3 w-3 rounded-sm bg-foreground/60" />
+                        </span>
+                        <span>
+                          <p className="font-medium">Clásico</p>
+                          <p className="text-sm text-muted-foreground">Se ve igual en cualquier iPhone.</p>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => update('estiloPoster', true)}
+                        className={`relative flex items-start gap-3 rounded-xl border-2 p-3 text-left transition-colors ${
+                          form.estiloPoster ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
+                        }`}
+                      >
+                        {form.estiloPoster && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
+                        <span
+                          className="mt-0.5 flex h-14 w-9 shrink-0 flex-col justify-end overflow-hidden rounded-md border border-border"
+                          style={{
+                            background: form.fondoUrl
+                              ? `url(${form.fondoUrl}) center/cover`
+                              : `linear-gradient(160deg, ${form.colorPrimario}, ${form.colorSecundario})`,
+                          }}
+                          aria-hidden
+                        >
+                          <span className="mx-auto mb-1 h-3 w-3 rounded-sm bg-white/80" />
+                        </span>
+                        <span>
+                          <p className="font-medium">
+                            Póster{' '}
+                            <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-semibold text-primary">
+                              Nuevo · iOS 27
+                            </span>
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Tu foto cubre toda la tarjeta y agrega un botón "Ver mi tarjeta" debajo del pase. En
+                            iPhones sin actualizar se muestra la versión clásica automáticamente.
+                          </p>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                   <div className="sm:col-span-2">
                     <Label>{form.tipo === 'cupon' ? 'Descripción de la promoción' : 'Descripción / premio'}</Label>
                     <Input

@@ -20,4 +20,4 @@ public record AppleWalletPassInput(
     string CodigoQr,
     string? WebServiceUrl = null,
     string? RecordatorioMensaje = null,
-    bool EstiloCuponPoster = false);
+    bool EstiloPoster = false);
