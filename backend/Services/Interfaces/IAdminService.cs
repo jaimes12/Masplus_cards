@@ -6,4 +6,5 @@ public interface IAdminService
 {
     Task<AdminStatsDto> GetStatsAsync();
     Task<List<AdminEmpresaListItemDto>> GetEmpresasAsync();
+    Task<AdminAnaliticaDto> GetAnaliticaAsync(int dias);
 }

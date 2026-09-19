@@ -28,9 +28,13 @@ import Empresas from './pages/admin/Empresas.jsx'
 import DiscountCodes from './pages/admin/DiscountCodes.jsx'
 import Planes from './pages/admin/Planes.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import AnalyticsTracker from './components/AnalyticsTracker.jsx'
+import Analitica from './pages/admin/Analitica.jsx'
 
 function App() {
   return (
+    <>
+    <AnalyticsTracker />
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/wallet/:codigoQr" element={<Wallet />} />
@@ -79,6 +83,7 @@ function App() {
         }
       >
         <Route index element={<AdminDashboard />} />
+        <Route path="analitica" element={<Analitica />} />
         <Route path="mensajes" element={<Mensajes />} />
         <Route path="templates" element={<Templates />} />
         <Route path="empresas" element={<Empresas />} />
@@ -86,6 +91,7 @@ function App() {
         <Route path="codigos-descuento" element={<DiscountCodes />} />
       </Route>
     </Routes>
+    </>
   )
 }
 

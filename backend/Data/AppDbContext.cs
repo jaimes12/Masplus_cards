@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<WhatsAppConversacion> WhatsAppConversaciones => Set<WhatsAppConversacion>();
     public DbSet<WhatsAppMensaje> WhatsAppMensajes => Set<WhatsAppMensaje>();
     public DbSet<Configuracion> Configuraciones => Set<Configuracion>();
+    public DbSet<VisitaEvento> VisitasEventos => Set<VisitaEvento>();
 
     public override int SaveChanges()
     {
@@ -336,6 +337,26 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.EmpresaId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<VisitaEvento>(e =>
+        {
+            e.ToTable("visitas_eventos");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.VisitanteId).HasColumnName("visitante_id").HasMaxLength(40).IsRequired();
+            e.Property(x => x.SesionId).HasColumnName("sesion_id").HasMaxLength(40).IsRequired();
+            e.Property(x => x.Tipo).HasColumnName("tipo").HasMaxLength(20).IsRequired();
+            e.Property(x => x.Valor).HasColumnName("valor").HasMaxLength(160);
+            e.Property(x => x.DuracionSegundos).HasColumnName("duracion_segundos");
+            e.Property(x => x.Referrer).HasColumnName("referrer").HasMaxLength(300);
+            e.Property(x => x.Dispositivo).HasColumnName("dispositivo").HasMaxLength(10);
+            e.Property(x => x.EmpresaId).HasColumnName("empresa_id");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+
+            e.HasIndex(x => x.CreatedAt);
+            e.HasIndex(x => x.VisitanteId);
+            e.HasIndex(x => x.SesionId);
         });
 
         modelBuilder.Entity<Configuracion>(e =>

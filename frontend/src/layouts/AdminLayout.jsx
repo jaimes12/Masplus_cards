@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Building2, LogOut, LayoutTemplate, LayoutDashboard, MessageCircle, Percent, Tag } from 'lucide-react'
+import { BarChart3, Building2, LogOut, LayoutTemplate, LayoutDashboard, MessageCircle, Percent, Tag } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import Sidebar from '../components/Sidebar.jsx'
 import Navbar from '../components/Navbar.jsx'
@@ -9,6 +9,7 @@ import masplusIcon from '../assets/masplus_icon.png'
 
 const items = [
   { to: '/admin', label: 'Resumen', icon: LayoutDashboard, end: true },
+  { to: '/admin/analitica', label: 'Analítica', icon: BarChart3 },
   { to: '/admin/mensajes', label: 'Mensajes', icon: MessageCircle },
   { to: '/admin/templates', label: 'Templates', icon: LayoutTemplate },
   { to: '/admin/empresas', label: 'Empresas', icon: Building2 },
@@ -18,6 +19,7 @@ const items = [
 
 const TITLES = {
   '/admin': ['Resumen', 'Cómo va Masplus Cards en general.'],
+  '/admin/analitica': ['Analítica', 'Visitas al sitio, funnel de registro y duración de sesiones.'],
   '/admin/mensajes': ['Mensajes', 'Conversaciones de WhatsApp con leads, atendidas por IA.'],
   '/admin/templates': ['Templates', 'Plantillas base que las empresas personalizan.'],
   '/admin/empresas': ['Empresas', 'Cuentas registradas en la plataforma.'],

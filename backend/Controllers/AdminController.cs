@@ -31,6 +31,12 @@ public class AdminController : ControllerBase
         return Ok(await _service.GetEmpresasAsync());
     }
 
+    [HttpGet("analitica")]
+    public async Task<ActionResult<AdminAnaliticaDto>> GetAnalitica([FromQuery] int dias = 30)
+    {
+        return Ok(await _service.GetAnaliticaAsync(dias));
+    }
+
     /// <summary>Catálogo de planes, para elegir a cuál restringir un código de descuento.</summary>
     [HttpGet("planes")]
     public async Task<ActionResult<List<PlanDto>>> GetPlanes() => Ok(await _planes.GetCatalogoAsync());

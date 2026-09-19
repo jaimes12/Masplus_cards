@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api.js'
+import { trackEtapa } from '../lib/analytics.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { Button, Input, Select } from '../components/ui.jsx'
 import AuthBackground from '../components/AuthBackground.jsx'
@@ -52,6 +53,7 @@ export default function RegisterEmpresa() {
       })
       login(response)
       window.fbq?.('track', 'CompleteRegistration')
+      trackEtapa('registro_completado', response.id ?? null)
       navigate('/empresa')
     } catch (err) {
       setError(err.message)
