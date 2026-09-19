@@ -51,6 +51,7 @@ export default function RegisterEmpresa() {
         telefono,
       })
       login(response)
+      window.fbq?.('track', 'CompleteRegistration')
       navigate('/empresa')
     } catch (err) {
       setError(err.message)
