@@ -31,6 +31,66 @@ const emptyForm = {
   estiloPoster: false,
 }
 
+// Si el color de marca del diseño es muy claro (ej. blanco), usarlo como color del QR lo dejaría
+// invisible sobre el fondo blanco por defecto. En ese caso caemos a negro para que siempre se vea.
+function esColorOscuro(hex) {
+  const h = (hex || '').replace('#', '')
+  if (h.length !== 6) return false
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminancia < 0.6
+}
+
+/** Plantillas predefinidas del cartel con QR: layout fijo, solo cambia el color. */
+const POSTER_TEMPLATES = [
+  { id: 'clasico', nombre: 'Clásico' },
+  { id: 'bloque', nombre: 'Bloque' },
+  { id: 'oscuro', nombre: 'Oscuro' },
+  { id: 'marco', nombre: 'Marco' },
+]
+
+/** Miniatura de una plantilla del cartel, dibujada en CSS con el color elegido. */
+function PosterThumb({ template, color }) {
+  const qrBox = <span className="mx-auto block h-4 w-4 rounded-[2px] border border-zinc-400 bg-white" />
+  if (template === 'bloque')
+    return (
+      <span className="flex h-16 w-12 flex-col overflow-hidden rounded-md border border-border bg-white">
+        <span className="flex h-7 items-center justify-center" style={{ background: color }}>
+          <span className="h-1 w-6 rounded bg-white/80" />
+        </span>
+        <span className="flex flex-1 items-center">{qrBox}</span>
+      </span>
+    )
+  if (template === 'oscuro')
+    return (
+      <span className="flex h-16 w-12 flex-col items-center justify-center gap-1 rounded-md border border-border bg-zinc-900">
+        <span className="h-1 w-6 rounded" style={{ background: color }} />
+        {qrBox}
+      </span>
+    )
+  if (template === 'marco')
+    return (
+      <span className="flex h-16 w-12 items-center justify-center rounded-md border border-border bg-white p-1">
+        <span
+          className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-[3px] border-2"
+          style={{ borderColor: color }}
+        >
+          <span className="h-1 w-5 rounded bg-zinc-300" />
+          {qrBox}
+        </span>
+      </span>
+    )
+  return (
+    <span className="flex h-16 w-12 flex-col items-center justify-center gap-1 rounded-md border border-border bg-white">
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+      <span className="h-1 w-6 rounded bg-zinc-300" />
+      {qrBox}
+    </span>
+  )
+}
+
 export default function Disenos() {
   const { auth } = useAuth()
   const [disenos, setDisenos] = useState([])
@@ -43,8 +103,8 @@ export default function Disenos() {
   const [error, setError] = useState('')
   const [qrOpenId, setQrOpenId] = useState(null)
   const [copiedId, setCopiedId] = useState(null)
-  const [qrColor, setQrColor] = useState('#18181B')
-  const [qrBgColor, setQrBgColor] = useState('#FFFFFF')
+  const [posterColor, setPosterColor] = useState('#18181B')
+  const [posterTemplate, setPosterTemplate] = useState('clasico')
   const [printDiseno, setPrintDiseno] = useState(null)
   const [recordatorioEnvio, setRecordatorioEnvio] = useState(null)
 
@@ -52,33 +112,22 @@ export default function Disenos() {
     return `${window.location.origin}/registro/${d.codigoRegistro}`
   }
 
+  // El QR siempre se imprime sobre blanco; toma el color del cartel solo si es lo bastante
+  // oscuro para escanearse bien, si no cae a negro.
   function qrImageUrl(d, size) {
     const params = new URLSearchParams({
       size: `${size}x${size}`,
       data: registroUrl(d),
-      color: qrColor.replace('#', ''),
-      bgcolor: qrBgColor.replace('#', ''),
+      color: (esColorOscuro(posterColor) ? posterColor : '#18181B').replace('#', ''),
+      bgcolor: 'FFFFFF',
     })
     return `https://api.qrserver.com/v1/create-qr-code/?${params.toString()}`
-  }
-
-  // Si el color de marca del diseño es muy claro (ej. blanco), usarlo como color del QR lo dejaría
-  // invisible sobre el fondo blanco por defecto. En ese caso caemos a negro para que siempre se vea.
-  function esColorOscuro(hex) {
-    const h = (hex || '').replace('#', '')
-    if (h.length !== 6) return false
-    const r = parseInt(h.slice(0, 2), 16)
-    const g = parseInt(h.slice(2, 4), 16)
-    const b = parseInt(h.slice(4, 6), 16)
-    const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-    return luminancia < 0.6
   }
 
   function toggleQr(d) {
     setQrOpenId((id) => {
       if (id === d.id) return null
-      setQrColor(esColorOscuro(d.colorPrimario) ? d.colorPrimario : '#18181B')
-      setQrBgColor('#FFFFFF')
+      setPosterColor(d.colorPrimario || '#18181B')
       return d.id
     })
   }
@@ -356,22 +405,32 @@ export default function Disenos() {
                         <Copy className="h-4 w-4" /> {copiedId === d.id ? 'Copiado' : 'Copiar'}
                       </Button>
                     </div>
+                    <div>
+                      <Label className="mb-1.5">Plantilla del cartel</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {POSTER_TEMPLATES.map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setPosterTemplate(t.id)}
+                            title={t.nombre}
+                            className={`group flex flex-col items-center gap-1 rounded-lg border-2 p-1.5 transition-colors ${
+                              posterTemplate === t.id ? 'border-primary bg-secondary' : 'border-border hover:bg-secondary/50'
+                            }`}
+                          >
+                            <PosterThumb template={t.id} color={posterColor} />
+                            <span className="text-[11px] font-medium">{t.nombre}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <div className="flex flex-wrap items-end gap-4">
                       <div>
-                        <Label className="mb-1">Color del código</Label>
+                        <Label className="mb-1">Color del cartel</Label>
                         <Input
                           type="color"
-                          value={qrColor}
-                          onChange={(e) => setQrColor(e.target.value)}
-                          className="h-9 w-16 p-1"
-                        />
-                      </div>
-                      <div>
-                        <Label className="mb-1">Color de fondo</Label>
-                        <Input
-                          type="color"
-                          value={qrBgColor}
-                          onChange={(e) => setQrBgColor(e.target.value)}
+                          value={posterColor}
+                          onChange={(e) => setPosterColor(e.target.value)}
                           className="h-9 w-16 p-1"
                         />
                       </div>
@@ -388,8 +447,8 @@ export default function Disenos() {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      "Descargar PDF" usa el póster simple de siempre. "Editar diseño" abre un editor en otra pestaña
-                      donde podés mover el fondo, el texto y el QR a tu gusto (se guarda para la próxima vez).
+                      Elige una plantilla, ajusta el color y descarga el PDF listo para imprimir. Si quieres mover cada
+                      cosa a tu gusto, "Editar diseño" abre el editor libre en otra pestaña.
                     </p>
                   </div>
                 </div>
@@ -660,23 +719,100 @@ export default function Disenos() {
       </div>
       )}
 
-      {printDiseno && (
-        <div className="print-qr-poster flex-col items-center justify-center gap-6 p-16 text-center">
-          {printDiseno.logo && <img src={printDiseno.logo} alt="" className="h-20 w-20 rounded-full object-cover" />}
-          <div>
-            <p className="text-2xl font-semibold">{auth?.nombre}</p>
-            <p className="mt-1 text-lg text-muted-foreground">
-              {printDiseno.tipo === 'cupon' ? 'Escaneá para obtener tu cupón' : 'Escaneá para juntar tus sellos'}
-            </p>
-          </div>
-          <img src={qrImageUrl(printDiseno, 500)} alt="Código QR de registro" width={360} height={360} />
-          <p className="max-w-sm break-all text-sm text-muted-foreground">{registroUrl(printDiseno)}</p>
-          <div className="mt-4 flex items-center gap-2 opacity-70">
+      {printDiseno && (() => {
+        const accion = printDiseno.tipo === 'cupon' ? 'Escanea y llévate tu cupón' : 'Escanea y junta tus sellos'
+        const beneficio =
+          printDiseno.tipo === 'cupon' ? 'Tu cupón, directo en tu celular' : 'Cada compra te acerca a tu premio'
+        const footer = (claro) => (
+          <div className={`mt-4 flex items-center gap-2 ${claro ? 'opacity-90' : 'opacity-70'}`}>
             <img src={masplusLogo} alt="" className="h-6 w-6" />
-            <span className="text-sm">Powered by Masplus</span>
+            <span className={`text-sm ${claro ? 'text-white' : ''}`}>Powered by Masplus</span>
           </div>
-        </div>
-      )}
+        )
+        const qrGrande = (
+          <img src={qrImageUrl(printDiseno, 500)} alt="Código QR de registro" width={340} height={340} />
+        )
+        const logo = printDiseno.logo && (
+          <img src={printDiseno.logo} alt="" className="h-20 w-20 rounded-full object-cover" />
+        )
+
+        if (posterTemplate === 'bloque')
+          return (
+            <div className="print-qr-poster flex-col items-stretch text-center">
+              <div
+                className="flex flex-col items-center justify-center gap-4 px-12 py-14 text-white"
+                style={{ background: posterColor }}
+              >
+                {logo}
+                <p className="text-3xl font-bold">{auth?.nombre}</p>
+                <p className="text-xl opacity-90">{accion}</p>
+              </div>
+              <div className="flex flex-1 flex-col items-center justify-center gap-5 p-12">
+                {qrGrande}
+                <p className="text-lg font-medium">{beneficio}</p>
+                <p className="max-w-sm break-all text-sm text-muted-foreground">{registroUrl(printDiseno)}</p>
+                {footer(false)}
+              </div>
+            </div>
+          )
+
+        if (posterTemplate === 'oscuro')
+          return (
+            <div
+              className="print-qr-poster flex-col items-center justify-center gap-6 p-16 text-center text-white"
+              style={{ background: '#111113' }}
+            >
+              {logo}
+              <p className="text-3xl font-bold">{auth?.nombre}</p>
+              <p className="text-xl" style={{ color: esColorOscuro(posterColor) ? '#FFFFFF' : posterColor }}>
+                {accion}
+              </p>
+              <div className="rounded-2xl bg-white p-5">{qrGrande}</div>
+              <p className="text-lg opacity-90">{beneficio}</p>
+              <p className="max-w-sm break-all text-sm opacity-60">{registroUrl(printDiseno)}</p>
+              {footer(true)}
+            </div>
+          )
+
+        if (posterTemplate === 'marco')
+          return (
+            <div className="print-qr-poster p-8">
+              <div
+                className="flex h-full w-full flex-col items-center justify-center gap-6 rounded-3xl p-12 text-center"
+                style={{ border: `10px solid ${posterColor}` }}
+              >
+                {logo}
+                <p className="text-3xl font-bold">{auth?.nombre}</p>
+                <span
+                  className="rounded-full px-5 py-2 text-lg font-semibold text-white"
+                  style={{ background: posterColor }}
+                >
+                  {printDiseno.tipo === 'cupon' ? 'Cupón GRATIS' : 'Tarjeta de premios GRATIS'}
+                </span>
+                <p className="text-xl text-muted-foreground">{accion}</p>
+                {qrGrande}
+                <p className="max-w-sm break-all text-sm text-muted-foreground">{registroUrl(printDiseno)}</p>
+                {footer(false)}
+              </div>
+            </div>
+          )
+
+        return (
+          <div className="print-qr-poster flex-col items-center justify-center gap-6 p-16 text-center">
+            {logo}
+            <div>
+              <p className="text-2xl font-semibold">{auth?.nombre}</p>
+              <p className="mt-1 text-lg" style={{ color: esColorOscuro(posterColor) ? posterColor : undefined }}>
+                {accion}
+              </p>
+            </div>
+            {qrGrande}
+            <p className="text-lg font-medium">{beneficio}</p>
+            <p className="max-w-sm break-all text-sm text-muted-foreground">{registroUrl(printDiseno)}</p>
+            {footer(false)}
+          </div>
+        )
+      })()}
     </div>
   )
 }
