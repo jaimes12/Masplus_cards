@@ -5,6 +5,7 @@ import { trackEtapa } from '../lib/analytics.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { Button, Input, Select } from '../components/ui.jsx'
 import AuthBackground from '../components/AuthBackground.jsx'
+import ChatRicardo from '../components/ChatRicardo.jsx'
 import masplusLogo from '../assets/masplus_logo_wide.png'
 
 const PAISES = [
@@ -153,28 +154,17 @@ export default function RegisterEmpresa() {
           </Link>
         </p>
         <p className="mt-2 text-center text-xs text-muted-foreground">
-          ¿Prefieres que te ayudemos?{' '}
-          <a
-            href={
-              'https://wa.me/5214494250350?text=' +
-              encodeURIComponent('Hola! Me interesa crear mi tarjeta de lealtad, ¿me ayudan? 🙌')
-            }
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => {
-              try {
-                trackEtapa('cta_whatsapp')
-                window.fbq?.('track', 'Contact')
-              } catch {
-                /* noop */
-              }
-            }}
+          ¿Tienes dudas antes de crear tu cuenta?{' '}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event('abrir-chat-ricardo'))}
             className="font-medium text-accent underline"
           >
-            Escríbenos por WhatsApp
-          </a>
+            Pregúntale a Ricardo
+          </button>
         </p>
       </div>
+      <ChatRicardo conLanzador={false} />
     </div>
   )
 }
