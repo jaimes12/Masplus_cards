@@ -20,12 +20,12 @@ export default function RegisterEmpresa() {
     nombre: '',
     email: '',
     password: '',
-    confirmarPassword: '',
     codigoPais: PAISES[0].codigo,
     telefono: '',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [verPassword, setVerPassword] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
 
@@ -36,12 +36,6 @@ export default function RegisterEmpresa() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-
-    if (form.password !== form.confirmarPassword) {
-      setError('Las contraseñas no coinciden.')
-      return
-    }
-
     setLoading(true)
     try {
       const telefono = form.telefono.trim() ? `${form.codigoPais} ${form.telefono.trim()}` : null
@@ -124,38 +118,61 @@ export default function RegisterEmpresa() {
             <label htmlFor="password" className="mb-1 block text-sm font-medium text-muted-foreground">
               Contraseña
             </label>
-            <Input
-              id="password"
-              type="password"
-              value={form.password}
-              onChange={(e) => update('password', e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
-          <div>
-            <label htmlFor="confirmarPassword" className="mb-1 block text-sm font-medium text-muted-foreground">
-              Confirmar contraseña
-            </label>
-            <Input
-              id="confirmarPassword"
-              type="password"
-              value={form.confirmarPassword}
-              onChange={(e) => update('confirmarPassword', e.target.value)}
-              required
-              minLength={6}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={verPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={(e) => update('password', e.target.value)}
+                required
+                minLength={6}
+                className="pr-16"
+              />
+              <button
+                type="button"
+                onClick={() => setVerPassword((v) => !v)}
+                className="absolute inset-y-0 right-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                {verPassword ? 'Ocultar' : 'Mostrar'}
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Mínimo 6 caracteres.</p>
           </div>
           {error && <p className="rounded-lg bg-secondary px-3 py-2 text-sm text-accent">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
+            {loading ? 'Creando cuenta...' : 'Crear mi cuenta gratis'}
           </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            Sin tarjeta de crédito · Cancela cuando quieras
+          </p>
         </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           ¿Ya tenés cuenta?{' '}
           <Link to="/empresa/login" className="font-medium text-accent underline">
             Ingresá
           </Link>
+        </p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          ¿Prefieres que te ayudemos?{' '}
+          <a
+            href={
+              'https://wa.me/5214494250350?text=' +
+              encodeURIComponent('Hola! Me interesa crear mi tarjeta de lealtad, ¿me ayudan? 🙌')
+            }
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => {
+              try {
+                trackEtapa('cta_whatsapp')
+                window.fbq?.('track', 'Contact')
+              } catch {
+                /* noop */
+              }
+            }}
+            className="font-medium text-accent underline"
+          >
+            Escríbenos por WhatsApp
+          </a>
         </p>
       </div>
     </div>
