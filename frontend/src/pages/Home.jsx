@@ -6,10 +6,12 @@ import {
   Bell,
   Check,
   ChevronDown,
+  Gift,
   Menu,
   MessageCircle,
   Palette,
   QrCode,
+  Star,
   Users,
   X,
 } from 'lucide-react'
@@ -330,9 +332,16 @@ function Hero() {
       >
         {/* Message match con el anuncio de Meta: quien toca "Club de Fidelidad — 14 días gratis"
             debe encontrar exactamente esa promesa al aterrizar, o desconfía y se va. */}
-        <motion.p variants={heroItem}>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50/90 px-4 py-1.5 text-sm font-semibold text-orange-700">
-            🎁 14 días de Plan Pro gratis · sin tarjeta de crédito
+        <motion.p variants={heroItem} className="flex justify-center">
+          <span className="inline-flex items-center gap-2.5 rounded-full border border-orange-200/80 bg-white/85 py-2 pl-2 pr-5 shadow-sm backdrop-blur">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+              <Gift className="h-4 w-4" strokeWidth={2} />
+            </span>
+            <span className="text-sm font-semibold text-foreground">
+              14 días de Plan Pro gratis
+              <span className="mx-2 text-orange-300">|</span>
+              <span className="font-medium text-muted-foreground">Sin tarjeta de crédito</span>
+            </span>
           </span>
         </motion.p>
         <motion.h1 variants={heroItem} className="mt-5 text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
@@ -682,11 +691,11 @@ function PosterWalletShowcase() {
                   {Array.from({ length: 10 }).map((_, i) => (
                     <span
                       key={i}
-                      className={`flex aspect-square items-center justify-center rounded-full border text-[0.6rem] ${
+                      className={`flex aspect-square items-center justify-center rounded-full border ${
                         i < 7 ? 'border-white bg-white/90 text-orange-600' : 'border-white/40 text-white/40'
                       }`}
                     >
-                      ★
+                      <Star className="h-2.5 w-2.5" strokeWidth={2.5} fill={i < 7 ? 'currentColor' : 'none'} />
                     </span>
                   ))}
                 </div>
@@ -700,7 +709,9 @@ function PosterWalletShowcase() {
             </div>
             {/* Acción destacada (Featured Action) bajo el pase, como la muestra iOS 27 */}
             <div className="mt-3 flex items-center gap-3 rounded-2xl bg-zinc-800/90 p-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm">★</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500">
+                <QrCode className="h-4 w-4" strokeWidth={2} />
+              </span>
               <div>
                 <p className="text-sm font-medium">Ver mi tarjeta</p>
                 <p className="text-xs text-zinc-400">Abrir enlace</p>

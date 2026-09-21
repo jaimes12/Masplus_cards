@@ -140,13 +140,24 @@ export default function ChatRicardo({ conLanzador = true }) {
   return (
     <>
       {conLanzador && !abierto && (
-        <button
-          type="button"
-          onClick={() => setAbierto(true)}
-          className="fixed bottom-6 right-6 z-40 hidden items-center gap-2 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 py-3 pl-4 pr-5 font-semibold text-white shadow-lg shadow-orange-500/30 transition-transform hover:scale-105 sm:flex"
-        >
-          <MessageCircle className="h-5 w-5" /> ¿Dudas? Pregúntame
-        </button>
+        <>
+          {/* Desktop: pastilla con texto. Móvil: botón redondo arriba de la barra fija de CTA. */}
+          <button
+            type="button"
+            onClick={() => setAbierto(true)}
+            className="fixed bottom-6 right-6 z-40 hidden items-center gap-2 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 py-3 pl-4 pr-5 font-semibold text-white shadow-lg shadow-orange-500/30 transition-transform hover:scale-105 sm:flex"
+          >
+            <MessageCircle className="h-5 w-5" /> ¿Dudas? Pregúntame
+          </button>
+          <button
+            type="button"
+            onClick={() => setAbierto(true)}
+            aria-label="Chatea con Ricardo"
+            className="fixed bottom-24 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 sm:hidden"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </button>
+        </>
       )}
 
       {abierto && (
