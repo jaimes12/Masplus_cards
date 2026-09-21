@@ -42,6 +42,76 @@ public class AdminService : IAdminService
             .ToListAsync();
     }
 
+    public async Task<AdminEmpresaDetalleDto?> GetEmpresaDetalleAsync(int empresaId)
+    {
+        var e = await _db.Empresas
+            .Include(x => x.Plan)
+            .FirstOrDefaultAsync(x => x.Id == empresaId);
+        if (e == null) return null;
+
+        var totalClientes = await _db.Clientes.CountAsync(c => c.EmpresaId == empresaId);
+        var totalTarjetas = await _db.Tarjetas.CountAsync(t => t.EmpresaId == empresaId);
+        var premiosCanjeados = await _db.Tarjetas
+            .Where(t => t.EmpresaId == empresaId)
+            .SumAsync(t => (int?)t.PremiosCanjeados) ?? 0;
+
+        // "Escaneo" = cada vez que la empresa escaneó la tarjeta de un cliente (sello o canje).
+        var logsEscaneo = _db.TarjetaLogs
+            .Where(l => l.EmpresaId == empresaId && (l.Accion == "sello_agregado" || l.Accion == "premio_canjeado"));
+        var escaneosTotal = await logsEscaneo.CountAsync();
+        var clientesEscanearon = await logsEscaneo
+            .Select(l => l.TarjetaId).Distinct().CountAsync();
+        var sellosOtorgados = await _db.TarjetaLogs
+            .Where(l => l.EmpresaId == empresaId && l.Accion == "sello_agregado")
+            .SumAsync(l => (int?)(l.SellosAgregados ?? 1)) ?? 0;
+
+        // Métricas de escaneo por diseño (vía la tarjeta del log).
+        var escaneosPorDiseno = await _db.TarjetaLogs
+            .Where(l => l.EmpresaId == empresaId && (l.Accion == "sello_agregado" || l.Accion == "premio_canjeado"))
+            .Join(_db.Tarjetas, l => l.TarjetaId, t => t.Id, (l, t) => new { t.DisenoId, l.TarjetaId })
+            .GroupBy(x => x.DisenoId)
+            .Select(g => new { DisenoId = g.Key, Escaneos = g.Count(), Tarjetas = g.Select(x => x.TarjetaId).Distinct().Count() })
+            .ToDictionaryAsync(x => x.DisenoId);
+
+        var disenos = (await _db.Disenos
+                .Where(d => d.EmpresaId == empresaId)
+                .Select(d => new
+                {
+                    d.Id, d.Nombre, d.Tipo, d.Activo, d.EstiloPoster, d.Logo, d.ColorPrimario, d.ColorTexto,
+                    d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Vencimiento, d.Descripcion, d.CreatedAt,
+                    Tarjetas = d.Tarjetas.Count,
+                    Premios = d.Tarjetas.Sum(t => (int?)t.PremiosCanjeados) ?? 0,
+                })
+                .ToListAsync())
+            .Select(d => new AdminDisenoDetalleDto(
+                d.Id, d.Nombre, d.Tipo, d.Activo, d.EstiloPoster, d.Logo, d.ColorPrimario, d.ColorTexto,
+                d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Vencimiento, d.Descripcion, d.CreatedAt,
+                d.Tarjetas,
+                escaneosPorDiseno.GetValueOrDefault(d.Id)?.Tarjetas ?? 0,
+                escaneosPorDiseno.GetValueOrDefault(d.Id)?.Escaneos ?? 0,
+                d.Premios))
+            .OrderByDescending(d => d.Tarjetas)
+            .ToList();
+
+        var actividad = await _db.TarjetaLogs
+            .Where(l => l.EmpresaId == empresaId)
+            .OrderByDescending(l => l.CreatedAt)
+            .Take(12)
+            .Select(l => new AdminActividadDto(
+                l.Accion,
+                l.Descripcion,
+                l.Tarjeta != null && l.Tarjeta.Cliente != null ? l.Tarjeta.Cliente.Nombre : null,
+                l.Tarjeta != null && l.Tarjeta.Diseno != null ? l.Tarjeta.Diseno.Nombre : null,
+                l.CreatedAt))
+            .ToListAsync();
+
+        return new AdminEmpresaDetalleDto(
+            e.Id, e.Nombre, e.Email ?? "", e.Telefono, e.Logo, e.Estado, e.CreatedAt,
+            e.Plan?.Nombre, e.PruebaTerminaEl, !string.IsNullOrEmpty(e.StripeCustomerId),
+            totalClientes, totalTarjetas, clientesEscanearon, escaneosTotal, sellosOtorgados, premiosCanjeados,
+            disenos, actividad);
+    }
+
     /// <summary>Orden del funnel del sitio público: de solo llegar hasta registrarse. El índice
     /// define qué etapa es "más avanzada" al calcular hasta dónde llegó cada visitante.</summary>
     private static readonly (string Clave, string Nombre)[] FunnelEtapas =

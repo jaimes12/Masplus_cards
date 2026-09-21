@@ -31,6 +31,13 @@ public class AdminController : ControllerBase
         return Ok(await _service.GetEmpresasAsync());
     }
 
+    [HttpGet("empresas/{id:int}")]
+    public async Task<ActionResult<AdminEmpresaDetalleDto>> GetEmpresaDetalle(int id)
+    {
+        var detalle = await _service.GetEmpresaDetalleAsync(id);
+        return detalle == null ? NotFound() : Ok(detalle);
+    }
+
     [HttpGet("analitica")]
     public async Task<ActionResult<AdminAnaliticaDto>> GetAnalitica([FromQuery] int dias = 30)
     {
