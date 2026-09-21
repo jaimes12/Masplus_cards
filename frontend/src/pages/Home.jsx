@@ -328,14 +328,21 @@ function Hero() {
         animate="show"
         variants={{ show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } } }}
       >
-        <motion.h1 variants={heroItem} className="text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-          Convierte cada visita
+        {/* Message match con el anuncio de Meta: quien toca "Club de Fidelidad — 14 días gratis"
+            debe encontrar exactamente esa promesa al aterrizar, o desconfía y se va. */}
+        <motion.p variants={heroItem}>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50/90 px-4 py-1.5 text-sm font-semibold text-orange-700">
+            🎁 14 días de Plan Pro gratis · sin tarjeta de crédito
+          </span>
+        </motion.p>
+        <motion.h1 variants={heroItem} className="mt-5 text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+          El Club de Fidelidad
           <br />
-          <span className="text-orange-600">en una razón para volver.</span>
+          <span className="text-orange-600">que hace volver a tus clientes.</span>
         </motion.h1>
         <motion.p variants={heroItem} className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
-          Crea tarjetas de sellos y recompensas digitales que tus clientes guardan en su celular.
-          Sin apps que descargar, sin tarjetitas de papel que se pierden.
+          Tarjetas de sellos digitales que viven en el celular de tus clientes. Sin apps que
+          descargar, sin tarjetitas de papel que se pierden.
         </motion.p>
         <motion.div variants={heroItem} className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <motion.div whileHover={reduce ? undefined : { scale: 1.03 }} whileTap={reduce ? undefined : { scale: 0.97 }}>
@@ -343,7 +350,7 @@ function Hero() {
               to="/empresa/registro"
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             >
-              Empieza gratis
+              Crear mi Club gratis
               <ArrowRight className="h-4 w-4" />
             </Link>
           </motion.div>
@@ -463,6 +470,91 @@ function ConversionBoosters() {
 /** Soft blurred brand-color blob, purely decorative. Never intercepts clicks. */
 function Blob({ className }) {
   return <div className={`pointer-events-none absolute rounded-full blur-3xl ${className}`} />
+}
+
+/**
+ * Gancho interactivo: le pone número al dolor ("¿cuánto pierdes por clientes que no
+ * vuelven?") con dos sliders y un cálculo conservador — 1 de cada 10 clientes regresando
+ * una vez más al mes. Un dueño que mueve el slider y ve SU cifra ya está enganchado.
+ */
+function CalculadoraGanancias() {
+  const [clientesDia, setClientesDia] = useState(30)
+  const [ticket, setTicket] = useState(120)
+
+  const extraMes = Math.round(clientesDia * 30 * 0.1 * ticket)
+  const extraAno = extraMes * 12
+  const fmt = (n) => n.toLocaleString('es-MX')
+
+  return (
+    <section className="mx-auto max-w-6xl px-6 py-24">
+      <Reveal className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
+        <div className="grid lg:grid-cols-2">
+          <div className="p-8 sm:p-10">
+            <h2 className="text-3xl font-semibold tracking-tight">
+              ¿Cuánto dinero se te va con los clientes que{' '}
+              <span className="text-orange-600">no vuelven?</span>
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Mueve los controles y calcula lo que ganarías si tan solo{' '}
+              <span className="font-semibold text-foreground">1 de cada 10 clientes</span> regresara una vez más al
+              mes gracias a tu tarjeta de sellos.
+            </p>
+
+            <div className="mt-8 space-y-6">
+              <div>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-medium">Clientes que atiendes al día</span>
+                  <span className="rounded-full bg-secondary px-3 py-0.5 font-semibold tabular-nums">{clientesDia}</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="200"
+                  step="5"
+                  value={clientesDia}
+                  onChange={(e) => setClientesDia(Number(e.target.value))}
+                  className="w-full accent-orange-600"
+                  aria-label="Clientes por día"
+                />
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-medium">Lo que gasta un cliente en promedio</span>
+                  <span className="rounded-full bg-secondary px-3 py-0.5 font-semibold tabular-nums">${fmt(ticket)} MXN</span>
+                </div>
+                <input
+                  type="range"
+                  min="30"
+                  max="600"
+                  step="10"
+                  value={ticket}
+                  onChange={(e) => setTicket(Number(e.target.value))}
+                  className="w-full accent-orange-600"
+                  aria-label="Ticket promedio"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-orange-500 to-orange-600 p-8 text-center text-white sm:p-10">
+            <p className="text-sm font-medium uppercase tracking-wide text-orange-100">Estarías ganando</p>
+            <p className="text-5xl font-bold tabular-nums sm:text-6xl">+${fmt(extraMes)}</p>
+            <p className="text-orange-100">MXN extra al mes</p>
+            <p className="mt-1 rounded-full bg-white/15 px-4 py-1 text-sm font-semibold tabular-nums">
+              ${fmt(extraAno)} MXN al año
+            </p>
+            <Link
+              to="/empresa/registro"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-semibold text-orange-600 shadow-lg transition-transform hover:scale-105"
+            >
+              Empieza a recuperarlos gratis <ArrowRight className="h-4 w-4" />
+            </Link>
+            <p className="text-xs text-orange-100">14 días gratis · sin tarjeta de crédito</p>
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  )
 }
 
 function ProductShowcase() {
@@ -971,6 +1063,7 @@ export default function Home() {
       <TrustStrip />
       <BusinessTypes />
       <HowItWorks />
+      <CalculadoraGanancias />
       <ProductShowcase />
       <PosterWalletShowcase />
       <ConversionBoosters />
