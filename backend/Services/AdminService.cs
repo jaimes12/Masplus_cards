@@ -77,15 +77,17 @@ public class AdminService : IAdminService
                 .Where(d => d.EmpresaId == empresaId)
                 .Select(d => new
                 {
-                    d.Id, d.Nombre, d.Tipo, d.Activo, d.EstiloPoster, d.Logo, d.ColorPrimario, d.ColorTexto,
-                    d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Vencimiento, d.Descripcion, d.CreatedAt,
+                    d.Id, d.Nombre, d.Tipo, d.Activo, d.EstiloPoster, d.Logo, d.ColorPrimario, d.ColorSecundario,
+                    d.ColorTexto, d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Vencimiento, d.Descripcion,
+                    d.CodigoRegistro, d.CreatedAt,
                     Tarjetas = d.Tarjetas.Count,
                     Premios = d.Tarjetas.Sum(t => (int?)t.PremiosCanjeados) ?? 0,
                 })
                 .ToListAsync())
             .Select(d => new AdminDisenoDetalleDto(
-                d.Id, d.Nombre, d.Tipo, d.Activo, d.EstiloPoster, d.Logo, d.ColorPrimario, d.ColorTexto,
-                d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Vencimiento, d.Descripcion, d.CreatedAt,
+                d.Id, d.Nombre, d.Tipo, d.Activo, d.EstiloPoster, d.Logo, d.ColorPrimario, d.ColorSecundario,
+                d.ColorTexto, d.IconoSello, d.FondoUrl, d.SellosRequeridos, d.Vencimiento, d.Descripcion,
+                d.CodigoRegistro, d.CreatedAt,
                 d.Tarjetas,
                 escaneosPorDiseno.GetValueOrDefault(d.Id)?.Tarjetas ?? 0,
                 escaneosPorDiseno.GetValueOrDefault(d.Id)?.Escaneos ?? 0,

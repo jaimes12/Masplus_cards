@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { CreditCard, Gift, QrCode, Stamp, Users, X } from 'lucide-react'
+import { CreditCard, ExternalLink, Gift, QrCode, Stamp, Users, X } from 'lucide-react'
 import { api } from '../../lib/api.js'
 import { Card } from '../../components/ui.jsx'
 import MiniCardPreview from '../../components/MiniCardPreview.jsx'
+import CardPreview from '../../components/CardPreview.jsx'
+import PhoneFrame from '../../components/PhoneFrame.jsx'
 
 const ACCION_LABEL = {
   tarjeta_creada: 'Se registró un cliente',
@@ -29,9 +31,139 @@ function KpiChip({ icon: Icon, label, value }) {
   )
 }
 
+function Swatch({ label, hex }) {
+  if (!hex) return null
+  return (
+    <div className="flex items-center gap-2">
+      <span className="h-6 w-6 shrink-0 rounded-md border border-border" style={{ background: hex }} />
+      <div className="min-w-0">
+        <p className="text-xs font-medium leading-tight">{label}</p>
+        <p className="font-mono text-[11px] uppercase text-muted-foreground">{hex}</p>
+      </div>
+    </div>
+  )
+}
+
+/** Visor a tamaño completo de un diseño: la tarjeta como la ve el cliente + su receta
+    (colores, imágenes, premio) y el link a su página pública de registro. */
+function DisenoVisor({ diseno, empresaNombre, onClose }) {
+  const registroUrl = `${window.location.origin}/registro/${diseno.codigoRegistro}`
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/60 p-4 sm:p-8"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl rounded-2xl border border-border bg-card p-5 shadow-2xl sm:p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold leading-tight">{diseno.nombre || 'Diseño sin nombre'}</h3>
+            <p className="text-sm text-muted-foreground">
+              {diseno.tipo === 'cupon' ? 'Cupón' : `Tarjeta de ${diseno.sellosRequeridos} sellos`} ·{' '}
+              {empresaNombre}
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-full p-1.5 hover:bg-secondary" aria-label="Cerrar">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mt-4 grid gap-6 sm:grid-cols-[auto_1fr]">
+          <div className="mx-auto">
+            <PhoneFrame>
+              <CardPreview
+                empresaNombre={empresaNombre}
+                tipo={diseno.tipo}
+                logo={diseno.logo}
+                iconoSello={diseno.iconoSello}
+                fondoUrl={diseno.fondoUrl}
+                colorPrimario={diseno.colorPrimario}
+                colorTexto={diseno.colorTexto}
+                sellosRequeridos={diseno.sellosRequeridos}
+                sellosActuales={0}
+                vencimiento={diseno.vencimiento}
+                descripcion={diseno.descripcion}
+              />
+            </PhoneFrame>
+            <p className="mt-2 text-center text-xs text-muted-foreground">Así la ve el cliente en su celular.</p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <p className="mb-2 text-sm font-medium">Colores</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Swatch label="Primario" hex={diseno.colorPrimario} />
+                <Swatch label="Secundario" hex={diseno.colorSecundario} />
+                <Swatch label="Texto" hex={diseno.colorTexto} />
+              </div>
+            </div>
+
+            {(diseno.logo || diseno.iconoSello || diseno.fondoUrl) && (
+              <div>
+                <p className="mb-2 text-sm font-medium">Imágenes</p>
+                <div className="flex flex-wrap gap-3">
+                  {diseno.logo && (
+                    <div className="text-center">
+                      <img src={diseno.logo} alt="Logo" className="h-14 w-14 rounded-lg border border-border object-cover" />
+                      <p className="mt-1 text-[11px] text-muted-foreground">Logo</p>
+                    </div>
+                  )}
+                  {diseno.iconoSello && (
+                    <div className="text-center">
+                      <img src={diseno.iconoSello} alt="Ícono de sello" className="h-14 w-14 rounded-lg border border-border object-contain" />
+                      <p className="mt-1 text-[11px] text-muted-foreground">Sello</p>
+                    </div>
+                  )}
+                  {diseno.fondoUrl && (
+                    <div className="text-center">
+                      <img src={diseno.fondoUrl} alt="Fondo" className="h-14 w-24 rounded-lg border border-border object-cover" />
+                      <p className="mt-1 text-[11px] text-muted-foreground">Fondo</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1 text-sm">
+              {diseno.descripcion && (
+                <p>
+                  <span className="text-muted-foreground">{diseno.tipo === 'cupon' ? 'Oferta:' : 'Premio:'}</span>{' '}
+                  <span className="font-medium">{diseno.descripcion}</span>
+                </p>
+              )}
+              {diseno.vencimiento && (
+                <p>
+                  <span className="text-muted-foreground">Vence:</span>{' '}
+                  {new Date(diseno.vencimiento).toLocaleDateString('es-MX')}
+                </p>
+              )}
+              <p>
+                <span className="text-muted-foreground">Apple Wallet:</span>{' '}
+                {diseno.estiloPoster ? 'estilo Póster (iOS 27)' : 'estilo clásico'}
+              </p>
+            </div>
+
+            <a
+              href={registroUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-secondary"
+            >
+              <ExternalLink className="h-4 w-4" /> Abrir su página de registro
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function EmpresaDetalle({ empresaId, onClose }) {
   const [detalle, setDetalle] = useState(null)
   const [error, setError] = useState('')
+  const [disenoVisor, setDisenoVisor] = useState(null)
 
   useEffect(() => {
     setDetalle(null)
@@ -101,13 +233,25 @@ function EmpresaDetalle({ empresaId, onClose }) {
             </div>
 
             <div>
-              <p className="mb-2 font-medium">Diseños ({detalle.disenos.length})</p>
+              <div className="mb-2 flex items-baseline justify-between">
+                <p className="font-medium">Diseños ({detalle.disenos.length})</p>
+                {detalle.disenos.length > 0 && (
+                  <p className="text-xs text-muted-foreground">Haz clic en uno para verlo en grande</p>
+                )}
+              </div>
               {detalle.disenos.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Esta empresa todavía no crea diseños.</p>
               ) : (
                 <div className="space-y-2">
                   {detalle.disenos.map((d) => (
-                    <div key={d.id} className="flex gap-3 rounded-xl border border-border p-3">
+                    <div
+                      key={d.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setDisenoVisor(d)}
+                      onKeyDown={(e) => e.key === 'Enter' && setDisenoVisor(d)}
+                      className="flex cursor-pointer gap-3 rounded-xl border border-border p-3 text-left transition-colors hover:border-orange-300 hover:bg-secondary/40"
+                    >
                       <MiniCardPreview
                         empresaNombre={detalle.nombre}
                         tipo={d.tipo}
@@ -183,6 +327,9 @@ function EmpresaDetalle({ empresaId, onClose }) {
           </div>
         )}
       </div>
+      {disenoVisor && detalle && (
+        <DisenoVisor diseno={disenoVisor} empresaNombre={detalle.nombre} onClose={() => setDisenoVisor(null)} />
+      )}
     </div>
   )
 }
