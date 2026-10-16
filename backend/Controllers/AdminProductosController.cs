@@ -44,6 +44,31 @@ public class AdminProductosController : ControllerBase
     public async Task<IActionResult> Eliminar(int id) =>
         await _productos.EliminarAsync(id) ? NoContent() : NotFound();
 
+    [HttpGet("banners")]
+    public async Task<ActionResult<List<ProductoBannerDto>>> GetBanners() => Ok(await _productos.GetBannersAsync());
+
+    [HttpPost("banners")]
+    public async Task<ActionResult<ProductoBannerDto>> CrearBanner([FromBody] ProductoBannerRequest request)
+    {
+        try { return Ok(await _productos.CrearBannerAsync(request)); }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpPut("banners/{id:int}")]
+    public async Task<ActionResult<ProductoBannerDto>> ActualizarBanner(int id, [FromBody] ProductoBannerRequest request)
+    {
+        try
+        {
+            var banner = await _productos.ActualizarBannerAsync(id, request);
+            return banner == null ? NotFound() : Ok(banner);
+        }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpDelete("banners/{id:int}")]
+    public async Task<IActionResult> EliminarBanner(int id) =>
+        await _productos.EliminarBannerAsync(id) ? NoContent() : NotFound();
+
     [HttpGet("categorias")]
     public async Task<ActionResult<List<ProductoCategoriaDto>>> GetCategorias() =>
         Ok(await _productos.GetCategoriasAsync());

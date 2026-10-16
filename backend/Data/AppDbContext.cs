@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
     public DbSet<ProductoCategoria> ProductoCategorias => Set<ProductoCategoria>();
     public DbSet<Producto> Productos => Set<Producto>();
     public DbSet<ProductoMedia> ProductoMedias => Set<ProductoMedia>();
+    public DbSet<ProductoBanner> ProductoBanners => Set<ProductoBanner>();
 
     public override int SaveChanges()
     {
@@ -370,6 +371,19 @@ public class AppDbContext : DbContext
                 .WithMany(c => c.Productos)
                 .HasForeignKey(x => x.CategoriaId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<ProductoBanner>(e =>
+        {
+            e.ToTable("producto_banners");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.ImagenUrl).HasColumnName("imagen_url").HasMaxLength(500).IsRequired();
+            e.Property(x => x.Titulo).HasColumnName("titulo").HasMaxLength(150);
+            e.Property(x => x.Subtitulo).HasColumnName("subtitulo").HasMaxLength(300);
+            e.Property(x => x.Link).HasColumnName("link").HasMaxLength(500);
+            e.Property(x => x.Orden).HasColumnName("orden");
+            e.Property(x => x.Activo).HasColumnName("activo");
         });
 
         modelBuilder.Entity<ProductoMedia>(e =>

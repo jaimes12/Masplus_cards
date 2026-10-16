@@ -18,6 +18,12 @@ public class ProductosService : IProductosService
 
     public async Task<CatalogoDto> GetCatalogoAsync()
     {
+        var banners = await _db.ProductoBanners
+            .Where(b => b.Activo)
+            .OrderBy(b => b.Orden).ThenBy(b => b.Id)
+            .Select(b => new ProductoBannerDto(b.Id, b.ImagenUrl, b.Titulo, b.Subtitulo, b.Link, b.Orden, b.Activo))
+            .ToListAsync();
+
         var productos = await _db.Productos
             .Where(p => p.Activo)
             .Include(p => p.Categoria)
@@ -32,7 +38,61 @@ public class ProductosService : IProductosService
             .Select(g => new ProductoCategoriaDto(g.Key.Id, g.Key.Nombre, g.Key.Orden, g.Count()))
             .ToList();
 
-        return new CatalogoDto(categorias, productos.Select(ToDto).ToList());
+        return new CatalogoDto(banners, categorias, productos.Select(ToDto).ToList());
+    }
+
+    public async Task<List<ProductoBannerDto>> GetBannersAsync()
+    {
+        return await _db.ProductoBanners
+            .OrderBy(b => b.Orden).ThenBy(b => b.Id)
+            .Select(b => new ProductoBannerDto(b.Id, b.ImagenUrl, b.Titulo, b.Subtitulo, b.Link, b.Orden, b.Activo))
+            .ToListAsync();
+    }
+
+    public async Task<ProductoBannerDto> CrearBannerAsync(ProductoBannerRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.ImagenUrl))
+            throw new InvalidOperationException("El banner necesita una imagen.");
+
+        var banner = new ProductoBanner
+        {
+            ImagenUrl = request.ImagenUrl.Trim(),
+            Titulo = Limpio(request.Titulo),
+            Subtitulo = Limpio(request.Subtitulo),
+            Link = Limpio(request.Link),
+            Orden = request.Orden,
+            Activo = request.Activo,
+        };
+        _db.ProductoBanners.Add(banner);
+        await _db.SaveChangesAsync();
+        return new ProductoBannerDto(banner.Id, banner.ImagenUrl, banner.Titulo, banner.Subtitulo, banner.Link, banner.Orden, banner.Activo);
+    }
+
+    public async Task<ProductoBannerDto?> ActualizarBannerAsync(int id, ProductoBannerRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.ImagenUrl))
+            throw new InvalidOperationException("El banner necesita una imagen.");
+
+        var banner = await _db.ProductoBanners.FirstOrDefaultAsync(b => b.Id == id);
+        if (banner == null) return null;
+
+        banner.ImagenUrl = request.ImagenUrl.Trim();
+        banner.Titulo = Limpio(request.Titulo);
+        banner.Subtitulo = Limpio(request.Subtitulo);
+        banner.Link = Limpio(request.Link);
+        banner.Orden = request.Orden;
+        banner.Activo = request.Activo;
+        await _db.SaveChangesAsync();
+        return new ProductoBannerDto(banner.Id, banner.ImagenUrl, banner.Titulo, banner.Subtitulo, banner.Link, banner.Orden, banner.Activo);
+    }
+
+    public async Task<bool> EliminarBannerAsync(int id)
+    {
+        var banner = await _db.ProductoBanners.FirstOrDefaultAsync(b => b.Id == id);
+        if (banner == null) return false;
+        _db.ProductoBanners.Remove(banner);
+        await _db.SaveChangesAsync();
+        return true;
     }
 
     public async Task<List<ProductoDto>> GetAllAsync()

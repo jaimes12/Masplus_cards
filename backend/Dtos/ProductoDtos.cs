@@ -16,8 +16,12 @@ public record ProductoDto(
 
 public record ProductoCategoriaDto(int Id, string Nombre, int Orden, int ProductosCount);
 
-/// <summary>Catálogo público: solo categorías con productos activos y los productos activos.</summary>
-public record CatalogoDto(List<ProductoCategoriaDto> Categorias, List<ProductoDto> Productos);
+public record ProductoBannerDto(int Id, string ImagenUrl, string? Titulo, string? Subtitulo, string? Link, int Orden, bool Activo);
+
+public record ProductoBannerRequest(string ImagenUrl, string? Titulo, string? Subtitulo, string? Link, int Orden, bool Activo);
+
+/// <summary>Catálogo público: banners activos, categorías con productos activos y los productos activos.</summary>
+public record CatalogoDto(List<ProductoBannerDto> Banners, List<ProductoCategoriaDto> Categorias, List<ProductoDto> Productos);
 
 public record ProductoMediaRequest(string Url, string Tipo);
 

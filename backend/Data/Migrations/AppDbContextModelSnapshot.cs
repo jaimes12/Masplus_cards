@@ -631,6 +631,49 @@ namespace MasplusCards.Api.Data.Migrations
                     b.ToTable("productos", (string)null);
                 });
 
+            modelBuilder.Entity("MasplusCards.Api.Models.ProductoBanner", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("activo");
+
+                    b.Property<string>("ImagenUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("imagen_url");
+
+                    b.Property<string>("Link")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("link");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int")
+                        .HasColumnName("orden");
+
+                    b.Property<string>("Subtitulo")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)")
+                        .HasColumnName("subtitulo");
+
+                    b.Property<string>("Titulo")
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)")
+                        .HasColumnName("titulo");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("producto_banners", (string)null);
+                });
+
             modelBuilder.Entity("MasplusCards.Api.Models.ProductoCategoria", b =>
                 {
                     b.Property<int>("Id")

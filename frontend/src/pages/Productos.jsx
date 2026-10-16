@@ -72,6 +72,63 @@ function MediaCarrusel({ medias, nombre }) {
   )
 }
 
+/** Carrusel de banners administrados desde el panel: rotan solos cada 5 s. */
+function BannersCarrusel({ banners }) {
+  const [idx, setIdx] = useState(0)
+  const total = banners.length
+
+  useEffect(() => {
+    if (total < 2) return
+    const t = setInterval(() => setIdx((i) => (i + 1) % total), 5000)
+    return () => clearInterval(t)
+  }, [total])
+
+  if (total === 0) return null
+  const b = banners[Math.min(idx, total - 1)]
+
+  const contenido = (
+    <>
+      <img src={b.imagenUrl} alt={b.titulo || 'Banner'} className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+      {(b.titulo || b.subtitulo) && (
+        <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-10">
+          {b.titulo && (
+            <h2 className="text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{b.titulo}</h2>
+          )}
+          {b.subtitulo && <p className="mt-1 max-w-lg text-sm text-white/80 sm:text-base">{b.subtitulo}</p>}
+        </div>
+      )}
+    </>
+  )
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="relative h-[300px] overflow-hidden rounded-3xl bg-zinc-100 sm:h-[420px]">
+        {b.link ? (
+          <a href={b.link} target={b.link.startsWith('/') ? '_self' : '_blank'} rel="noreferrer" className="absolute inset-0">
+            {contenido}
+          </a>
+        ) : (
+          contenido
+        )}
+        {total > 1 && (
+          <div className="absolute bottom-4 right-5 flex gap-1.5 sm:bottom-6 sm:right-8">
+            {banners.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Banner ${i + 1}`}
+                onClick={() => setIdx(i)}
+                className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-6 bg-white' : 'w-1.5 bg-white/50'}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 /** Cinta en movimiento estilo tienda editorial: refuerza la propuesta sin ocupar atención. */
 function Ticker() {
   const frases = ['Hecho a mano', 'Piezas limitadas', 'Envíos a todo México', 'Diseño propio']
@@ -157,21 +214,9 @@ export default function Productos() {
         </a>
       </header>
 
-      {/* Hero tipográfico, escala fluida para que luzca igual en celular y desktop */}
-      <section className="mx-auto max-w-6xl px-4 pb-12 pt-6 sm:px-6 sm:pb-16 sm:pt-10">
-        <h1
-          className="font-semibold leading-[1.02] tracking-tight"
-          style={{ fontSize: 'clamp(2.5rem, 7vw, 4.75rem)' }}
-        >
-          Piezas únicas,
-          <br />
-          <span className="text-zinc-300">hechas con detalle.</span>
-        </h1>
-        <p className="mt-5 max-w-md text-sm leading-relaxed text-zinc-500 sm:text-base">
-          Objetos de diseño para espacios con personalidad. Cada pieza se produce bajo pedido, con
-          acabados cuidados y materiales ligeros.
-        </p>
-      </section>
+      <div className="space-y-8 pb-10 pt-2 sm:space-y-10 sm:pb-12">
+        <BannersCarrusel banners={catalogo.banners} />
+      </div>
 
       <Ticker />
 

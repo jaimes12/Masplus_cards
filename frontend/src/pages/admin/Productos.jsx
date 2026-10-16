@@ -32,6 +32,209 @@ async function subirMedia(file) {
   return data // { url, tipo }
 }
 
+const emptyBanner = { imagenUrl: '', titulo: '', subtitulo: '', link: '', orden: 0, activo: true }
+
+/** Sección de banners del catálogo: imagen ancha + texto opcional, rotan en la página pública. */
+function BannersAdmin() {
+  const [banners, setBanners] = useState([])
+  const [form, setForm] = useState(emptyBanner)
+  const [editingId, setEditingId] = useState(null)
+  const [showForm, setShowForm] = useState(false)
+  const [subiendo, setSubiendo] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const fileRef = useRef(null)
+
+  async function load() {
+    setBanners(await api.get('/api/admin/productos/banners'))
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  function update(field, value) {
+    setForm((f) => ({ ...f, [field]: value }))
+  }
+
+  async function onFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setSubiendo(true)
+    setError('')
+    try {
+      const media = await subirMedia(file)
+      update('imagenUrl', media.url)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSubiendo(false)
+    }
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!form.imagenUrl) {
+      setError('Sube la imagen del banner primero.')
+      return
+    }
+    setSaving(true)
+    setError('')
+    try {
+      const payload = {
+        imagenUrl: form.imagenUrl,
+        titulo: form.titulo || null,
+        subtitulo: form.subtitulo || null,
+        link: form.link || null,
+        orden: Number(form.orden) || 0,
+        activo: !!form.activo,
+      }
+      if (editingId) await api.put(`/api/admin/productos/banners/${editingId}`, payload)
+      else await api.post('/api/admin/productos/banners', payload)
+      setShowForm(false)
+      setForm(emptyBanner)
+      setEditingId(null)
+      await load()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function eliminar(b) {
+    if (!window.confirm('¿Eliminar este banner?')) return
+    await api.delete(`/api/admin/productos/banners/${b.id}`)
+    await load()
+  }
+
+  return (
+    <Card>
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <p className="font-medium">Banners</p>
+          <p className="text-xs text-muted-foreground">
+            Aparecen arriba del catálogo; si hay varios activos, rotan solos. Ideal 1600×600 aprox.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="gap-1.5"
+          onClick={() => {
+            setEditingId(null)
+            setForm(emptyBanner)
+            setError('')
+            setShowForm(true)
+          }}
+        >
+          <Plus className="h-4 w-4" /> Nuevo banner
+        </Button>
+      </div>
+
+      {banners.length === 0 && !showForm && (
+        <p className="text-sm text-muted-foreground">Sin banners todavía.</p>
+      )}
+
+      <div className="space-y-2">
+        {banners.map((b) => (
+          <div key={b.id} className="flex items-center gap-3 rounded-xl border border-border p-2">
+            <img src={b.imagenUrl} alt="" className="h-14 w-28 shrink-0 rounded-lg object-cover" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{b.titulo || 'Sin título'}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {b.subtitulo || b.link || '—'}
+                {!b.activo && <span className="ml-1 text-red-500">· oculto</span>}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 px-3 text-xs"
+              onClick={() => {
+                setEditingId(b.id)
+                setForm({
+                  imagenUrl: b.imagenUrl,
+                  titulo: b.titulo || '',
+                  subtitulo: b.subtitulo || '',
+                  link: b.link || '',
+                  orden: b.orden,
+                  activo: b.activo,
+                })
+                setError('')
+                setShowForm(true)
+              }}
+            >
+              Editar
+            </Button>
+            <button
+              type="button"
+              onClick={() => eliminar(b)}
+              className="rounded-full p-1.5 text-muted-foreground hover:text-red-500"
+              aria-label="Eliminar banner"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="mt-4 grid gap-3 rounded-xl border border-border p-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Label>Imagen del banner</Label>
+            <div className="mt-1 flex items-center gap-3">
+              {form.imagenUrl ? (
+                <img src={form.imagenUrl} alt="" className="h-20 w-40 rounded-lg border border-border object-cover" />
+              ) : (
+                <div className="grid h-20 w-40 place-items-center rounded-lg border-2 border-dashed border-border text-xs text-muted-foreground">
+                  Sin imagen
+                </div>
+              )}
+              <Button type="button" variant="outline" className="gap-1.5" disabled={subiendo} onClick={() => fileRef.current?.click()}>
+                <Upload className="h-4 w-4" /> {subiendo ? 'Subiendo...' : form.imagenUrl ? 'Cambiar' : 'Subir imagen'}
+              </Button>
+              <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={onFile} />
+            </div>
+          </div>
+          <div>
+            <Label>Título (opcional)</Label>
+            <Input value={form.titulo} onChange={(e) => update('titulo', e.target.value)} placeholder="Ej. Nueva colección" />
+          </div>
+          <div>
+            <Label>Subtítulo (opcional)</Label>
+            <Input value={form.subtitulo} onChange={(e) => update('subtitulo', e.target.value)} placeholder="Texto corto debajo del título" />
+          </div>
+          <div>
+            <Label>Link (opcional)</Label>
+            <Input value={form.link} onChange={(e) => update('link', e.target.value)} placeholder="https://... o #catalogo" />
+          </div>
+          <div className="flex items-end gap-4">
+            <div className="w-24">
+              <Label>Orden</Label>
+              <Input type="number" value={form.orden} onChange={(e) => update('orden', e.target.value)} />
+            </div>
+            <label className="flex items-center gap-2 pb-2 text-sm">
+              <input type="checkbox" checked={form.activo} onChange={(e) => update('activo', e.target.checked)} />
+              Visible
+            </label>
+          </div>
+          {error && <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-600 sm:col-span-2">{error}</p>}
+          <div className="flex gap-2 sm:col-span-2">
+            <Button type="submit" disabled={saving || subiendo}>
+              {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear banner'}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      )}
+    </Card>
+  )
+}
+
 export default function Productos() {
   const [productos, setProductos] = useState([])
   const [categorias, setCategorias] = useState([])
@@ -178,6 +381,8 @@ export default function Productos() {
           <Plus className="h-4 w-4" /> Nuevo producto
         </Button>
       </div>
+
+      <BannersAdmin />
 
       <Card>
         <p className="mb-3 font-medium">Categorías</p>

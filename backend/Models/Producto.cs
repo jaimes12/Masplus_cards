@@ -29,6 +29,19 @@ public class Producto
     public List<ProductoMedia> Medias { get; set; } = new();
 }
 
+/// <summary>Banner del catálogo público (/productos): imagen ancha con texto opcional encima,
+/// administrado desde el panel. Si hay varios activos, rotan en carrusel.</summary>
+public class ProductoBanner
+{
+    public int Id { get; set; }
+    public string ImagenUrl { get; set; } = "";
+    public string? Titulo { get; set; }
+    public string? Subtitulo { get; set; }
+    public string? Link { get; set; }
+    public int Orden { get; set; }
+    public bool Activo { get; set; } = true;
+}
+
 /// <summary>Imagen o video de un producto, en el orden en que aparece en el carrusel.</summary>
 public class ProductoMedia
 {
