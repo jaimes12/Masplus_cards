@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowDown, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
 import { api } from '../lib/api.js'
 
 /**
@@ -149,38 +149,6 @@ function Ticker() {
   )
 }
 
-/** Banner editorial con la pieza destacada (la primera del catálogo con foto). */
-function Banner({ producto }) {
-  const foto = producto?.medias.find((m) => m.tipo === 'imagen')
-  if (!producto || !foto) return null
-  return (
-    <section className="mx-auto max-w-6xl px-4 sm:px-6">
-      <div className="grid overflow-hidden rounded-3xl bg-zinc-900 text-white sm:grid-cols-2">
-        <div className="flex flex-col justify-center gap-4 p-8 sm:p-12">
-          <p className="text-xs font-medium uppercase tracking-[0.3em] text-zinc-400">Pieza destacada</p>
-          <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{producto.nombre}</h2>
-          {producto.descripcion && (
-            <p className="max-w-sm text-sm leading-relaxed text-zinc-400">{producto.descripcion}</p>
-          )}
-          <div className="mt-2 flex items-center gap-4">
-            <a
-              href="#catalogo"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-200"
-            >
-              Ver piezas <ArrowDown className="h-4 w-4" />
-            </a>
-            <p className="text-lg font-semibold tabular-nums">{fmtPrecio(producto.precio)}</p>
-          </div>
-        </div>
-        <div className="relative min-h-[260px] sm:min-h-[380px]">
-          <img src={foto.url} alt={producto.nombre} className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-zinc-900/30 to-transparent sm:from-zinc-900/50" />
-        </div>
-      </div>
-    </section>
-  )
-}
-
 export default function Productos() {
   const [catalogo, setCatalogo] = useState(null)
   const [categoriaId, setCategoriaId] = useState(null)
@@ -203,7 +171,6 @@ export default function Productos() {
   const productos = categoriaId
     ? catalogo.productos.filter((p) => p.categoriaId === categoriaId)
     : catalogo.productos
-  const destacado = catalogo.productos.find((p) => p.medias.some((m) => m.tipo === 'imagen'))
 
   return (
     <div className="min-h-svh bg-white text-zinc-900">
@@ -221,8 +188,6 @@ export default function Productos() {
       <Ticker />
 
       <main className="space-y-14 pb-24 pt-12 sm:space-y-20 sm:pt-16">
-        <Banner producto={destacado} />
-
         <section id="catalogo" className="mx-auto max-w-6xl scroll-mt-10 px-4 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-2xl font-semibold tracking-tight">Todas las piezas</h2>
