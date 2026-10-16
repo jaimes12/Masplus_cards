@@ -26,6 +26,9 @@ public class AppDbContext : DbContext
     public DbSet<WhatsAppMensaje> WhatsAppMensajes => Set<WhatsAppMensaje>();
     public DbSet<Configuracion> Configuraciones => Set<Configuracion>();
     public DbSet<VisitaEvento> VisitasEventos => Set<VisitaEvento>();
+    public DbSet<ProductoCategoria> ProductoCategorias => Set<ProductoCategoria>();
+    public DbSet<Producto> Productos => Set<Producto>();
+    public DbSet<ProductoMedia> ProductoMedias => Set<ProductoMedia>();
 
     public override int SaveChanges()
     {
@@ -336,6 +339,52 @@ public class AppDbContext : DbContext
             e.HasOne(x => x.Empresa)
                 .WithMany()
                 .HasForeignKey(x => x.EmpresaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ProductoCategoria>(e =>
+        {
+            e.ToTable("producto_categorias");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+            e.Property(x => x.Orden).HasColumnName("orden");
+        });
+
+        modelBuilder.Entity<Producto>(e =>
+        {
+            e.ToTable("productos");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.CategoriaId).HasColumnName("categoria_id");
+            e.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(150).IsRequired();
+            e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(1000);
+            e.Property(x => x.Precio).HasColumnName("precio").HasColumnType("decimal(10,2)");
+            e.Property(x => x.LinkCompra).HasColumnName("link_compra").HasMaxLength(500);
+            e.Property(x => x.Activo).HasColumnName("activo");
+            e.Property(x => x.Orden).HasColumnName("orden");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+
+            e.HasOne(x => x.Categoria)
+                .WithMany(c => c.Productos)
+                .HasForeignKey(x => x.CategoriaId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<ProductoMedia>(e =>
+        {
+            e.ToTable("producto_medias");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.ProductoId).HasColumnName("producto_id");
+            e.Property(x => x.Url).HasColumnName("url").HasMaxLength(500).IsRequired();
+            e.Property(x => x.Tipo).HasColumnName("tipo").HasMaxLength(10).IsRequired();
+            e.Property(x => x.Orden).HasColumnName("orden");
+
+            e.HasOne(x => x.Producto)
+                .WithMany(p => p.Medias)
+                .HasForeignKey(x => x.ProductoId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

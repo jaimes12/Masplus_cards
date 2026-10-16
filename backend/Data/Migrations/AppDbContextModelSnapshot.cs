@@ -575,6 +575,122 @@ namespace MasplusCards.Api.Data.Migrations
                     b.ToTable("planes", (string)null);
                 });
 
+            modelBuilder.Entity("MasplusCards.Api.Models.Producto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("activo");
+
+                    b.Property<int?>("CategoriaId")
+                        .HasColumnType("int")
+                        .HasColumnName("categoria_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("descripcion");
+
+                    b.Property<string>("LinkCompra")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("link_compra");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)")
+                        .HasColumnName("nombre");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int")
+                        .HasColumnName("orden");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("precio");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoriaId");
+
+                    b.ToTable("productos", (string)null);
+                });
+
+            modelBuilder.Entity("MasplusCards.Api.Models.ProductoCategoria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("nombre");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int")
+                        .HasColumnName("orden");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("producto_categorias", (string)null);
+                });
+
+            modelBuilder.Entity("MasplusCards.Api.Models.ProductoMedia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int")
+                        .HasColumnName("orden");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int")
+                        .HasColumnName("producto_id");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductoId");
+
+                    b.ToTable("producto_medias", (string)null);
+                });
+
             modelBuilder.Entity("MasplusCards.Api.Models.Tarjeta", b =>
                 {
                     b.Property<int>("Id")
@@ -1029,6 +1145,27 @@ namespace MasplusCards.Api.Data.Migrations
                     b.Navigation("Tarjeta");
                 });
 
+            modelBuilder.Entity("MasplusCards.Api.Models.Producto", b =>
+                {
+                    b.HasOne("MasplusCards.Api.Models.ProductoCategoria", "Categoria")
+                        .WithMany("Productos")
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Categoria");
+                });
+
+            modelBuilder.Entity("MasplusCards.Api.Models.ProductoMedia", b =>
+                {
+                    b.HasOne("MasplusCards.Api.Models.Producto", "Producto")
+                        .WithMany("Medias")
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+                });
+
             modelBuilder.Entity("MasplusCards.Api.Models.Tarjeta", b =>
                 {
                     b.HasOne("MasplusCards.Api.Models.Cliente", "Cliente")
@@ -1120,6 +1257,16 @@ namespace MasplusCards.Api.Data.Migrations
             modelBuilder.Entity("MasplusCards.Api.Models.Plan", b =>
                 {
                     b.Navigation("Empresas");
+                });
+
+            modelBuilder.Entity("MasplusCards.Api.Models.Producto", b =>
+                {
+                    b.Navigation("Medias");
+                });
+
+            modelBuilder.Entity("MasplusCards.Api.Models.ProductoCategoria", b =>
+                {
+                    b.Navigation("Productos");
                 });
 
             modelBuilder.Entity("MasplusCards.Api.Models.Tarjeta", b =>

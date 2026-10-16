@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { BarChart3, Building2, LogOut, LayoutTemplate, LayoutDashboard, MessageCircle, Percent, Tag } from 'lucide-react'
+import { BarChart3, Building2, LogOut, LayoutTemplate, LayoutDashboard, MessageCircle, Package, Percent, Tag } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import Sidebar from '../components/Sidebar.jsx'
 import Navbar from '../components/Navbar.jsx'
@@ -15,6 +15,7 @@ const items = [
   { to: '/admin/empresas', label: 'Empresas', icon: Building2 },
   { to: '/admin/planes', label: 'Planes', icon: Tag },
   { to: '/admin/codigos-descuento', label: 'Códigos de descuento', icon: Percent },
+  { to: '/admin/productos', label: 'Productos', icon: Package },
 ]
 
 const TITLES = {
@@ -25,6 +26,7 @@ const TITLES = {
   '/admin/empresas': ['Empresas', 'Cuentas registradas en la plataforma.'],
   '/admin/planes': ['Planes', 'Precios y características de los paquetes.'],
   '/admin/codigos-descuento': ['Códigos de descuento', 'Crea y administra promociones para los planes.'],
+  '/admin/productos': ['Productos', 'Catálogo público de /productos: piezas, categorías, fotos y videos.'],
 }
 
 export default function AdminLayout() {

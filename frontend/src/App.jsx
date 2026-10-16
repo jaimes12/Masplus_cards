@@ -30,6 +30,8 @@ import Planes from './pages/admin/Planes.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import AnalyticsTracker from './components/AnalyticsTracker.jsx'
 import Analitica from './pages/admin/Analitica.jsx'
+import Productos from './pages/Productos.jsx'
+import AdminProductos from './pages/admin/Productos.jsx'
 
 function App() {
   return (
@@ -39,6 +41,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/wallet/:codigoQr" element={<Wallet />} />
       <Route path="/registro/:codigo" element={<Registro />} />
+      <Route path="/productos" element={<Productos />} />
 
       <Route path="/empresa/login" element={<LoginEmpresa />} />
       <Route path="/empresa/registro" element={<RegisterEmpresa />} />
@@ -84,6 +87,7 @@ function App() {
       >
         <Route index element={<AdminDashboard />} />
         <Route path="analitica" element={<Analitica />} />
+        <Route path="productos" element={<AdminProductos />} />
         <Route path="mensajes" element={<Mensajes />} />
         <Route path="templates" element={<Templates />} />
         <Route path="empresas" element={<Empresas />} />

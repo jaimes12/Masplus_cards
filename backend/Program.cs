@@ -84,6 +84,7 @@ builder.Services.AddScoped<IStripeService, StripeService>();
 builder.Services.AddScoped<IHistorialService, HistorialService>();
 builder.Services.AddScoped<INotificacionesService, NotificacionesService>();
 builder.Services.AddScoped<IEstadisticasService, EstadisticasService>();
+builder.Services.AddScoped<IProductosService, ProductosService>();
 builder.Services.AddHttpClient<IOpenRouterService, OpenRouterService>();
 builder.Services.AddHttpClient<IWhatsAppBotClient, WhatsAppBotClient>();
 builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
