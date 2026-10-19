@@ -85,34 +85,44 @@ function BannersCarrusel({ banners }) {
 
   if (total === 0) return null
   const b = banners[Math.min(idx, total - 1)]
+  const conTexto = Boolean(b.titulo || b.subtitulo)
 
+  // La imagen manda: se muestra a su proporción real (ancho completo, alto automático) para
+  // que un banner ancho no se recorte en el celular. Solo se limita el alto máximo para que
+  // una imagen casi cuadrada no se coma la pantalla.
   const contenido = (
     <>
-      <img src={b.imagenUrl} alt={b.titulo || 'Banner'} className="absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-      {(b.titulo || b.subtitulo) && (
-        <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-10">
-          {b.titulo && (
-            <h2 className="text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{b.titulo}</h2>
-          )}
-          {b.subtitulo && <p className="mt-1 max-w-lg text-sm text-white/80 sm:text-base">{b.subtitulo}</p>}
-        </div>
+      <img
+        src={b.imagenUrl}
+        alt={b.titulo || 'Banner'}
+        className="block h-auto max-h-[300px] w-full object-cover sm:max-h-[480px]"
+      />
+      {conTexto && (
+        <>
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-4 text-white sm:p-10">
+            {b.titulo && (
+              <h2 className="text-lg font-semibold leading-tight tracking-tight sm:text-4xl">{b.titulo}</h2>
+            )}
+            {b.subtitulo && <p className="mt-0.5 max-w-lg text-xs text-white/80 sm:mt-1 sm:text-base">{b.subtitulo}</p>}
+          </div>
+        </>
       )}
     </>
   )
 
   return (
     <section className="mx-auto max-w-6xl px-4 sm:px-6">
-      <div className="relative h-[300px] overflow-hidden rounded-3xl bg-zinc-100 sm:h-[420px]">
+      <div className="relative overflow-hidden rounded-2xl bg-zinc-100 sm:rounded-3xl">
         {b.link ? (
-          <a href={b.link} target={b.link.startsWith('/') ? '_self' : '_blank'} rel="noreferrer" className="absolute inset-0">
+          <a href={b.link} target={b.link.startsWith('/') ? '_self' : '_blank'} rel="noreferrer" className="relative block">
             {contenido}
           </a>
         ) : (
-          contenido
+          <div className="relative">{contenido}</div>
         )}
         {total > 1 && (
-          <div className="absolute bottom-4 right-5 flex gap-1.5 sm:bottom-6 sm:right-8">
+          <div className="absolute bottom-3 right-4 flex gap-1.5 sm:bottom-6 sm:right-8">
             {banners.map((_, i) => (
               <button
                 key={i}
