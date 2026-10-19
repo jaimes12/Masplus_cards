@@ -154,6 +154,7 @@ public class ProductosService : IProductosService
         var producto = new Producto
         {
             Nombre = request.Nombre.Trim(),
+            Sku = Limpio(request.Sku),
             Descripcion = Limpio(request.Descripcion),
             Precio = request.Precio,
             LinkCompra = Limpio(request.LinkCompra),
@@ -166,6 +167,13 @@ public class ProductosService : IProductosService
         };
         _db.Productos.Add(producto);
         await _db.SaveChangesAsync();
+
+        if (string.IsNullOrWhiteSpace(producto.Sku))
+        {
+            producto.Sku = await GenerarSkuAsync(producto);
+            await _db.SaveChangesAsync();
+        }
+
         return await GetByIdAsync(producto.Id) ?? ToDto(producto);
     }
 
@@ -176,6 +184,7 @@ public class ProductosService : IProductosService
         if (producto == null) return null;
 
         producto.Nombre = request.Nombre.Trim();
+        producto.Sku = Limpio(request.Sku);
         producto.Descripcion = Limpio(request.Descripcion);
         producto.Precio = request.Precio;
         producto.LinkCompra = Limpio(request.LinkCompra);
@@ -187,6 +196,9 @@ public class ProductosService : IProductosService
         // Las medias se reemplazan completas: el admin manda la lista final en orden.
         _db.ProductoMedias.RemoveRange(producto.Medias);
         producto.Medias = MapMedias(request.Medias);
+
+        if (string.IsNullOrWhiteSpace(producto.Sku))
+            producto.Sku = await GenerarSkuAsync(producto);
 
         await _db.SaveChangesAsync();
         return await GetByIdAsync(id);
@@ -231,10 +243,26 @@ public class ProductosService : IProductosService
             })
             .ToList();
 
+    /// <summary>SKU automático: prefijo de 3 letras de la categoría (sin acentos) + id con ceros,
+    /// ej. "SOP-004". Legible para dictarlo por WhatsApp y único porque lleva el id.</summary>
+    private async Task<string> GenerarSkuAsync(Producto producto)
+    {
+        var nombreCategoria = producto.CategoriaId.HasValue
+            ? (await _db.ProductoCategorias.Where(c => c.Id == producto.CategoriaId.Value)
+                .Select(c => c.Nombre).FirstOrDefaultAsync())
+            : null;
+        var limpio = new string((nombreCategoria ?? "PRD")
+            .Normalize(System.Text.NormalizationForm.FormD)
+            .Where(ch => char.IsAsciiLetter(ch))
+            .ToArray());
+        var prefijo = (limpio.Length >= 3 ? limpio[..3] : "PRD").ToUpperInvariant();
+        return $"{prefijo}-{producto.Id:D3}";
+    }
+
     private static string? Limpio(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
     private static ProductoDto ToDto(Producto p) => new(
-        p.Id, p.Nombre, p.Descripcion, p.Precio, p.LinkCompra, p.Activo, p.Orden,
+        p.Id, p.Nombre, p.Sku, p.Descripcion, p.Precio, p.LinkCompra, p.Activo, p.Orden,
         p.CategoriaId, p.Categoria?.Nombre,
         p.Medias.OrderBy(m => m.Orden).Select(m => new ProductoMediaDto(m.Id, m.Url, m.Tipo, m.Orden)).ToList());
 }

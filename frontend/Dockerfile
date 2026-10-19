@@ -13,8 +13,10 @@ RUN npm run build
 
 FROM node:20-alpine
 WORKDIR /app
-RUN npm install -g serve@14
 COPY --from=build /app/dist ./dist
+COPY server.mjs ./
 
 ENV NODE_ENV=production
-CMD ["sh", "-c", "exec serve -s dist -l \"tcp://0.0.0.0:${PORT:-3000}\""]
+# server.mjs: estáticos + meta tags OG por ruta (miniatura al compartir /productos).
+# Lee VITE_API_URL del entorno en runtime (Railway la inyecta como variable del servicio).
+CMD ["node", "server.mjs"]

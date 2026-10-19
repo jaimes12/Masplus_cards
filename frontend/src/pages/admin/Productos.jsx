@@ -9,6 +9,7 @@ function fmtPrecio(n) {
 
 const emptyForm = {
   nombre: '',
+  sku: '',
   descripcion: '',
   precio: '',
   linkCompra: '',
@@ -305,6 +306,7 @@ export default function Productos() {
     setEditingId(p.id)
     setForm({
       nombre: p.nombre,
+      sku: p.sku || '',
       descripcion: p.descripcion || '',
       precio: String(p.precio),
       linkCompra: p.linkCompra || '',
@@ -352,6 +354,7 @@ export default function Productos() {
     try {
       const payload = {
         nombre: form.nombre,
+        sku: form.sku || null,
         descripcion: form.descripcion || null,
         precio: Number(form.precio) || 0,
         linkCompra: form.linkCompra || null,
@@ -462,6 +465,14 @@ export default function Productos() {
             <div>
               <Label>Nombre</Label>
               <Input value={form.nombre} onChange={(e) => update('nombre', e.target.value)} required />
+            </div>
+            <div>
+              <Label>SKU</Label>
+              <Input
+                value={form.sku}
+                onChange={(e) => update('sku', e.target.value)}
+                placeholder="Déjalo vacío y se genera solo (ej. SOP-005)"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -615,6 +626,7 @@ export default function Productos() {
               <div className="min-w-0">
                 <p className="font-medium">{p.nombre}</p>
                 <p className="text-xs text-muted-foreground">
+                  {p.sku && <span className="mr-1 rounded bg-secondary px-1.5 py-0.5 font-mono">{p.sku}</span>}
                   {p.categoriaNombre || 'Sin categoría'} · {p.medias.length} medio{p.medias.length === 1 ? '' : 's'}
                   {!p.activo && <span className="ml-1 text-red-500">· oculto</span>}
                 </p>

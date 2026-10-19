@@ -359,6 +359,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.CategoriaId).HasColumnName("categoria_id");
             e.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(150).IsRequired();
+            e.Property(x => x.Sku).HasColumnName("sku").HasMaxLength(40);
             e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(1000);
             e.Property(x => x.Precio).HasColumnName("precio").HasColumnType("decimal(10,2)");
             e.Property(x => x.LinkCompra).HasColumnName("link_compra").HasMaxLength(500);

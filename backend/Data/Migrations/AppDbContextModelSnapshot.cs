@@ -620,6 +620,11 @@ namespace MasplusCards.Api.Data.Migrations
                         .HasColumnType("decimal(10,2)")
                         .HasColumnName("precio");
 
+                    b.Property<string>("Sku")
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)")
+                        .HasColumnName("sku");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("updated_at");

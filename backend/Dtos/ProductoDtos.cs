@@ -5,6 +5,7 @@ public record ProductoMediaDto(int Id, string Url, string Tipo, int Orden);
 public record ProductoDto(
     int Id,
     string Nombre,
+    string? Sku,
     string? Descripcion,
     decimal Precio,
     string? LinkCompra,
@@ -27,6 +28,7 @@ public record ProductoMediaRequest(string Url, string Tipo);
 
 public record ProductoRequest(
     string Nombre,
+    string? Sku,
     string? Descripcion,
     decimal Precio,
     string? LinkCompra,

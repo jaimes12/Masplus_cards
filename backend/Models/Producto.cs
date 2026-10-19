@@ -17,6 +17,10 @@ public class Producto
     public int Id { get; set; }
     public int? CategoriaId { get; set; }
     public string Nombre { get; set; } = "";
+
+    /// <summary>Clave corta y única del producto (ej. "SOP-003"). Se genera sola al crear
+    /// (prefijo de la categoría + id) si el admin no escribe una.</summary>
+    public string? Sku { get; set; }
     public string? Descripcion { get; set; }
     public decimal Precio { get; set; }
     public string? LinkCompra { get; set; }
