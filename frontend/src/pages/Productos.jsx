@@ -43,17 +43,17 @@ function MediaCarrusel({ medias, nombre }) {
             type="button"
             aria-label="Anterior"
             onClick={() => setIdx((i) => (i - 1 + total) % total)}
-            className="absolute left-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-zinc-700 shadow-sm transition-opacity hover:bg-white sm:opacity-0 sm:group-hover:opacity-100"
+            className="absolute left-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-zinc-700 shadow-sm transition-opacity hover:bg-white sm:left-2 sm:h-9 sm:w-9 sm:opacity-0 sm:group-hover:opacity-100"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
           <button
             type="button"
             aria-label="Siguiente"
             onClick={() => setIdx((i) => (i + 1) % total)}
-            className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-zinc-700 shadow-sm transition-opacity hover:bg-white sm:opacity-0 sm:group-hover:opacity-100"
+            className="absolute right-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-zinc-700 shadow-sm transition-opacity hover:bg-white sm:right-2 sm:h-9 sm:w-9 sm:opacity-0 sm:group-hover:opacity-100"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
           <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
             {medias.map((_, i) => (
@@ -225,28 +225,35 @@ export default function Productos() {
           {productos.length === 0 ? (
             <p className="mt-16 text-center text-sm text-zinc-400">Pronto habrá piezas nuevas por aquí.</p>
           ) : (
-            <div className="mt-8 grid gap-x-5 gap-y-12 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3">
+            // 2 columnas también en celular (estilo marketplace): compacto en móvil, con aire desde tablet.
+            <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3">
             {productos.map((p) => (
               <article key={p.id}>
                 <MediaCarrusel medias={p.medias} nombre={p.nombre} />
-                <div className="mt-4 flex items-start justify-between gap-3">
+                <div className="mt-2.5 flex items-start justify-between gap-2 sm:mt-4 sm:gap-3">
                   <div className="min-w-0">
-                    <h2 className="font-medium">{p.nombre}</h2>
+                    <h2 className="text-sm font-medium leading-snug sm:text-base">{p.nombre}</h2>
                     {p.categoriaNombre && (
-                      <p className="mt-0.5 text-xs uppercase tracking-wide text-zinc-400">{p.categoriaNombre}</p>
+                      <p className="mt-0.5 text-[10px] uppercase tracking-wide text-zinc-400 sm:text-xs">
+                        {p.categoriaNombre}
+                      </p>
                     )}
                   </div>
-                  <p className="shrink-0 font-semibold tabular-nums">{fmtPrecio(p.precio)}</p>
+                  <p className="shrink-0 text-sm font-semibold tabular-nums sm:text-base">{fmtPrecio(p.precio)}</p>
                 </div>
-                {p.descripcion && <p className="mt-2 text-sm leading-relaxed text-zinc-500">{p.descripcion}</p>}
+                {p.descripcion && (
+                  <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-zinc-500 sm:mt-2 sm:line-clamp-none sm:text-sm">
+                    {p.descripcion}
+                  </p>
+                )}
                 {p.linkCompra && (
                   <a
                     href={p.linkCompra}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-700"
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-700 sm:mt-4 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm"
                   >
-                    <ShoppingBag className="h-4 w-4" /> Comprar
+                    <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Comprar
                   </a>
                 )}
               </article>
