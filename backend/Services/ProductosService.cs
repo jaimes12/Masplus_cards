@@ -41,6 +41,18 @@ public class ProductosService : IProductosService
         return new CatalogoDto(banners, categorias, productos.Select(ToDto).ToList());
     }
 
+    public async Task<CatalogoStatsDto> GetCatalogoStatsAsync(int dias)
+    {
+        dias = Math.Clamp(dias, 1, 365);
+        var desde = MexicoCityTime.Now().Date.AddDays(-(dias - 1));
+        var vistas = _db.VisitasEventos
+            .Where(e => e.Tipo == "pageview" && e.Valor == "/productos" && e.CreatedAt >= desde);
+        return new CatalogoStatsDto(
+            await vistas.Select(e => e.VisitanteId).Distinct().CountAsync(),
+            await vistas.CountAsync(),
+            dias);
+    }
+
     public async Task<List<ProductoBannerDto>> GetBannersAsync()
     {
         return await _db.ProductoBanners

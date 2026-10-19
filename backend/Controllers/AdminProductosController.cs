@@ -44,6 +44,10 @@ public class AdminProductosController : ControllerBase
     public async Task<IActionResult> Eliminar(int id) =>
         await _productos.EliminarAsync(id) ? NoContent() : NotFound();
 
+    [HttpGet("stats")]
+    public async Task<ActionResult<CatalogoStatsDto>> GetStats([FromQuery] int dias = 30) =>
+        Ok(await _productos.GetCatalogoStatsAsync(dias));
+
     [HttpGet("banners")]
     public async Task<ActionResult<List<ProductoBannerDto>>> GetBanners() => Ok(await _productos.GetBannersAsync());
 

@@ -36,3 +36,6 @@ public record ProductoRequest(
     List<ProductoMediaRequest>? Medias);
 
 public record ProductoCategoriaRequest(string Nombre, int Orden);
+
+/// <summary>Cuánta gente ha visto /productos (medidor propio de visitas).</summary>
+public record CatalogoStatsDto(int Visitantes, int Vistas, int Dias);

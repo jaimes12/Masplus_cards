@@ -13,7 +13,7 @@ const ENDPOINT = `${API_URL}/api/analytics/eventos`
 const SESION_TIMEOUT_MS = 30 * 60 * 1000
 
 // Solo rastreamos el sitio público: el panel de empresa/admin no es tráfico de marketing.
-const RUTAS_PUBLICAS = [/^\/$/, /^\/registro\//, /^\/empresa\/registro$/, /^\/empresa\/login$/, /^\/wallet\//]
+const RUTAS_PUBLICAS = [/^\/$/, /^\/registro\//, /^\/empresa\/registro$/, /^\/empresa\/login$/, /^\/wallet\//, /^\/productos$/]
 
 let cola = []
 let flushTimer = null

@@ -9,6 +9,7 @@ public interface IProductosService
     Task<List<ProductoCategoriaDto>> GetCategoriasAsync();
     Task<ProductoCategoriaDto> CrearCategoriaAsync(ProductoCategoriaRequest request);
     Task<bool> EliminarCategoriaAsync(int id);
+    Task<CatalogoStatsDto> GetCatalogoStatsAsync(int dias);
     Task<List<ProductoBannerDto>> GetBannersAsync();
     Task<ProductoBannerDto> CrearBannerAsync(ProductoBannerRequest request);
     Task<ProductoBannerDto?> ActualizarBannerAsync(int id, ProductoBannerRequest request);

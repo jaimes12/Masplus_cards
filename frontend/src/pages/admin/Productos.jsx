@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, Film, Plus, Trash2, Upload, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ExternalLink, Eye, Film, Plus, Trash2, Upload, X } from 'lucide-react'
 import { api, API_URL, getAuth } from '../../lib/api.js'
 import { Button, Card, Input, Label, Select } from '../../components/ui.jsx'
 
@@ -33,6 +33,29 @@ async function subirMedia(file) {
 }
 
 const emptyBanner = { imagenUrl: '', titulo: '', subtitulo: '', link: '', orden: 0, activo: true }
+
+/** Overlay modal compartido por los formularios del admin de productos. */
+function Modal({ titulo, onClose, children }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 sm:p-8"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl rounded-2xl border border-border bg-card p-5 shadow-2xl sm:p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <p className="font-medium">{titulo}</p>
+          <button type="button" onClick={onClose} className="rounded-full p-1.5 hover:bg-secondary" aria-label="Cerrar">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 /** Sección de banners del catálogo: imagen ancha + texto opcional, rotan en la página pública. */
 function BannersAdmin() {
@@ -181,7 +204,8 @@ function BannersAdmin() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mt-4 grid gap-3 rounded-xl border border-border p-4 sm:grid-cols-2">
+        <Modal titulo={editingId ? 'Editar banner' : 'Nuevo banner'} onClose={() => setShowForm(false)}>
+        <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <Label>Imagen del banner</Label>
             <div className="mt-1 flex items-center gap-3">
@@ -230,6 +254,7 @@ function BannersAdmin() {
             </Button>
           </div>
         </form>
+        </Modal>
       )}
     </Card>
   )
@@ -238,6 +263,7 @@ function BannersAdmin() {
 export default function Productos() {
   const [productos, setProductos] = useState([])
   const [categorias, setCategorias] = useState([])
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -249,9 +275,14 @@ export default function Productos() {
   const fileRef = useRef(null)
 
   async function load() {
-    const [p, c] = await Promise.all([api.get('/api/admin/productos'), api.get('/api/admin/productos/categorias')])
+    const [p, c, s] = await Promise.all([
+      api.get('/api/admin/productos'),
+      api.get('/api/admin/productos/categorias'),
+      api.get('/api/admin/productos/stats?dias=30').catch(() => null),
+    ])
     setProductos(p)
     setCategorias(c)
+    setStats(s)
     setLoading(false)
   }
 
@@ -369,17 +400,28 @@ export default function Productos() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Productos</h1>
-          <p className="text-sm text-muted-foreground">
-            El catálogo público vive en{' '}
-            <a href="/productos" target="_blank" rel="noreferrer" className="font-medium text-accent underline">
-              /productos
-            </a>
-            .
-          </p>
+          {stats && (
+            <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Eye className="h-4 w-4" />
+              <span className="font-semibold text-foreground">{stats.visitantes}</span> persona
+              {stats.visitantes === 1 ? '' : 's'} han visto el catálogo · {stats.vistas} visita
+              {stats.vistas === 1 ? '' : 's'} en {stats.dias} días
+            </p>
+          )}
         </div>
-        <Button type="button" className="gap-2" onClick={startNew}>
-          <Plus className="h-4 w-4" /> Nuevo producto
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="gap-2"
+            onClick={() => window.open('/productos', '_blank')}
+          >
+            <ExternalLink className="h-4 w-4" /> Ver catálogo
+          </Button>
+          <Button type="button" className="gap-2" onClick={startNew}>
+            <Plus className="h-4 w-4" /> Nuevo producto
+          </Button>
+        </div>
       </div>
 
       <BannersAdmin />
@@ -415,13 +457,7 @@ export default function Productos() {
       </Card>
 
       {showForm && (
-        <Card>
-          <div className="mb-4 flex items-center justify-between">
-            <p className="font-medium">{editingId ? 'Editar producto' : 'Nuevo producto'}</p>
-            <button type="button" onClick={() => setShowForm(false)} className="rounded-full p-1 hover:bg-secondary">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+        <Modal titulo={editingId ? 'Editar producto' : 'Nuevo producto'} onClose={() => setShowForm(false)}>
           <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Nombre</Label>
@@ -558,7 +594,7 @@ export default function Productos() {
               </Button>
             </div>
           </form>
-        </Card>
+        </Modal>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
