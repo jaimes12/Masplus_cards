@@ -287,3 +287,23 @@ body {
 .shadow-soft-lg {
   box-shadow: 0 8px 16px rgba(24, 24, 27, 0.04), 0 24px 48px -16px rgba(24, 24, 27, 0.18);
 }
+
+/* Fondo animado del catálogo (/productos): manchas de color difuminadas que derivan en loop.
+   Muy sutiles para no pelear con las fotos de producto. */
+@keyframes blob-drift-a {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(12vw, 14vh) scale(1.18); }
+  66% { transform: translate(-6vw, 24vh) scale(0.92); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+@keyframes blob-drift-b {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-14vw, -10vh) scale(0.9); }
+  66% { transform: translate(8vw, -20vh) scale(1.15); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.animate-blob-a { animation: blob-drift-a 36s ease-in-out infinite; }
+.animate-blob-b { animation: blob-drift-b 44s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob-a, .animate-blob-b { animation: none; }
+}

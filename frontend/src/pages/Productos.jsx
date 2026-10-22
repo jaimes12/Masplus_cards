@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, ShoppingBag, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, ShoppingBag, X } from 'lucide-react'
 import { api } from '../lib/api.js'
 
 /** WhatsApp de la tienda de productos (no es el de Masplus Cards). */
@@ -269,6 +269,7 @@ function Ticker() {
 export default function Productos() {
   const [catalogo, setCatalogo] = useState(null)
   const [categoriaId, setCategoriaId] = useState(null)
+  const [busqueda, setBusqueda] = useState('')
   const [detalle, setDetalle] = useState(null)
   const [error, setError] = useState('')
 
@@ -286,12 +287,26 @@ export default function Productos() {
   if (error) return <p className="p-10 text-center text-sm text-zinc-500">{error}</p>
   if (!catalogo) return <p className="p-10 text-center text-sm text-zinc-400">Cargando...</p>
 
-  const productos = categoriaId
-    ? catalogo.productos.filter((p) => p.categoriaId === categoriaId)
-    : catalogo.productos
+  const normaliza = (t) =>
+    (t || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+  const q = normaliza(busqueda.trim())
+  const productos = catalogo.productos.filter((p) => {
+    if (categoriaId && p.categoriaId !== categoriaId) return false
+    if (!q) return true
+    return [p.nombre, p.sku, p.descripcion, p.categoriaNombre].some((campo) => normaliza(campo).includes(q))
+  })
 
   return (
-    <div className="min-h-svh bg-white text-zinc-900">
+    <div className="relative min-h-svh overflow-x-clip bg-white text-zinc-900">
+      {/* Fondo animado en loop: dos manchas difuminadas que derivan lento detrás del contenido. */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
+        <div className="animate-blob-a absolute -left-40 -top-40 h-[480px] w-[480px] rounded-full bg-orange-200/35 blur-3xl" />
+        <div className="animate-blob-b absolute -bottom-48 -right-32 h-[520px] w-[520px] rounded-full bg-sky-200/30 blur-3xl" />
+        <div className="animate-blob-a absolute left-1/2 top-1/3 h-[360px] w-[360px] rounded-full bg-violet-200/25 blur-3xl" style={{ animationDelay: '-18s' }} />
+      </div>
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 pb-4 pt-8 sm:px-6 sm:pt-10">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-zinc-400">Catálogo</p>
         <a href="#catalogo" className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-400 hover:text-zinc-900">
@@ -309,6 +324,16 @@ export default function Productos() {
         <section id="catalogo" className="mx-auto max-w-6xl scroll-mt-10 px-4 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-2xl font-semibold tracking-tight">Todas las piezas</h2>
+            <div className="relative w-full sm:w-72">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <input
+                type="search"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar pieza, SKU o categoría..."
+                className="h-11 w-full rounded-full border border-zinc-200 bg-white/80 pl-10 pr-4 text-sm outline-none backdrop-blur transition-colors focus:border-zinc-400"
+              />
+            </div>
             {catalogo.categorias.length > 1 && (
               <div className="flex flex-wrap gap-2">
                 <button
@@ -341,7 +366,9 @@ export default function Productos() {
           </div>
 
           {productos.length === 0 ? (
-            <p className="mt-16 text-center text-sm text-zinc-400">Pronto habrá piezas nuevas por aquí.</p>
+            <p className="mt-16 text-center text-sm text-zinc-400">
+              {q ? `Nada que coincida con "${busqueda.trim()}".` : 'Pronto habrá piezas nuevas por aquí.'}
+            </p>
           ) : (
             // 2 columnas también en celular (estilo marketplace): compacto en móvil, con aire desde tablet.
             <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3">
